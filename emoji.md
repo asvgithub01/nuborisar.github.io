@@ -5,7 +5,6 @@
 :white_check_mark:
 :warning:
 :bulb:
-
 # Orchextra SDK for Android
 [![Build Status](https://travis-ci.org/Orchextra/orchextra-android-sdk.svg?branch=ocm_integration)](https://travis-ci.org/Orchextra/orchextra-android-sdk)
 [![codecov.io](https://codecov.io/github/Orchextra/orchextra-android-sdk/coverage.svg?branch=master)](https://codecov.io/github/Orchextra/orchextra-android-sdk)
@@ -54,7 +53,7 @@ Thinking about how to improve , in this version we have created different flavor
 And generating 4 versions of .aar possibilities.
 and we add the Orchextra dependency in our **sdkVersionAppInfo** module:
 
-:bulb:with GCM 7.8
+:bulb: with GCM 7.8
 ```groovy
    compile('com.github.orchextra.orchextra-android-sdk:orchextrasdk:4.0.0RC:play7Release@aar')
    {transitive true}
@@ -106,7 +105,8 @@ OrchextraBuilder builder = new OrchextraBuilder(this)
 
 **IMPORTANT** if you are using Android Studio 2.1 or higher, and have "Instant Run" enabled, the first time you install the APK is installed in new device, the initialize() spends too much time, maybe a minute on older devices.The second time the problem disappears. To avoid this problem in Android Studio, disables the " Instant Run" from settings-> Build , Execution , Deployment- > Instant Run
 
-:bulb:## Set Notification Activity 
+## Set Notification Activity :bulb:
+
 Now you can choose the Activity that Orchextra uses for execute the action. This is very usefull when your application have SlashScreen Activity or your apllication only use Orchextra features if the user do login, for example. If you don't set this, the launcher Activity becomes the Notification Activity.
 
 For set the activity you must set in the OrchextraBuilder
@@ -148,7 +148,8 @@ Orchextra.start();
 ```
 After calling start, you can call `Orchextra.stop()` if you need to stop all Orchextra features, so you can call again start or stop in order to fit your requirements.
 
-:bulb: ## New Methods Pause/ReStart services on Orchextra SDK
+## New Methods Pause/ReStart services on Orchextra SDK :bulb:
+ 
 We create new methods, for pause/restart geofencing and ranging  monitoring. You can call this methods anytime, after first Orchextra.start()
 ```java
 Orchextra.pause(Context);
@@ -157,7 +158,8 @@ Orchextra.pause(Context);
 Orchextra.reStart(Context);
 ```
 
-:bulb: ## New Method  refreshConfigurationInBackground on Orchextra SDK
+## New Method  refreshConfigurationInBackground on Orchextra SDK :bulb:
+ 
 This new method is very usefull if your Orchextra Project require to much geofences or beacon regions and you want to update that by time or distance with background process.
 ```java
 Orchextra.refreshConfigurationInBackground(Context);
@@ -186,7 +188,8 @@ Orchextra.setCustomSchemeReceiver(new CustomSchemeReceiver() {
 ```
 You can redefine this receiver in other places of your application. For example one in MainActivity and another diferent in DetailActivity.
 
-:bulb: ## Bind/unBind user to Orchextra
+## Bind/unBind user to Orchextra :bulb: 
+
 CrmUser class is a local representation of a user persisted to the Orchextra Database to help to create a good user segmentation. This object is optional and could be set up at any time.
 
 ```java
@@ -359,7 +362,8 @@ In the same way, some color you can customize are
  - ox_notification_color_small_icon(3*): Icon is showed in the notifications big end-bottom.
  - ox_close: Icon which is locate in the upper left corner of a screen and is used to close the view.
 
-:bulb:## New Custom Notifications Orchextra
+## New Custom Notifications Orchextra :bulb:
+
 We change the notifications to become in Custom notifications. For this we have generated 4 templates that can be overwritten from the SDK integrator app. Below we describe the templates and in which case they will be used by the SDK.
 
 For notifications from Push:
@@ -377,7 +381,8 @@ This is the image using on the templates:
 
 ![images uses](https://nuborisar.github.io/resources_notification.png)
 This sample is from Big notification, push or local are equals.
-:bulb: **IMPORTANT** you must respect the ids of the views inside the notification template, if you don´t want show any view, not remove, put visibility gone atributte instead.
+:bulb:
+ **IMPORTANT** you must respect the ids of the views inside the notification template, if you don´t want show any view, not remove, put visibility gone atributte instead.
 
 ## Push Notifications Orchextra
 
@@ -420,7 +425,7 @@ Image recognition is added as an add-on to Orchextra, by default SDK is not cont
 So, you can add the corresponding implementation as a gradle dependency to your project, at this moment the only available implementation is using Vuforia as image recognition engine. Here you have the gradle dependency:
 ```groovy
  //vuforia 6.0
-    compile 'com.github.GigigoGreenLabs.imgRecogModule:vuforiaimplementation:1.0'
+    compile 'com.github.GigigoGreenLabs.imgRecogModule:vuforiaimplementation:1.9'
 ```
 
 Once you have added this dependency you will be able to inform OrchextraBuilder SDK about it has to use this implementation. You can do it this way:
@@ -502,7 +507,7 @@ OrchextraBuilder builder = new OrchextraBuilder(this)
                 ...
         Orchextra.initialize(builder);
 ```
-## Realm Support
+## Realm Support :bulb:
  We use this version of Realm:
 
  classpath 'io.realm:realm-gradle-plugin:1.0.0'
