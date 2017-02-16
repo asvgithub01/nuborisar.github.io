@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+html *
+{
+   font-size: 1em !important;
+   color: #000 !important;
+   font-family: Arial !important;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    background-color:#39f;
+    color: #fff !important;
+}
+th{background-color:#eee; color: #000 !important;}
+td.on { background-color:#00d75f;color: #000 !important; }
+td.of { background-color:#EE524F;color: #000 !important; }
+td.alt{ background-color:#bbb;}
+ 
+</style>
+</head>
+<body>
+  
+<table style="width:100%">
+  <tr>
+    <th>Version</th>
+    <th>Android API</th> 
+    <th>P.Location</th>  
+    <th>P.Camera</th>  
+    <th>F.Auth</th>    
+    <th>F.Scan</th>
+    <th>F.Push</th>    
+    <th>F.Beacons</th>
+    <th>F.Geofences</th>
+	<th>F.Schedulable</th>	 
+	<th>F.ImgRecognition</th>
+  </tr>
+  <tr>
+  	<td>play7ReleaseCompile</td>
+    <td>API<18</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="of"> </td>
+    <td class="of">  </td>    
+    <td class="of"> </td>
+    <td class="of"> </td>
+	<td class="of"> </td>	 
+	<td class="of"> </td>
+  </tr>
+   <tr>
+  	<td></td>
+    <td>API>18 && API<23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="on"> </td>
+    <td class="on">  </td>    
+    <td class="on"> </td>
+    <td class="on"> </td>
+	<td class="on"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td></td>
+    <td>API>=23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>  
+    <td class="on"> </td>
+    <td class="on"> </td>    
+    <td class="on"> </td>
+    <td class="on"> </td>
+	<td class="on"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td></td>
+    <td> </td>
+    <td class="of">Denied</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>     
+    <td class="on"> </td>  
+    <td class="on"> </td>      
+    <td class="of"> </td>  
+    <td class="of"> </td>  
+	<td class="on"> </td>  	 
+	<td class="on"> </td>  
+  </tr>
+  <tr>
+  	<td></td>
+    <td> </td>
+    <td class="on">Granted</td>  
+    <td class="of">Denied</td>  
+    <td class="on"> </td>     
+    <td class="of"> </td>  
+    <td class="on"> </td>      
+    <td class="on"> </td>  
+    <td class="on"> </td>  
+	<td class="on"> </td>  	 
+	<td class="of"> </td>  
+  </tr>
+  <tr>
+ 	<td class="alt" colspan="12"></td>
+  </tr>
+  <tr>
+  	<td  >play8ReleaseCompile</td>
+    <td  >API<18</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="of"> </td>
+    <td class="of">  </td>    
+    <td class="of"> </td>
+    <td class="of"> </td>
+	<td class="of"> </td>	 
+	<td class="of"> </td>
+  </tr>
+   <tr>
+  	<td  ></td>
+    <td  >API>18 && API<23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="on"> </td>
+    <td class="on">  </td>    
+    <td class="on"> </td>
+    <td class="on"> </td>
+	<td class="on"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td  ></td>
+    <td  >API>=23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>  
+    <td class="on"> </td>
+    <td class="on"> </td>    
+    <td class="on"> </td>
+    <td class="on"> </td>
+	<td class="on"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td  ></td>
+    <td  > </td>
+    <td class="of">Denied</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>     
+    <td class="on"> </td>  
+    <td class="on"> </td>      
+    <td class="of"> </td>  
+    <td class="of"> </td>  
+	<td class="on"> </td>  	 
+	<td class="on"> </td>  
+  </tr>
+  <tr>
+  	<td  ></td>
+    <td  > </td>
+    <td class="on">Granted</td>  
+    <td class="of">Denied</td>  
+    <td class="on"> </td>     
+    <td class="of"> </td>  
+    <td class="on"> </td>      
+    <td class="on"> </td>  
+    <td class="on"> </td>  
+	<td class="on"> </td>  	 
+	<td class="of"> </td>  
+  </tr>
+  <tr>
+ 	<td class="alt" colspan="12"></td>
+  </tr>
+  <tr>
+  	<td >play9ReleaseCompile</td>
+    <td>API<18</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="of"> </td>
+    <td class="of">  </td>    
+    <td class="of"> </td>
+    <td class="of"> </td>
+	<td class="of"> </td>	 
+	<td class="of"> </td>
+  </tr>
+   <tr>
+  	<td></td>
+    <td>API>18 && API<23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="on"> </td>
+    <td class="on">  </td>    
+    <td class="on"> </td>
+    <td class="on"> </td>
+	<td class="on"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td></td>
+    <td>API>=23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>  
+    <td class="on"> </td>
+    <td class="on"> </td>    
+    <td class="on"> </td>
+    <td class="on"> </td>
+	<td class="on"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td></td>
+    <td> </td>
+    <td class="of">Denied</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>     
+    <td class="on"> </td>  
+    <td class="on"> </td>      
+    <td class="of"> </td>  
+    <td class="of"> </td>  
+	<td class="on"> </td>  	 
+	<td class="on"> </td>  
+  </tr>
+  <tr>
+  	<td></td>
+    <td> </td>
+    <td class="on">Granted</td>  
+    <td class="of">Denied</td>  
+    <td class="on"> </td>     
+    <td class="of"> </td>  
+    <td class="on"> </td>      
+    <td class="on"> </td>  
+    <td class="on"> </td>  
+	<td class="on"> </td>  	 
+	<td class="of"> </td>  
+  </tr>
+  <tr>
+ 	<td class="alt" colspan="12"></td>
+  </tr>
+   <tr>
+  	<td  >playNoReleaseCompile</td>
+    <td  >API<18</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>    
+    <td class="of"> </td>
+    <td class="of">  </td>    
+    <td class="of"> </td>
+    <td class="of"> </td>
+	<td class="of"> </td>	 
+	<td class="of"> </td>
+  </tr>
+   <tr>
+  	<td  ></td>
+    <td  >API>18 && API<23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"></td>    
+    <td class="on"></td>
+    <td class="of"></td>    
+    <td class="of"></td>
+    <td class="of"></td>
+	<td class="of"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td  ></td>
+    <td  >API>=23</td>
+    <td class="on">Granted</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>  
+    <td class="on"> </td>
+    <td class="of"> </td>    
+    <td class="of"> </td>
+    <td class="of"> </td>
+	<td class="of"> </td>	 
+	<td class="on"> </td>
+  </tr>
+  <tr>
+  	<td  ></td>
+    <td  ></td>
+    <td class="of">Denied</td>  
+    <td class="on">Granted</td>  
+    <td class="on"> </td>     
+    <td class="on"> </td>  
+    <td class="of"> </td>      
+    <td class="of"> </td>  
+    <td class="of"> </td>  
+	<td class="of"> </td>  	 
+	<td class="on"> </td>  
+  </tr>
+  <tr>
+  	<td  ></td>
+    <td  > </td>
+    <td class="on">Granted</td>  
+    <td class="of">Denied</td>  
+    <td class="on"> </td>     
+    <td class="of"> </td>  
+    <td class="of"> </td>      
+    <td class="of"> </td>  
+    <td class="of"> </td>  
+	<td class="of"> </td>  	 
+	<td class="of"> </td>  
+  </tr>
+  
+</table>
+
+</body>
+</html>
