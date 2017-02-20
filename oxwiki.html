@@ -36,11 +36,13 @@
   <!-- Initializer -->
   <script>
   
- 
+ Flatdoc.run({
+  fetcher: Flatdoc.file('README.md')
+});
   
-    Flatdoc.run({
+ <!--   Flatdoc.run({
       fetcher: Flatdoc.github('Orchextra/orchextra-android-sdk','README.md')
-    });
+    });-->
   </script>
 </head>
 <body role='flatdoc'>
