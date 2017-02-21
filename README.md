@@ -1,4 +1,4 @@
-# Orchextra SDK for Android
+﻿# Orchextra SDK for Android
 [![Build Status](https://travis-ci.org/Orchextra/orchextra-android-sdk.svg?branch=ocm_integration)](https://travis-ci.org/Orchextra/orchextra-android-sdk)
 [![codecov.io](https://codecov.io/github/Orchextra/orchextra-android-sdk/coverage.svg?branch=master)](https://codecov.io/github/Orchextra/orchextra-android-sdk)
 ![Language](https://img.shields.io/badge/Language-Android-brightgreen.svg)
@@ -32,7 +32,7 @@ Android Jelly Bean (v. 18) or later. But Orchextra can be integrated in Android 
 ## Add the dependency to Orchextra Core
 We have to add the gradle dependencies. In our rootproject **build.gradle** file, we add the following maven dependency. This is required in order to advice gradle that it has to look for Orchextra sdk inside **jitpack.io** maven repository. Gradle file is this one:
 
-<img src="https://github.com/Orchextra/orchextra-android-sdk/blob/master/resources/rootGradleScreenshot.png" width="300">
+![images uses](https://nuborisar.github.io/oxImages/rootGradleScreenshot.png)
 
 ```java
 allprojects {
@@ -76,8 +76,8 @@ If you use playnoRelease, some orchextraSDK features will not be available, geof
 If you choose a Google Play Services aar of Orchextra you can add to the OrchextraBuilder the project number from Google Console aka sender id
 The previous dependency has to be added into this file:
 
-<img src="https://github.com/Orchextra/orchextra-android-sdk/blob/master/resources/appGradleScreenshot.png" width="300">
-
+<img src="https://nuborisar.github.io/oxImages/appGradleScreenshot.png" width="300">
+![images uses](https://nuborisar.github.io/oxImages/appGradleScreenshot.png)
 and we must sync gradle project.
 
 ## Integrate Orchextra SDK
