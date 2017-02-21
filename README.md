@@ -36,7 +36,7 @@ We have to add the gradle dependencies. In our rootproject **build.gradle** file
 
 
 
-```java
+```groovy
 allprojects {
     repositories {
         jcenter()
@@ -86,7 +86,7 @@ and we must sync gradle project.
 ## Integrate Orchextra SDK
 We have to created a class which **extends from Application** (if we didn't do yet) and add the Orchextra init method is . We could implement OrchextraCompletionCallback interface in order to receive the orchextra status. <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> This Callback have a new event, onConfigurationReceive, for know when the configuration request ends.
 
-```java
+```csharp
 @Override
 public void onCreate() {
 OrchextraBuilder builder = new OrchextraBuilder(this)
@@ -106,6 +106,7 @@ OrchextraBuilder builder = new OrchextraBuilder(this)
 Now you can choose the Activity that Orchextra uses for execute the action. This is very usefull when your application have SlashScreen Activity or your apllication only use Orchextra features if the user do login, for example. If you don't set this, the launcher Activity becomes the Notification Activity.
 
 For set the activity you must set in the OrchextraBuilder
+
 ```java
 public void onCreate() {
 OrchextraBuilder builder = new OrchextraBuilder(this)
