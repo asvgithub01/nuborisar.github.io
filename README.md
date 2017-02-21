@@ -32,7 +32,7 @@ Android Jelly Bean (v. 18) or later. But Orchextra can be integrated in Android 
 ## Add the dependency to Orchextra Core
 We have to add the gradle dependencies. In our rootproject **build.gradle** file, we add the following maven dependency. This is required in order to advice gradle that it has to look for Orchextra sdk inside **jitpack.io** maven repository. Gradle file is this one:
 
-![images uses](https://nuborisar.github.io/oxImages/rootGradleScreenshot.png)
+<img src="https://nuborisar.github.io/oxImages/rootGradleScreenshot.png" width="300">
 
 ```java
 allprojects {
@@ -77,7 +77,8 @@ If you choose a Google Play Services aar of Orchextra you can add to the Orchext
 The previous dependency has to be added into this file:
 
 <img src="https://nuborisar.github.io/oxImages/appGradleScreenshot.png" width="300">
-![images uses](https://nuborisar.github.io/oxImages/appGradleScreenshot.png)
+
+
 and we must sync gradle project.
 
 ## Integrate Orchextra SDK
@@ -393,7 +394,8 @@ This is the image using on the templates:
 - 2->ox_notification_large_icon.png
 - 3->ox_notification_color_small_icon.png
 
-![images uses](https://nuborisar.github.io/resources_notification.png)
+<img src="https://nuborisar.github.io/resources_notification.png" width="300">
+
 This sample is from Big notification, push or local are equals.
 :bulb:
  **IMPORTANT** you must respect the ids of the views inside the notification template, if you don´t want show any view, not remove, put visibility gone atributte instead.
