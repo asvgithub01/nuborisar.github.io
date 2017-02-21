@@ -34,6 +34,8 @@ We have to add the gradle dependencies. In our rootproject **build.gradle** file
 
 <img src="https://nuborisar.github.io/oxImages/rootGradleScreenshot.png" width="300">
 
+
+
 ```java
 allprojects {
     repositories {
@@ -46,28 +48,28 @@ Thinking about how to improve , in this version we have created different flavor
 And generating 4 versions of .aar possibilities.
 and we add the Orchextra dependency in our **sdkVersionAppInfo** module:
 
-:bulb: with GCM 7.8
+<img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> with GCM 7.8
 ```groovy
    compile('com.github.orchextra.orchextra-android-sdk:orchextrasdk:4.0.1RC:play7Release@aar')
    {transitive true}
    compile 'com.google.android.gms:play-services-location:7.8.0'
    compile 'com.google.android.gms:play-services-gcm:7.8.0'
 ```
-:bulb: or with GCM 8.4
+<img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> or with GCM 8.4
 ```groovy
    compile('com.github.orchextra.orchextra-android-sdk:orchextrasdk:4.0.1RC:play8Release@aar')
    {transitive true}
    compile 'com.google.android.gms:play-services-location:8.4.0'
    compile 'com.google.android.gms:play-services-gcm:8.4.0'
 ```
-:bulb: or with GCM 9.0
+<img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> or with GCM 9.0
 ```groovy
    compile('com.github.orchextra.orchextra-android-sdk:orchextrasdk:4.0.1RC:play9Release@aar')
      {transitive true}
    compile 'com.google.android.gms:play-services-location:9.0.0'
    compile 'com.google.android.gms:play-services-gcm:9.0.0'
 ```
-:bulb: or without Google Play Services
+<img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> or without Google Play Services
 ```groovy
    compile('com.github.orchextra.orchextra-android-sdk:orchextrasdk:4.0.1RC:playnoRelease@aar')
      {transitive true}
@@ -82,7 +84,7 @@ The previous dependency has to be added into this file:
 and we must sync gradle project.
 
 ## Integrate Orchextra SDK
-We have to created a class which **extends from Application** (if we didn't do yet) and add the Orchextra init method is . We could implement OrchextraCompletionCallback interface in order to receive the orchextra status. :bulb: This Callback have a new event, onConfigurationReceive, for know when the configuration request ends.
+We have to created a class which **extends from Application** (if we didn't do yet) and add the Orchextra init method is . We could implement OrchextraCompletionCallback interface in order to receive the orchextra status. <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> This Callback have a new event, onConfigurationReceive, for know when the configuration request ends.
 
 ```java
 @Override
@@ -99,7 +101,7 @@ OrchextraBuilder builder = new OrchextraBuilder(this)
 
 **IMPORTANT** if you are using Android Studio 2.1 or higher, and have "Instant Run" enabled, the first time you install the APK is installed in new device, the initialize() spends too much time, maybe a minute on older devices.The second time the problem disappears. To avoid this problem in Android Studio, disables the " Instant Run" from settings-> Build , Execution , Deployment- > Instant Run
 
-## Set Notification Activity :bulb:
+## Set Notification Activity <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
 
 Now you can choose the Activity that Orchextra uses for execute the action. This is very usefull when your application have SlashScreen Activity or your apllication only use Orchextra features if the user do login, for example. If you don't set this, the launcher Activity becomes the Notification Activity.
 
@@ -118,7 +120,7 @@ OrchextraBuilder builder = new OrchextraBuilder(this)
         }
 ```
 
-## Set background Beacons Scan Mode :bulb:
+## Set background Beacons Scan Mode <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
  Now you can set mode background for beacons, for detect beacons very quickly when the app is closed. For now we have only two modes, NORMAL mode and HARDCORE, for increase scanner beacon activity. The battery consumption will be higher in Hardcore mode.
 ```java
 public void onCreate() {
@@ -156,7 +158,7 @@ Orchextra.start();
 ```
 After calling start, you can call `Orchextra.stop()` if you need to stop all Orchextra features, so you can call again start or stop in order to fit your requirements.
 
-## New Methods Pause/ReStart services on Orchextra SDK :bulb:
+## New Methods Pause/ReStart services on Orchextra SDK <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
 
 We create new methods, for pause/restart geofencing and ranging  monitoring. You can call this methods anytime, after first Orchextra.start()
 ```java
@@ -166,7 +168,7 @@ Orchextra.pause(Context);
 Orchextra.reStart(Context);
 ```
 
-## New Method  refreshConfigurationInBackground on Orchextra SDK :bulb:
+## New Method  refreshConfigurationInBackground on Orchextra SDK <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
 
 This new method is very usefull if your Orchextra Project require to much geofences or beacon regions and you want to update that by time or distance with background process.
 ```java
@@ -196,7 +198,7 @@ Orchextra.setCustomSchemeReceiver(new CustomSchemeReceiver() {
 ```
 You can redefine this receiver in other places of your application. For example one in MainActivity and another diferent in DetailActivity.
 
-## Bind/unBind user to Orchextra :bulb:
+## Bind/unBind user to Orchextra <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
 
 CrmUser class is a local representation of a user persisted to the Orchextra Database to help to create a good user segmentation. This object is optional and could be set up at any time.
 
@@ -363,21 +365,21 @@ In the same way, some color you can customize are
 <!-- Toolbar title and icon color -->
 <color name="ox_toolbar_title_color">#FFF</color>
 ```
-## New Notifications behavior :bulb:
+## New Notifications behavior <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
  Now when a background action is triggered, which does not have a notification configured, a default local notification is generated so that the user can access the alert.
  To change the default values for the title and the body of the notification there are two new resources in strings.xml
  ```xml
  <string name="ox_notification_default_title">Orchextra</string>
  <string name="ox_notification_default_body">Click to open your App</string>
   ```
-:bulb: Additionally, you should customize the Orchextra Sdk with your drawables.
+<img src="https://nuborisar.github.io/oxImages/bulb.png" width="32"> Additionally, you should customize the Orchextra Sdk with your drawables.
 
  - ox_notification_alpha_small_icon(1*): Icon is showed in the status bar.
  - ox_notification_large_icon(2*): This image is used as large icon in notifications and as image in the dialogs inside the application.
  - ox_notification_color_small_icon(3*): Icon is showed in the notifications big end-bottom.
  - ox_close: Icon which is locate in the upper left corner of a screen and is used to close the view.
 
-## New Custom Notifications Orchextra :bulb:
+## New Custom Notifications Orchextra <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
 
 We change the notifications to become in Custom notifications. For this we have generated 4 templates that can be overwritten from the SDK integrator app. Below we describe the templates and in which case they will be used by the SDK.
 
@@ -397,7 +399,7 @@ This is the image using on the templates:
 <img src="https://nuborisar.github.io/resources_notification.png" width="300">
 
 This sample is from Big notification, push or local are equals.
-:bulb:
+<img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
  **IMPORTANT** you must respect the ids of the views inside the notification template, if you don´t want show any view, not remove, put visibility gone atributte instead.
 
 ## Push Notifications Orchextra
@@ -523,7 +525,7 @@ OrchextraBuilder builder = new OrchextraBuilder(this)
                 ...
         Orchextra.initialize(builder);
 ```
-## Realm Support :bulb:
+## Realm Support <img src="https://nuborisar.github.io/oxImages/bulb.png" width="32">
  We use this version of Realm:
 
  classpath 'io.realm:realm-gradle-plugin:1.0.0'
