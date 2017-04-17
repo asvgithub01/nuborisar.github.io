@@ -15,9 +15,9 @@
     <script>
     window.onload = function() {
     <!-- Deep link URL for existing users with app already installed on their device -->
-        window.location = 'woah://ocm/pepe.com/?screen=xxxxx';
+        window.location = 'woah://section/events?screen=xxxxx';
     <!-- Download URL (MAT link) for new users to download the app -->
-        setTimeout("window.location = 'http://hastrk.com/serve?action=click&publisher_id=1&site_id=2';", 1000);
+        setTimeout("window.location = 'http://hastrk.com/serve?action=click&publisher_id=1&site_id=2';", 10000);
     }
     </script>
 </head>
@@ -29,7 +29,7 @@
     </form>
  
     <!-- button to Open App to specific screen for existing app users -->
-    <form action="woah://ocm/pepe.com/?screen=xxxxx" target="_blank">
+    <form action="woah://section/events?screen=xxxxx target="_blank">
         <input type="submit" value="Open App" />
     </form>
  
