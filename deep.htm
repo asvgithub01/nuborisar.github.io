@@ -28,6 +28,7 @@
     window.onload = function() {
     <!-- Deep link URL for existing users with app already installed on their device -->
 	var reg = getParameterByName('reg');
+	alert (reg);
         window.location = 'woah://section/events/'+reg;
     <!-- Download URL (MAT link) for new users to download the app -->
         setTimeout("window.location = 'http://google.com';", 10000);
