@@ -3,8 +3,20 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width,minimum-scale=1.0, maximum-scale=1.0" />
-    <title>Site Name</title>
+    <title>Relay deepLink by asv</title>
     <style>@media screen and (max-device-width:480px){body{-webkit-text-size-adjust:none}}</style>
+ 
+ <script>
+ function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+</script>
  
     <!-- implement javascript on web page that first first tries to open the deep link
         1. if user has app installed, then they would be redirected to open the app to specified screen
@@ -15,7 +27,8 @@
     <script>
     window.onload = function() {
     <!-- Deep link URL for existing users with app already installed on their device -->
-        window.location = 'woah://section/events?screen=xxxxx';
+	var reg = getParameterByName('reg');
+        window.location = 'woah://section/events/'+reg;
     <!-- Download URL (MAT link) for new users to download the app -->
         setTimeout("window.location = 'http://google.com';", 10000);
     }
@@ -29,9 +42,9 @@
     </form>
  
     <!-- button to Open App to specific screen for existing app users -->
-    <form action="woah://section/events?screen=xxxxx target="_blank">
+    <form action="woah://section/events/"+ javascript:getParameterByName('reg') target="_blank">
         <input type="submit" value="Open App" />
     </form>
- <a href="woah://section/events"> section/events (no one) </a>
+ <a href="woah://section/events/"+ javascript:getParameterByName('reg')> section/events (no one) </a>
 </body>
 </html>
