@@ -29,7 +29,7 @@
     <!-- Deep link URL for existing users with app already installed on their device -->
 	var reg = getParameterByName('reg');
 	alert (reg);
-        window.location = 'woah://section/events/'+reg;
+        window.location = 'doctore://shared/'+reg;
     <!-- Download URL (MAT link) for new users to download the app -->
         setTimeout("window.location = 'http://google.com';", 10000);
     }
@@ -43,12 +43,12 @@
     </form>
  
     <!-- button to Open App to specific screen for existing app users -->
-    <form action="woah://section/events/"+ javascript:getParameterByName('reg') target="_blank">
+    <form action="doctore://shared/"+ javascript:getParameterByName('reg') target="_blank">
         <input type="submit" value="Open App" />
     </form>
- <a href="woah://section/events/"+ javascript:getParameterByName('reg')> section/events (no one) </a>
+ <a href="doctore://shared/"+ javascript:getParameterByName('reg')> doctore://shared (no one) </a>
  
- <a href="#" onclick="window.location = 'woah://section/events/' + getParameterByName('reg');">My Link</a>
+ <a href="#" onclick="window.location = 'doctore://shared/' + getParameterByName('reg');">My Link</a>
  
 </body>
 </html>
