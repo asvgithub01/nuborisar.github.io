@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 4056627124
+CRC: 1145844257
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 11fd3480a255e8715c5d0d9db6432d59
+    Hash: 19168524728c6104e38a62983c55ff3c
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 454f86ff2cc18e8238d0b9fd896baa37
+    Hash: cc912888469782210f5336b920a74402
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -25,14 +25,8 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 48
   Script: {instanceID: 0}
-- Class: 74
-  Script: {instanceID: 0}
-- Class: 90
-  Script: {instanceID: 0}
-- Class: 95
-  Script: {instanceID: 0}
 - Class: 108
   Script: {instanceID: 0}
 Assets:
-- Assets/Rock1.fbx
+- Assets/ShotGun.fbx
 Dependencies: []
