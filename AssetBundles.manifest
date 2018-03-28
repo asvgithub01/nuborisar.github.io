@@ -1,7 +1,7 @@
 ManifestFileVersion: 0
-CRC: 2507114702
+CRC: 3874842170
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
-      Name: bb9
+      Name: bb9_android
       Dependencies: {}
