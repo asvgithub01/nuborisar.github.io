@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 870459840
+CRC: 4221063983
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 7f2401306f68a065d91ed0666d03b1ed
+    Hash: 83396aec20a18bd06a0b66f148221184
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 6fa9ce387392089bc59dd886979cd053
+    Hash: 7f74dd6718ea1e81b432a9fbe453335c
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -23,6 +23,13 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 48
   Script: {instanceID: 0}
+- Class: 74
+  Script: {instanceID: 0}
+- Class: 90
+  Script: {instanceID: 0}
+- Class: 95
+  Script: {instanceID: 0}
 Assets:
 - Assets/Glock 3d.fbx
+- Assets/bb10.fbx
 Dependencies: []
