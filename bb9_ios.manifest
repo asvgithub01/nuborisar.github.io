@@ -1,17 +1,19 @@
 ManifestFileVersion: 0
-CRC: 2068824681
+CRC: 4056627124
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 077f9221c2e62a5ac36fb93d2972a6a5
+    Hash: 11fd3480a255e8715c5d0d9db6432d59
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 7f74dd6718ea1e81b432a9fbe453335c
+    Hash: 454f86ff2cc18e8238d0b9fd896baa37
 HashAppended: 0
 ClassTypes:
 - Class: 1
   Script: {instanceID: 0}
 - Class: 4
+  Script: {instanceID: 0}
+- Class: 20
   Script: {instanceID: 0}
 - Class: 21
   Script: {instanceID: 0}
@@ -29,6 +31,8 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 95
   Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
 Assets:
-- Assets/bb10.fbx
+- Assets/Rock1.fbx
 Dependencies: []
