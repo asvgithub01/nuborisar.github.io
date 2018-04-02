@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1253563196
+CRC: 951353422
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 5cf9c22ab7620614ba6fef6c1bff3705
+    Hash: 8a3f5d352f6bd87309d1c0b0ff34d96a
   TypeTreeHash:
     serializedVersion: 2
     Hash: 1a6f5cff632dc28718a7b58b8c737b7c
@@ -36,9 +36,11 @@ ClassTypes:
 - Class: 108
   Script: {instanceID: 0}
 Assets:
+- Assets/shotgun_tex.png
 - Assets/ShotGun.fbx
 - Assets/Glock 3d.fbx
 - Assets/bb10.fbx
 - Assets/Rock-Texture-Surface.jpg
 - Assets/Rock1.fbx
+- Assets/bb8material_asv_tex.mat
 Dependencies: []
