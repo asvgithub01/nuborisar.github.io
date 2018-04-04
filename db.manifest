@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 155752718
+CRC: 2707303639
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 21a4131389d0fb524e6027d072892985
+    Hash: 5bcc9b1c084cee9660ca5b438f590570
   TypeTreeHash:
     serializedVersion: 2
     Hash: dac9d2afe2cd531300bf0a197aae04db
@@ -38,6 +38,7 @@ ClassTypes:
 - Class: 108
   Script: {instanceID: 0}
 Assets:
+- Assets/animator2.controller
 - Assets/robot_animController.controller
 - Assets/coche.FBX
 - Assets/Object004_mat.mat
