@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 3429728472
+CRC: 107478663
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 54d4d77e99a95d51ab2f1c938cc3db09
+    Hash: 7a37799fc4bb5e9f9bcfcd9368b0a1c2
   TypeTreeHash:
     serializedVersion: 2
-    Hash: dac9d2afe2cd531300bf0a197aae04db
+    Hash: 25cfa7fde3493b810bd119717340650a
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -36,6 +36,8 @@ ClassTypes:
 - Class: 95
   Script: {instanceID: 0}
 - Class: 108
+  Script: {instanceID: 0}
+- Class: 111
   Script: {instanceID: 0}
 Assets:
 - Assets/animator2.controller
