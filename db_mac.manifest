@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1615761020
+CRC: 4031252450
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: fc115070ebb241895ffdb20c5c2bc356
+    Hash: 965ad5871c5111e61e6bc48f22c74da4
   TypeTreeHash:
     serializedVersion: 2
     Hash: 25cfa7fde3493b810bd119717340650a
@@ -43,6 +43,7 @@ Assets:
 - Assets/animator2.controller
 - Assets/coche.FBX
 - Assets/Object004_mat.mat
+- Assets/bb10.fbx
 - Assets/robot.FBX
 - Assets/Box001_mat.mat
 - Assets/balon.fbx
