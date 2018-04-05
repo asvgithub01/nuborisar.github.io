@@ -1,0 +1,49 @@
+ManifestFileVersion: 0
+CRC: 1615761020
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: fc115070ebb241895ffdb20c5c2bc356
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 25cfa7fde3493b810bd119717340650a
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 20
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 74
+  Script: {instanceID: 0}
+- Class: 90
+  Script: {instanceID: 0}
+- Class: 91
+  Script: {instanceID: 0}
+- Class: 95
+  Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
+- Class: 111
+  Script: {instanceID: 0}
+Assets:
+- Assets/animator2.controller
+- Assets/coche.FBX
+- Assets/Object004_mat.mat
+- Assets/robot.FBX
+- Assets/Box001_mat.mat
+- Assets/balon.fbx
+Dependencies: []
