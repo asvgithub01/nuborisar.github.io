@@ -1,10 +1,10 @@
 ManifestFileVersion: 0
-CRC: 1991159249
+CRC: 1602079388
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
       Name: bb9_ios
       Dependencies: {}
     Info_1:
-      Name: db_mac
+      Name: db
       Dependencies: {}
