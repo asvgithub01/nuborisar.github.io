@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 624145410
+CRC: 3518748746
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 60d7ad3bac06bf013ca220365cda7d18
+    Hash: ae3e2b2cde188ca24ab7bdc3be1f0307
   TypeTreeHash:
     serializedVersion: 2
     Hash: a0591aac6b8de7c84e4497c629387eff
@@ -43,10 +43,12 @@ ClassTypes:
   Script: {instanceID: 0}
 Assets:
 - Assets/animator2.controller
+- Assets/knight_dancing.fbx
 - Assets/knight_animA.fbx
 - Assets/coche.FBX
 - Assets/Object004_mat.mat
 - Assets/Glock 3d.fbx
+- Assets/bb10.fbx
 - Assets/robot.FBX
 - Assets/Box001_mat.mat
 - Assets/balon.fbx
