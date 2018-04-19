@@ -1,10 +1,7 @@
 ManifestFileVersion: 0
-CRC: 1329779470
+CRC: 2418762579
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
       Name: db
-      Dependencies: {}
-    Info_1:
-      Name: dbvuforia
       Dependencies: {}
