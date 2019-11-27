@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html><head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">	
+        <title>
+            Evaluar TNM y riesgo
+        </title> 
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="favicon.ico" type="image/x-icon" rel="icon"><link href="favicon.ico" type="image/x-icon" rel="shortcut icon">
+        <script async="" src="//www.google-analytics.com/analytics.js"></script><script type="text/javascript" src="js/jquery.js"></script>
+        <script type="text/javascript" src="js/MathAdditional.js"></script>
+        <script type="text/javascript" src="js/jquery.jqplot.min.js"></script>
+        <script type="text/javascript" src="js/jqplot.canvasAxisLabelRenderer.min.js"></script>
+        <script type="text/javascript" src="js/jqplot.canvasTextRenderer.min.js"></script>
+        <script type="text/javascript" src="js/jqplot.canvasAxisTickRenderer.min.js"></script>
+        <script type="text/javascript" src="js/jqplot.categoryAxisRenderer.min.js"></script>
+        <script type="text/javascript" src="js/jqplot.dateAxisRenderer.min.js"></script>
+        <script type="text/javascript" src="js/jquery.format-1.3.min.js"></script>
+        <script type="text/javascript" src="js/Utils.js"></script>
+        <script type="text/javascript" src="js/lang/lang.js"></script>
+        <script type="text/javascript" src="js/Animations.js"></script>
+	    <script type="text/javascript" src="js/appdrogeno.js"></script>
+        <script type="text/javascript" src="js/base64.js"></script>
+        <script type="text/javascript" src="js/sprintf.js"></script>
+        <script type="text/javascript" src="js/jsPDF/jspdf.js"></script>
+        <script type="text/javascript" src="js/jsPDF/jspdf.plugin.addimage.js"></script>
+        <script type="text/javascript" src="js/jsPDF/FileSave.js"></script>
+        <script type="text/javascript" src="js/jsPDF/Blob.js"></script>
+        <script type="text/javascript" src="js/jsPDF/jspdf.plugin.addhtml.js"></script>
+        <script type="text/javascript" src="js/jsPDF/jspdf.plugin.png_support.js"></script>
+        <script type="text/javascript" src="js/jsPDF/png.js"></script>
+        <script type="text/javascript" src="js/jsPDF/zlib.js"></script>
+        <script type="text/javascript" src="js/jquery.datetimepicker.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.css">
+        <link rel="stylesheet" type="text/css" href="css/drogeno_pc.css">
+        <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.10.4.min.css">
+        <script type="text/javascript" src="js/jquery-ui-1.10.4.min.js"></script>
+        <!--[if lt IE 9]><link rel="stylesheet" type="text/css" href="css/drogeno_ie8.css" />
+        <script type="text/javascript" src="js/excanvas.js"></script>
+        <![endif]-->          
+        <script type="text/javascript">
+            function setDateTimePicker(o) {           
+                $(o).datepicker({dateFormat: "dd/mm/yy", dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], dayNamesMin: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'], monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'], monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec'], firstDay: 1, maxDate: new Date()});
+            }
+
+        </script>
+    </head>
+    <body id="calculator">
+        <script>
+            
+            initGoogleAnalitic();
+        </script>
+        <div id="container" data-role="page">
+
+            <div id="content">
+                <script type="text/javascript">
+                    var animation;
+                    var currentQuestion=0;
+                    var answers;
+                    
+                    $(document).ready(function () {
+                        animation = new Animation(0, 0, 0);
+                        var screenCalculators=new ScreenCalculators();
+                        screenCalculators.init(); 
+                        screenCalculators.reset();
+                        var screenCalculatorSix=new ScreenCalculatorSix(screenCalculators,false,false);
+                        screenCalculatorSix.init();
+                        screenCalculatorSix.printCalculatorSixField();
+                        $.format.locale({
+                            number: {
+                                format: '#,##0.0#',
+                                groupingSeparator: ',',
+                                decimalSeparator: '.'
+                            }
+                        });
+                        $("#calculator-six-date").datetimepicker({
+                                timepickerScrollbar:false
+                        });
+
+                        $("#calculator_six_info").click(function(){
+                            $(".ui-dialog-content").dialog("close");
+                            $("#calculator_info").dialog({width:'700',height:'400'});
+                            $(".ui-widget-content,.ui-widget-header").removeClass("ui-widget-content ui-corner-all").css("border","none");
+                         });
+                         $("#pronostic_section_gleason_value").keypress(function (e) {
+                             // allow backspace and delete 
+                             if  (e.which == 8 || e.which == 0)
+                                 return  true;
+                            //if the letter is not digit 
+                            if  (e.which < 48 || e.which > 57)
+                                return  false;
+                            // check max range 
+                            var dest = e.which - 48;
+                            var result = this.value + dest.toString();
+                            if  (result > 10) {
+                                 return  false;
+                            }
+
+                        });
+                        $(".especial-select").each(function(){$(this).specialSelect()});
+                    });
+                    
+                </script>
+                <div>
+                    <div id="header-calculator">
+                       
+                    </div>
+                </div>
+                <div id="calculator-six-item-group">
+                    <div class="menu-calculator-item-group">
+                        <div class="element_image">
+                            <img src="img/calculator.png" alt="Próstata 3D">        
+                        </div>
+                        <div class="element_text">
+                             Evaluar TNM y riesgo
+                        </div>
+                        <div class="element_info">
+                            <img src="img/information.png" alt="Info" id="calculator_six_info">            
+                            <div id="calculator_info">
+                                <h3 style="text-align:center;">TNM</h3><p>El TNM es un sistema clasificación y estratificación de tumores. Se basa en el tamaño del tumor (T-Tumor primario), la invasión de los ganglios linfáticos(N-Ganglios linfáticos regionales) y la existencia de metástasis (M).</p><p>Mottet N, et al. EAU - ESTRO - ESUR - SIOG Guidelines on Prostate Cancer, 2018. Accesible en <a href="http://uroweb.org/guideline/prostate-cancer/">http://uroweb.org/guideline/prostate-cancer/ </a></p><p>&Uacute;ltimo acceso octubre 2018</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="calculator-six-subheader" class="calculator-subheader-screen" style="display: block;"> 
+                    <h2 style='text-align:center;  margin-top: 0px; padding-top: 30px;'>
+                        
+                    </h2>
+                </div>    
+                <div id="calculator-six-screen" class="calculator-screen" style="display: block;">  
+                    <div id="content-calculator-scroll">
+                        <div id="t_section">
+                            <h3 style='margin-left:50px;'>Nivel</h3> 
+                            
+                            <div class="especial-select" select="tmn_t_level_select" style="width:60%;margin:auto;"><div class="especial-select-text"></div><div class="especial-select-img"><img src="img/select-icon.png"></div></div>
+                            <div class='input select' style='width:60%;margin-left:20%;display:none;'>
+                                <select id='tmn_t_level_select' style='width:110%;padding-right: 10%;' class='select-mobile'>
+                                    <option value="tx">(TX) No se puede evaluar el tumor primario</option>
+                                    <option value="t1">(T1) Tumor clínicamente inaparente no palpable</option>
+                                    <option value="t2">(T2) Tumor palpable y limitado a la próstata</option>
+                                    <option value="t3">(T3) El tumor se extiende a través de la cápsula prostática</option>
+                                    <option value="t4">(T4) El tumor está fijo o invade estructuras adyacentes distintas de las vesículas seminales: esfínter externo, recto, músculos elevadores o pared de la pelvis</option>
+                                </select>
+                            </div>
+                            <div id="tmn_t_sublevel_group">
+                                <h3 style='margin-left:50px;'>Subnivel</h3>
+                                <div class="especial-select" select="tmn_t_subnivel_select" style="width:60%;margin:auto;"><div class="especial-select-text"></div><div class="especial-select-img"><img src="img/select-icon.png"></div></div>
+                                <div class='input select' style='width:60%;margin-left:20%;display:none;'>
+                                    <select id='tmn_t_subnivel_select' style='width:110%;padding-right: 10%;' class='select-mobile'></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="m_section">
+                            <div class="calculator-group-fields" style="text-align: left;margin-left: 15px;padding-top:50px;">
+                                <div><input group="m_section" type="radio" name="data[m_section_mx]" id="m_section_mx" value="mx" checked="checked">
+                                    <label style="margin-bottom:20px;" for="m_section_mx">(MX) Se desconoce la presencia de metástasis a distancia</label></div>
+                                <div><input group="m_section" type="radio" name="data[m_section_m0]" id="m_section_m0" value="m0">
+                                    <label style="margin-bottom:20px;" for="m_section_m0">(M0) Ausencia de metástasis a distancia</label></div> 
+                                <div><input group="m_section" type="radio" name="data[m_section_m1]" id="m_section_m1" value="m1">
+                                    <label style="margin-bottom:20px;" for="m_section_m1">(M1) Metástasis a distancia</label> </div>  
+                            </div>
+                        </div>
+                        <div id="n_section">
+                            <div class="calculator-group-fields" style="text-align: left;margin-left: 15px;padding-top:50px;">
+                                <div><input group="n_section"  type="radio" name="data[n_section_nx]" id="n_section_nx" value="nx" checked="checked"/>
+                                    <label style="margin-bottom:20px;" for="n_section_nx">(NX) No se pueden evaluar los ganglios linfáticos regionales</label></div>
+                                <div><input group="n_section" type="radio" name="data[n_section_n0]" id="n_section_n0" value="n0"/>
+                                    <label style="margin-bottom:20px;" for="n_section_n0">(N0) Ausencia de metástasis ganglionares regionales</label>  </div>  
+                                <div><input group="n_section" type="radio" name="data[n_section_n1]" id="n_section_n1" value="n1"/>
+                                    <label style="margin-bottom:20px;" for="n_section_n1">(N1) Metástasis ganglionares regionales</label> </div>  
+                            </div>
+                        </div>
+                        <div id="pronostic_section">
+                            <div class="calculator-group-fields" style="text-align: left;padding-top:30px;">
+                                <h3 style="text-align:center">Valores PSA y Gleason</h3>
+                                <div id="pronostic_section_psa_group">
+                                    <table style="margin:auto;width:220px;">
+                                        <tr>
+                                            <td></td><td></td><td></td><td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align:center">PSA</td>
+                                            <td colspan="3" style="text-align:center">
+                                                <input type="text" id="pronostic_section_psa_value" value="" style="width:120px !important;" group="decimal"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td  style="text-align:center">Gleason</td>
+                                            <td style="text-align:center">
+                                                <input style="width:30px !important" type="text" id="pronostic_section_gleason_value_one" value="" group="decimal"/>
+                                            </td>
+                                            <td style="text-align:center;width:10px;">+</td>
+                                            <td style="text-align:center">
+                                                <input style="width:30px !important;" type="text" id="pronostic_section_gleason_value_two" value="" group="decimal"/>
+                                            </td>
+                                        </tr>
+                                    </table>                
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="calculator-six-screen-result" class="calculator-screen" style="display: none;">
+                    <div>
+                        <h4 id="risk-result">Resultado</h4>
+                    </div>
+                    <div>
+                        <div id="estadiaje_image" style="display:table-cell;width:45%;">
+                            <div id="estadiaje_buttons" style="text-align: center;padding-top: 10px;padding-bottom: 10px;">
+                                <button id="modelt1a_button">T1a</button>
+                                <button id="modelt1b_button">T1b</button>
+                                <button id="modelt1c_button">T1c</button>
+                                <button id="modelt2a_button">T2a</button>
+                                <button id="modelt2b_button">T2b</button>
+                                <button id="modelt2c_button">T2c</button>
+                                <button id="modelt3a_button">T3a</button>
+                                <button id="modelt3b_button">T3b</button>
+                                <button id="modelt4_button">T4</button>
+                            </div>
+                            <div id="estadiaje_images" style="text-align:center;">
+                                <div id="modelt2a"><img width="70%" src="img/modelt2a.png"/></div>
+                                <div id="modelt2b"><img width="70%" src="img/modelt2b.png"/></div>
+                                <div id="modelt2c"><img width="70%" src="img/modelt2c.png"/></div>
+                                <div id="modelt3a"><img width="70%" src="img/modelt3a.png"/></div>
+                                <div id="modelt3b"><img width="70%" src="img/modelt3b.png"/></div>
+                                <div id="modelt4"><img width="70%" src="img/modelt4.png"/></div>
+                            </div>
+                        </div>
+                        <div id="estaidaje_result" style="display: table-cell;width:55%;padding-left: 20px;">
+
+                            <p id="t_result"></p>
+                            <p id="n_result"></p>
+                            <p id="m_result"></p>
+                            <table style="width:100%;">
+                                <tr style="margin-top:10px;">
+                                </tr>
+                                <tr class="psa_group">
+                                    <td style="width:10%;" >PSA:</td><td id="psa_result"></td>
+                                </tr>
+                                <tr class="psa_group">
+                                    <td style="width:10%;" >Gleason:</td><td id="gleason_result"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div> 
+                
+                <div id="footer-calculator">
+                    <div id="calculator-button">
+                    </div> 
+                </div>
+                <div id="dtBox"></div>
+            </div>           
+        </div>
+        <div id="footer-logo"><img src="img/logo.png" alt="logo"></div>
+        <a id="mail-export" href="#"></a>
+        <div id="test">           
+        </div>
+    </body>
+</html>
