@@ -1,0 +1,375 @@
+﻿<!DOCTYPE html>
+<!--
+* Copyright (c) 2019 XZIMG Limited , All Rights Reserved
+* No part of this software and related documentation may be used, copied,
+* modified, distributed and transmitted, in any form or by any means,
+* without the prior written permission of xzimg
+*
+* contact@xzimg.com, www.xzimg.com
+* DO NOT SHARE - DO NOT REPRODUCE - DO NOT USE IN COMMERCIAL PROJECTS
+-->
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="description" content="Magic Face demonstration">
+    <!-- <meta name="viewport" content="width=device-width, user-scalable=yes, minimum-scale=0.5, maximum-scale=1.0"> -->
+    <!--<meta itemprop="image" content="../../../images/webrtc-icon-192x192.png">-->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta id="theme-color" name="theme-color" content="#ffffff">
+    <base target="_blank">
+    <title>XZIMG Magic Face</title>
+
+
+</head>
+
+<body>
+    <div id="container">
+        <h1><span>XZIMG Magic Face SDK Demo</span></h1>
+        <div class="select" onfocus="this.selectedIndex = -1;">
+            <label for="videoSource">Select Video source: </label><select id="videoSource"></select>
+            
+        </div>
+
+        <div class="wrapper">
+            <video id="video" playsinline autoplay style="position: absolute; top: 140px; left: 10px;"></video>
+            <canvas id="videorender" style="position: absolute; top: 140px; left: 10px; display:none;"></canvas>
+            <canvas id="glcanvas" style="position: absolute; top: 140px; left:10px;  "></canvas>
+        </div>
+        <img src="xzimg-logo.png" style="position: absolute; top: 140px; left: 10px;" alt="XZIMG logo" >
+        <progress id="bar" max="100" value="0" style="position: absolute; top: 600px; left: 120px; -webkit-appearance: none; width: 400px; height: 30px; visibility: hidden;"></progress>
+    </div>
+
+    <script>
+        var jslib_loaded = false;
+        /// callback called when library has been loaded properly
+        function allReady() {
+            console.log("==> Plugin has been loaded: ready to call API");
+            jslib_loaded = true;
+        }
+    </script>
+    <script src="camera.js" async></script>
+    <script type="text/javascript" src="libxzimgMagicFace.js"></script>
+    <script type="text/javascript" src="three.js"></script>
+    <script type="text/javascript" src="objLoader.js"></script>
+    <script type="text/javascript" src="initTracking.js"></script>
+    <script type="text/javascript" src="initThreejs.js"></script>
+    <script type="text/javascript" src="jszip.min.js"></script>
+
+    <script>
+
+        // Image tracking module
+        // Global variables
+        var renderer;
+        var glcanvas;
+        var context, imageData;
+        var res = 0;
+        var buffer, buffer2;
+        var cube;
+        var face_object;
+        var face_vertices;
+        var face_geom;
+        var sizeint = 4;
+        var sizedouble = 8;
+        var sizefloat = 4;
+        var videoTexture;
+        var fovy = 50.0;
+        var bufClassifier;
+        var sizeClassifier;
+        var delta = 1;
+        var currentWidth = 0, currentHeight = 0;
+        var num_landmarks = 68;
+
+        // -- State machine variables
+        var classifierLoaded = false;
+        var buffers_initialized = false;
+        var initialization_complete = false;
+        var initialization_launched = false;
+
+        var debug_msg = true;
+        function print_msg(msg) {
+            if (debug_msg)
+                console.log(msg);
+        }
+        // var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        var isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+        // if (isChrome) alert("You are using Chrome!");
+         if (isSafari)
+         {
+            // to get the video capture on safari
+            var video = document.getElementById("video");
+            video.style.display = "visible";
+         }
+         else
+         {
+             
+            var video = document.getElementById("video");
+            video.style.display = "none";
+         }
+
+        // -- Initialize the GL rendering context
+        var gl; // A global variable for the WebGL context
+        function initGLRender(canvas) {
+            print_msg("==> initGLRender function");
+
+            glcanvas = document.getElementById("glcanvas");
+            gl = null;
+            // Try to grab the standard context. If it fails, fallback to experimental.
+            gl = glcanvas.getContext("webgl") || glcanvas.getContext("experimental-webgl");
+            // If we don't have a GL context, give up now
+            if (!gl) {
+                alert("Unable to initialize WebGL. Your browser may not support it.");
+                return;
+            }
+
+            // Only continue if WebGL is available and working
+            // Set clear color to black, fully opaque
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            // Enable depth testing
+            gl.enable(gl.DEPTH_TEST);
+            // Near things obscure far things
+            gl.depthFunc(gl.LEQUAL);
+            // Clear the color as well as the depth buffer.
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
+
+      
+        // -- Callback - waiting for initialization to complete and for a frame to be available
+        function callback_frame() {
+            // -- we keep track of video capture changes (orientation change vs camera change ...)
+            if ((currentWidth != 0 && video.videoWidth != currentWidth) ||
+                (currentHeight != 0 && video.videoHeight != currentHeight)) {
+                print_msg("==> reloading the face tracking...");
+                // -- We reset what needs to be reset
+                xzimgMagicFaceRelease = Module.cwrap('xzimgMagicFaceRelease');
+                xzimgMagicFaceRelease();
+                buffers_initialized = false;
+                initialization_complete = false;
+                initialization_launched = false;
+                clearScene();
+                //container.removeChild(renderer.domElement);
+                initGLRender();
+            }            
+            currentWidth = video.videoWidth;
+            currentHeight = video.videoHeight;
+            canvasElement.width = video.videoWidth;
+            canvasElement.height = video.videoHeight;
+            glcanvas.width = video.videoWidth;
+            glcanvas.height = video.videoHeight;
+
+
+            // -- Video is ready only when data are available and
+            // -- video resolutions are correctly set
+            if (video.readyState == video.HAVE_ENOUGH_DATA) {
+                if (jslib_loaded && !buffers_initialized) {
+                    print_msg("==> Step 1. initializing buffers");
+                    initializeBuffers();
+                    readObj();
+                }
+                if (jslib_loaded && buffers_initialized && !initialization_launched && obj_read) {
+                    print_msg("==> Step 2. initializing tracking and three js");
+                    initializeTracking();
+                    initThreeJs();
+                    animateThreeJs();
+                    initialization_launched = true;
+                }
+           }
+
+            if (initialization_complete && 
+                video.readyState == video.HAVE_ENOUGH_DATA) {
+                    
+                xzimgMagicFaceTrackNonRigidFaces_js = Module.cwrap('xzimgMagicFaceTrackNonRigidFaces_js', 'number', ['number']);
+                var device_orientation = 0;
+                var res = xzimgMagicFaceTrackNonRigidFaces_js(device_orientation);
+               
+                // Extract results
+                if (res > 0) {
+                    //print_msg("face detected!");
+                    var object_idx = 0;
+                    if (use_emotions)
+                    {
+                        xzimgProcessEmotion = Module.cwrap('xzimgProcessEmotion', 'number', ['number', 'number']);
+
+                        var end5 = performance.now();
+                        //setTimeout(xzimgProcessEmotion, 0, 0, 0.5);
+                        xzimgProcessEmotion(0, 0.5);
+                        var end6 = performance.now();
+                        delta6 = end6 - end5;
+                        console.log("perfs xzimgProcessEmotion = " + delta6);
+                    }
+                    xzimgMagicFaceGetFaceData = Module.cwrap('xzimgMagicFaceGetFaceData', 'number', ['number', 'number']);
+                    res = xzimgMagicFaceGetFaceData(object_idx, bufferFaceData);
+                    var detected = Module.getValue(bufferFaceData, 'i32');
+                    var poseComputed = Module.getValue(bufferFaceData + sizeint, 'i32');
+
+                    var tx = Module.getValue(bufferFaceData + 2*sizeint, 'float');
+                    var ty = Module.getValue(bufferFaceData + 2*sizeint + sizefloat, 'float');
+                    var tz = Module.getValue(bufferFaceData + 2*sizeint + 2 * sizefloat, 'float');
+
+                    var rxx = Module.getValue(bufferFaceData + 2*sizeint + 10 * sizefloat, 'float');
+                    var rxy = Module.getValue(bufferFaceData + 2*sizeint + 11 * sizefloat, 'float');
+                    var rxz = Module.getValue(bufferFaceData + 2*sizeint + 12 * sizefloat, 'float');
+                    var ryx = Module.getValue(bufferFaceData + 2*sizeint + 13 * sizefloat, 'float');
+                    var ryy = Module.getValue(bufferFaceData + 2*sizeint + 14 * sizefloat, 'float');
+                    var ryz = Module.getValue(bufferFaceData + 2*sizeint + 15 * sizefloat, 'float');
+                    var rzx = Module.getValue(bufferFaceData + 2*sizeint + 16 * sizefloat, 'float');
+                    var rzy = Module.getValue(bufferFaceData + 2*sizeint + 17 * sizefloat, 'float');
+                    var rzz = Module.getValue(bufferFaceData + 2*sizeint + 18 * sizefloat, 'float');
+
+                    var num_landmark_3D = Module.getValue(bufferFaceData + 2*sizeint + 19 * sizefloat, 'i32');
+                    var num_landmark_KEY = Module.getValue(bufferFaceData + 2*sizeint + 19 * sizefloat + sizeint, 'i32');
+
+                    tracked_vertices = new Float32Array(Module.HEAPF32.buffer, ptr_landmarks_3D, 730*3);
+
+                    for (var i = 0; i < 8; i ++) {
+                        emoScores[i] = Module.getValue(bufferFaceData + 5*sizeint + 19 * sizefloat+ 10*sizefloat + 4*sizeint + i*sizefloat, 'float');
+                    }
+
+                    // get image landmarks positions
+                    tracked_vertices_2D = new Float32Array(Module.HEAPF32.buffer, ptr_landmarks_2D, num_landmarks*2);
+                    // if (detected == 1)
+                    // {
+                    //     // print the first 2D point
+                    //     print_msg(tracked_vertices_2D[0]);
+                    //     print_msg(tracked_vertices_2D[1]);
+                    // }
+                    // console.log("detected = " + detected);
+                    // console.log("poseComputed = " + poseComputed);
+                    // console.log("translation = " + tx + " " + ty + " " + tz);
+                    if (detected == 1)
+                    {
+                            var pos = new THREE.Vector3();
+                            var quat = new THREE.Quaternion;
+                            var scale = new THREE.Vector3();
+                            var l_transfMatrix = new THREE.Matrix4();
+                            l_transfMatrix.set(
+                                rxx, rxy, rxz, 0,
+                                -ryx, -ryy, -ryz, 0,
+                                -rzx, -rzy, -rzz, 0,
+                                0.0, 0.0, 0.0, 1.0);
+                            // mirror transformation
+                            l_transfMatrix.decompose(pos, quat, scale);
+                            quat.y = -quat.y;
+                            quat.z = -quat.z;
+                            l_transfMatrix.compose(pos, quat, scale);
+
+
+                            if (face_object) {
+                                //print_msg("===> Drawing face_object");
+                                face_object.matrix = l_transfMatrix;
+                                face_object.rotation.setFromRotationMatrix(l_transfMatrix);
+                                face_object.position.x = -tx;   
+                                face_object.position.y= -ty;
+                                face_object.position.z = -tz;
+                                face_object.visible = true;
+                                face_object.scale.z = 1;
+                                face_object.scale.y = 1;
+                                face_object.scale.x = 1;
+
+                                // -- Non rigidity -- updating coordinates
+                                // mirror x
+                                for (var k=0; k<730*3;)
+                                {
+                                    face_object.geometry.attributes.position.array[k] = -tracked_vertices[k++];   // x mirror
+                                    face_object.geometry.attributes.position.array[k] = tracked_vertices[k++];    // y
+                                    face_object.geometry.attributes.position.array[k] = tracked_vertices[k++];    // z
+                                }
+
+                                face_object.geometry.attributes.position.needsUpdate = true;
+                                //face_object.geometry.computeFaceNormals();
+                                //face_object.geometry.computeVertexNormals();
+
+                        }
+
+                        if (use_emotions) {
+                            for (var i = 0; i < 8; i ++) {
+                                cubes[i].position.x = tx - 3 +  1.0*i;
+                                cubes[i].position.z = -tz;
+                                cubes[i].position.y = (-ty) - 8.0;
+                                cubes[i].matrix = l_transfMatrix;
+                                cubes[i].rotation.setFromRotationMatrix(cubes[i].matrix);
+                                cubes[i].visible = true;
+                                cubes[i].scale.z = 0.7;
+                                cubes[i].scale.y = 0.5 + emoScores[i]/2;
+                                cubes[i].scale.x = 0.7;
+                            }
+                        }
+                        else cube.visible = false;
+
+                        // console.log("emo neutral = " + emoScores[0]);
+                        // console.log("emo happy = " + emoScores[1]);
+                    }
+                    else {
+                    cube.visible = false;
+                    face_object.visible = false;
+                }
+
+                }
+                else {
+                    cube.visible = false;
+                    face_object.visible = false;
+                }
+
+                if (videoTexture)
+                    videoTexture.needsUpdate = true;
+
+
+                // var div = document.getElementById("textDiv");
+                // div.textContent = "time: " + delta;
+                //var text = div.textContent;
+            }
+            requestAnimationFrame(callback_frame);      //TEST: Where? before of after the tracking step?
+        }
+
+        /// ThreeJS callback
+        function animateThreeJs() {
+            // render the 3D scene
+            renderThreeJs();
+            // relaunch the 'timer'
+            requestAnimationFrame(animateThreeJs);
+            // update the Stats element
+            //           stats.update();
+        }
+
+
+        /// ThreeJS rendering call
+        function renderThreeJs() {
+            renderer.render(scene, camera);
+        }
+
+        // ThreeJS object removal
+        function clearScene() {
+            var to_remove = [];
+
+            scene.traverse(function (child) {
+                if (child instanceof THREE.Mesh && !child.userData.keepMe === true) {
+                    to_remove.push(child);
+                }
+            });
+
+            for (var i = 0; i < to_remove.length; i++) {
+                scene.remove(to_remove[i]);
+            }
+        }
+
+        // ----------------------------------
+
+        function release() {
+            Module._free(buffer);
+            Module._free(buffer2);
+        }
+
+        function onLoad() {
+
+            // -- Initialization of the GL Render can be done before loading the library
+            print_msg("==> onLoad (page) function");
+            initGLRender();
+
+            // callback function to handle new frame
+            requestAnimationFrame(callback_frame);
+        }
+
+        window.onload = onLoad;
+    </script>
+</body>
+</html>
