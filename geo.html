@@ -11,13 +11,20 @@
 
 <script>
 var x = document.getElementById("resultado");
-var btn = document.getElementById("btn");
+ 
+//configuration , min distance, urls and coordinates
+
+var minDistanceInKilometers=0.5;
+var URL_IN_MinDistance='https://gigigo.com/';
+var URL_OUT_MinDistance='https://www.cocacola.es/es/home/';
+var URL_ERROR_BASE='https://www.wible.es/?geolocation=';
 
 var latMonaco="43.735476";
 var longMonaco="7.420383";
 var latGigigo="40.445980";
 var longGigigo="-3.627423";
-//asv dejo esta vaina para agilizar las pruebas
+ 
+ 
 var latitud=latGigigo;
 var longitud=longGigigo;
 
@@ -25,19 +32,19 @@ function showError(error) {
   switch(error.code) {
     case error.PERMISSION_DENIED:
       x.innerHTML = "User denied the request for Geolocation."
-	  window.location.href = 'https://www.wible.es/?geolocation=USERDENIED'; 
+	  window.location.href = URL_ERROR_BASE+'USERDENIED'; 
       break;
     case error.POSITION_UNAVAILABLE:
       x.innerHTML = "Location information is unavailable."
-	  window.location.href = 'https://www.wible.es/?geolocation=UNAVAILABLE'; 
+	  window.location.href = URL_ERROR_BASE+'UNAVAILABLE'; 
       break;
     case error.TIMEOUT:
       x.innerHTML = "The request to get user location timed out."
-	  window.location.href = 'https://www.wible.es/?geolocation=Timeout'; 
+	  window.location.href = URL_ERROR_BASE+'Timeout'; 
       break;
     case error.UNKNOWN_ERROR:
       x.innerHTML = "An unknown error occurred."
-	  window.location.href = 'https://www.wible.es/?geolocation=UNKNOWERROR'; 
+	  window.location.href = URL_ERROR_BASE+'UNKNOWERROR'; 
       break;
   }
   }
@@ -47,7 +54,7 @@ function getLocation() {
     navigator.geolocation.getCurrentPosition(showPosition,showError);
   } else { 
     x.innerHTML = "Geolocation is not supported by this browser.";
-	window.location.href = 'https://www.wible.es/?geolocation=NOSOPORTADA'; 
+	window.location.href = URL_ERROR_BASE+'NOSUPPORTED'; 
   }
 }
 
@@ -65,15 +72,15 @@ function redirectURL() {
     navigator.geolocation.getCurrentPosition(checkWhereRedirect,showError);
   } else { 
     x.innerHTML = "Geolocation is not supported";
-	window.location.href = 'https://www.wible.es/?geolocation=NOSOPORTADA'; 
+	window.location.href = URL_ERROR_BASE+'NOSUPPORTED'; 
   }
 }
 function checkWhereRedirect(position) {
 
-   if(distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K")<0.5) {
-		window.location.href = 'https://gigigo.com/'; 
+   if(distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K")< minDistanceInKilometers) {
+		window.location.href = URL_IN_MinDistance; 
    }else{
-		window.location.href = 'https://www.cocacola.es/es/home/';    
+		window.location.href = URL_OUT_MinDistance;    
    }
 }
 
