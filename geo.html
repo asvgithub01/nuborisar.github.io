@@ -1,21 +1,53 @@
 <!DOCTYPE html>
 <html>
 <body>
-
 <p>Click en el boton, lo podemos forzar al inicio</p>
 
 <button onclick="getLocation()">Coordenadas</button>
 
-<p id="demo"></p>
+<p id="resultado"></p>
+
+<button id="btn" onclick="redirectURL()">A donde Voy?</button>
 
 <script>
-var x = document.getElementById("demo");
+var x = document.getElementById("resultado");
+var btn = document.getElementById("btn");
+
+var latMonaco="43.735476";
+var longMonaco="7.420383";
+var latGigigo="40.445980";
+var longGigigo="-3.627423";
+//asv dejo esta vaina para agilizar las pruebas
+var latitud=latGigigo;
+var longitud=longGigigo;
+
+function showError(error) {
+  switch(error.code) {
+    case error.PERMISSION_DENIED:
+      x.innerHTML = "User denied the request for Geolocation."
+	  window.location.href = 'https://www.wible.es/?geolocation=USERDENIED'; 
+      break;
+    case error.POSITION_UNAVAILABLE:
+      x.innerHTML = "Location information is unavailable."
+	  window.location.href = 'https://www.wible.es/?geolocation=UNAVAILABLE'; 
+      break;
+    case error.TIMEOUT:
+      x.innerHTML = "The request to get user location timed out."
+	  window.location.href = 'https://www.wible.es/?geolocation=Timeout'; 
+      break;
+    case error.UNKNOWN_ERROR:
+      x.innerHTML = "An unknown error occurred."
+	  window.location.href = 'https://www.wible.es/?geolocation=UNKNOWERROR'; 
+      break;
+  }
+  }
 
 function getLocation() {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(showPosition);
+    navigator.geolocation.getCurrentPosition(showPosition,showError);
   } else { 
     x.innerHTML = "Geolocation is not supported by this browser.";
+	window.location.href = 'https://www.wible.es/?geolocation=NOSOPORTADA'; 
   }
 }
 
@@ -23,8 +55,26 @@ function showPosition(position) {
   x.innerHTML = "Latitude: " + position.coords.latitude + 
   "<br>Longitude: " + position.coords.longitude +
   "\n  "
-  +" <BR>Distancia en Kilometros del centro de Mónaco <BR>"+distance(position.coords.latitude,position.coords.longitude,"43.735476","7.420383","K") +" Kilometros"
+  +" <BR>Distancia en Kilometros del centro de Mónaco <BR>"+distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K") +" Kilometros"
   ;
+}
+
+
+function redirectURL() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(checkWhereRedirect,showError);
+  } else { 
+    x.innerHTML = "Geolocation is not supported";
+	window.location.href = 'https://www.wible.es/?geolocation=NOSOPORTADA'; 
+  }
+}
+function checkWhereRedirect(position) {
+
+   if(distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K")<0.5) {
+		window.location.href = 'https://gigigo.com/'; 
+   }else{
+		window.location.href = 'https://www.cocacola.es/es/home/';    
+   }
 }
 
 function distance(lat1, lon1, lat2, lon2, unit) {
