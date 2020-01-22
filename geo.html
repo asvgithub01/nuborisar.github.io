@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>Click en el boton, lo podemos forzar al inicio</p>
+
+<button onclick="getLocation()">Coordenadas</button>
+
+<p id="demo"></p>
+
+<script>
+var x = document.getElementById("demo");
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);
+  } else { 
+    x.innerHTML = "Geolocation is not supported by this browser.";
+  }
+}
+
+function showPosition(position) {
+  x.innerHTML = "Latitude: " + position.coords.latitude + 
+  "<br>Longitude: " + position.coords.longitude + "\n ahora habria que comprobar las coordenadas del lugar de monaco y validar si se encuentra dentro o no \n coordenadas monaco \n Latitude: 43.735476 | Longitude: 7.420383"
+  ;
+}
+</script>
+
+</body>
+</html>
