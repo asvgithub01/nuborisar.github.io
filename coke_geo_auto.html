@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="orchextra" content="1299"/>
+    <link rel="icon" href="https://orchextra-images-pt-tmp.s3-eu-west-1.amazonaws.com/6fb06f1c0cdf064870c55d70ac016cde">
+    <link rel="shortcut icon" href="https://orchextra-images-pt-tmp.s3-eu-west-1.amazonaws.com/6fb06f1c0cdf064870c55d70ac016cde" type="image/x-icon">
+    
+
+    
+        <!-- Standard Metadata -->
+        
+        <meta  name="description"   />
+        
+        <meta  name="keywords"   />
+        
+
+    
+    <link href='//fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+
+    
+        <link href="https://front-pt.orchextra.io/static/bundle/vendor.9f6c5147.css" rel="stylesheet">
+    
+    <link href="https://front-pt.orchextra.io/_template/1299?c=k5mdewd2-3e69b8d301195368c3733793eeebfd93&amp;region=" rel="stylesheet">
+
+    <title>Coke AR Experience - Filters Landing</title>
+    <style>
+        * {
+            box-sizing:border-box;
+        }
+        html,body, #root {
+            height:100%;
+            margin:0;
+            padding:0;
+        }
+        html {
+            overflow-y:auto!important;
+            
+                background-color: #FFFFFF;
+            
+        }
+        app,.app {
+            width:100%;
+            text-align:center;
+            display: flex;
+            align-self: center;
+            flex-direction: column;
+            min-height: 100%;
+            
+        }
+        .pt-wrapper {
+            display:flex;
+            height: 100vh; 
+        }
+        .pt-loader,
+        .pt-loader:after {
+            border-radius: 50%;
+            width: 6.4rem;
+            height: 6.4rem;
+        }
+        .pt-loader {
+            align-self:center;
+            margin: 3.5rem auto;
+            font-size: 0.625rem;
+            position: relative;
+            text-indent: -9999rem;
+            border-top: 0.7rem solid rgba(244,0,0, 0.2);
+            border-right: 0.7rem solid rgba(244,0,0, 0.2);
+            border-bottom: 0.7rem solid rgba(244,0,0, 0.2);
+            border-left: 0.7rem solid #f40000;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-animation: loading 1s infinite linear;
+            animation: loading 1s infinite linear;
+            width: 6.5rem;
+            height: 6.5rem;
+
+            
+                border-color: rgba(233,23,33,0.4);
+                border-left-color: #E91721;
+            
+            
+                animation-duration: undefinedms;
+            
+        }
+        @-webkit-keyframes loading {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes loading {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <script>
+    redirectURL();
+var x = document.getElementById("resultado");
+ 
+//configuration , min distance, urls and coordinates
+
+var minDistanceInKilometers=0.5;
+var URL_IN_MinDistance='https://gigigo.com/';
+var URL_OUT_MinDistance='https://www.cocacola.es/es/home/';
+var URL_ERROR_BASE='https://www.wible.es/?geolocation=';
+
+var latMonaco="43.735476";
+var longMonaco="7.420383";
+var latGigigo="40.445980";
+var longGigigo="-3.627423";
+ 
+ 
+var latitud=latGigigo;
+var longitud=longGigigo;
+
+function showError(error) {
+  switch(error.code) {
+    case error.PERMISSION_DENIED:
+      x.innerHTML = "User denied the request for Geolocation."
+	  window.location.href = URL_ERROR_BASE+'USERDENIED'; 
+      break;
+    case error.POSITION_UNAVAILABLE:
+      x.innerHTML = "Location information is unavailable."
+	  window.location.href = URL_ERROR_BASE+'UNAVAILABLE'; 
+      break;
+    case error.TIMEOUT:
+      x.innerHTML = "The request to get user location timed out."
+	  window.location.href = URL_ERROR_BASE+'Timeout'; 
+      break;
+    case error.UNKNOWN_ERROR:
+      x.innerHTML = "An unknown error occurred."
+	  window.location.href = URL_ERROR_BASE+'UNKNOWERROR'; 
+      break;
+  }
+  }
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition,showError);
+  } else { 
+    x.innerHTML = "Geolocation is not supported by this browser.";
+	window.location.href = URL_ERROR_BASE+'NOSUPPORTED'; 
+  }
+}
+
+function showPosition(position) {
+  x.innerHTML = "Latitude: " + position.coords.latitude + 
+  "<br>Longitude: " + position.coords.longitude +
+  "\n  "
+  +" <BR>Distancia en Kilometros del centro de Mónaco <BR>"+distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K") +" Kilometros"
+  ;
+}
+
+
+function redirectURL() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(checkWhereRedirect,showError);
+  } else { 
+    x.innerHTML = "Geolocation is not supported";
+	window.location.href = URL_ERROR_BASE+'NOSUPPORTED'; 
+  }
+}
+function checkWhereRedirect(position) {
+
+   if(distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K")< minDistanceInKilometers) {
+		window.location.href = URL_IN_MinDistance; 
+   }else{
+		window.location.href = URL_OUT_MinDistance;    
+   }
+}
+
+function distance(lat1, lon1, lat2, lon2, unit) {
+	if ((lat1 == lat2) && (lon1 == lon2)) {
+		return 0;
+	}
+	else {
+		var radlat1 = Math.PI * lat1/180;
+		var radlat2 = Math.PI * lat2/180;
+		var theta = lon1-lon2;
+		var radtheta = Math.PI * theta/180;
+		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		if (dist > 1) {
+			dist = 1;
+		}
+		dist = Math.acos(dist);
+		dist = dist * 180/Math.PI;
+		dist = dist * 60 * 1.1515;
+		if (unit=="K") { dist = dist * 1.609344 }
+		if (unit=="N") { dist = dist * 0.8684 }
+		return dist;
+	}
+}
+</script>
+</head>
+<body>
+
+<!--htmlCode-->
+ 
+<!--htmlCode-->
+    
+
+
+<!-- Google Tag Manager -->
+<script>(function (w, d, s, l, i) {
+    w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+            new Date().getTime(), event: 'gtm.js'
+    }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+            'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-ML79649');</script>
+<!-- End Google Tag Manager -->
+
+
+    <!-- Supported =>  -->
+    
+    <script>
+        window.OPT_CONFIG = {
+            PROMO_ID: '1299',
+            API_URL: 'https://pt.orchextra.io',
+        }
+    </script>
+    <div id="root">
+        <app>
+            <div class="pt-wrapper">
+                <div class="pt-loader"></div>
+            </div>
+        </app>
+    </div>
+
+    
+    
+    
+        <script type="text/javascript" src="https://front-pt.orchextra.io/static/bundle/manifest.bc4af342.js"></script>
+    
+        <script type="text/javascript" src="https://front-pt.orchextra.io/static/bundle/vendor.5314a8a0.js"></script>
+    
+        <script type="text/javascript" src="https://front-pt.orchextra.io/static/bundle/client.0b0a5ab2.js"></script>
+    
+
+    
+
+    <noscript>
+        <h2 style="text-align:center">Can't start this promotion</h2>
+        <h3 style="text-align:center"><a href="?c=unsupported">See posibles causes</a></h3>
+        <meta http-equiv="refresh" content="0; URL=?c=unsupported">
+    </noscript>
+</body>
+</html>
