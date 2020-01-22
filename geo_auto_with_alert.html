@@ -39,11 +39,11 @@ function redirectURL() {
 function checkWhereRedirect(position) {
     var distanceTotal=distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K");
 //asv comentad no borrar este alert
-/*alert("Estas a " +distanceTotal+ " KM desde: \n"
+alert("Estas a " +distanceTotal+ " KM desde: \n"
     +"\nTus coordenadas \n latitud: " +position.coords.latitude +"\n Longitud: "+position.coords.longitude
     +"\n Coordenadas para ir a " +URL_IN_MinDistance + " estando a menos de "+minDistanceInKilometers+ " Kilometros"
     +"\n Latitud: " +latitud +"\n Longitud: "+longitud);
-*/
+
 
    if(distanceTotal < minDistanceInKilometers) {
 		window.location.href = URL_IN_MinDistance; 
