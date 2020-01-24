@@ -117,8 +117,8 @@
    //asv configuration , min distance, urls and coordinates
    var minDistanceInKilometers=0.5;
    var URL_IN_MinDistance='https://instagram.com/a/r/?effect_id=649998492410007&ch=NzdjYjQ5YjY3MTBmZGVlMjIyZjEwZjE4NjZlMGRjMTc%3D';
-   var URL_OUT_MinDistance='https://promos.orchextra.io/languages-landing';//asv NO SE UTILIZA NEVER
-   var URL_ERROR_BASE='https://promos.orchextra.io/languages-landing';
+   var URL_OUT_MinDistance='https://promos.orchextra.io/languages-landing?param=';//asv NO SE UTILIZA NEVER
+   var URL_ERROR_BASE='https://promos.orchextra.io/languages-landing?param=';
    
    //asv todas las variables sobran, necesitamos saber las coordenadas del lugar en Monaco
    var latMonaco="43.735476";
@@ -168,7 +168,7 @@
            window.location.href = 'https://youtu.be/ZVREDNFa_fQ';//si esta en pt va a portugués
        }
        else{
-           window.location.href = URL_ERROR_BASE+'Language'+ln;
+           window.location.href = URL_ERROR_BASE+ln;
        }
               
       }
