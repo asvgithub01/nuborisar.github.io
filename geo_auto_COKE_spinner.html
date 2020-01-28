@@ -116,6 +116,7 @@
     
    //asv configuration , min distance, urls and coordinates
    var minDistanceInKilometers=3.5;
+   var minDistanceInKilometersGGG=1.5;
    var URL_IN_MinDistance=' http://promos.orchextra.io/demo-filters-landing';
    var URL_OUT_MinDistance='https://promos.orchextra.io/languages-landing?param=';//asv NO SE UTILIZA NEVER
    var URL_ERROR_BASE='https://promos.orchextra.io/languages-landing?param=';
@@ -134,8 +135,11 @@
    var latBoadilla="40.413156";
    var longBoadilla="-3.888983";
    
-   var latitud=latMonaco;
-   var longitud=longMonaco;
+   var latitud1=latMonaco;
+   var longitud1=longMonaco;
+
+   var latitud2=latGigigo;
+   var longitud2=longGigigo;
    //latitud=latMiCasa;
    //longitud=longMiCasa;
    
@@ -151,7 +155,8 @@
      }
    }
    function checkWhereRedirect(position) {
-       var distanceTotal=distance(position.coords.latitude,position.coords.longitude,latitud,longitud,"K");
+       var distanceTotal1=distance(position.coords.latitude,position.coords.longitude,latitud1,longitud1,"K");//mónaco
+       var distanceTotal2=distance(position.coords.latitude,position.coords.longitude,latitud2,longitud2,"K");//gigigo
    //asv comentad no borrar este alert
    /*alert("Estas a " +distanceTotal+ " KM desde: \n"
        +"\nTus coordenadas \n latitud: " +position.coords.latitude +"\n Longitud: "+position.coords.longitude
@@ -159,7 +164,7 @@
        +"\n Latitud: " +latitud +"\n Longitud: "+longitud);
    */
    
-      if(distanceTotal < minDistanceInKilometers) {
+      if(distanceTotal1 < minDistanceInKilometers || distanceTotal2 < minDistanceInKilometersGGG) {
            window.location.href = URL_IN_MinDistance; 
       }else{
        var ln = x=window.navigator.language||navigator.browserLanguage;
