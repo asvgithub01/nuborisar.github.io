@@ -1,0 +1,112 @@
+﻿{
+	"version": "1",
+	"url_data_base": "https://s3-us-west-1.amazonaws.com/ar-magic-moments-pilot/db",
+	"imgTutorial": "",
+	"models": [{
+			"scale": 4500,
+			"position": {
+				"x": 0,
+				"y": 500,
+				"z": 0
+			},
+			"name": "balon",
+			"database": "cloud"
+		},
+		{
+			"scale": 1500,
+			"rotate": {
+				"x": 80,
+				"y": 20,
+				"z": 10,
+				"w": 0
+			},
+			"position": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"name": "coche",
+			"database": "cloud"
+		},
+		{
+			"scale": 500,
+			"position": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"name": "robot",
+			"database": "cloud",
+			"triggers": {
+				"onStart": "Take 001",
+				"tap": "Take 001",
+				"swipeUp": null,
+				"swipeDown": null,
+				"swipeRight": null,
+				"swipeLeft": null,
+				"onDone": null,
+				"shake": "Take 001"
+			}
+		},
+		{
+			"scale": 200,
+			"rotate": {
+				"x": 0,
+				"y": 0,
+				"z": 0,
+				"w": 0
+			},
+			"name": "bb10"
+		},
+		{
+			"scale": 10,
+			"rotate": {
+				"x": 0,
+				"y": 0,
+				"z": 0,
+				"w": 0
+			},
+			"position": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"name": "Astronaut",
+			"triggers": {
+				"onStart": null,
+				"tap": null,
+				"swipeUp": "astronaut-refill",
+				"swipeDown": "astronaut-drilling",
+				"swipeRight": "astronaut-drilling-to-warning",
+				"swipeLeft": "astronaut-drilling-to-warning",
+				"onDone": null,
+				"shake": null
+			}
+		},
+		{
+			"scale": 250,
+			"rotate": {
+				"x": 0,
+				"y": 0,
+				"z": 0,
+				"w": 0
+			},
+			"position": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"name": "knight_dancing",
+			"triggers": {
+				"onStart": null,
+				"tap": "dance_A",
+				"swipeUp": null,
+				"swipeDown": null,
+				"swipeRight": null,
+				"swipeLeft": "dance_B",
+				"onDone": null,
+				"shake": null
+			}
+		}
+	]
+}
