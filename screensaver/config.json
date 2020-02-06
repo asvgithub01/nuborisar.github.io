@@ -1,112 +1,40 @@
 ﻿{
-	"version": "1",
-	"url_data_base": "https://s3-us-west-1.amazonaws.com/ar-magic-moments-pilot/db",
-	"imgTutorial": "",
-	"models": [{
-			"scale": 4500,
-			"position": {
-				"x": 0,
-				"y": 500,
-				"z": 0
-			},
-			"name": "balon",
-			"database": "cloud"
-		},
-		{
-			"scale": 1500,
-			"rotate": {
-				"x": 80,
-				"y": 20,
-				"z": 10,
-				"w": 0
-			},
-			"position": {
-				"x": 0,
-				"y": 0,
-				"z": 0
-			},
-			"name": "coche",
-			"database": "cloud"
-		},
-		{
-			"scale": 500,
-			"position": {
-				"x": 0,
-				"y": 0,
-				"z": 0
-			},
-			"name": "robot",
-			"database": "cloud",
-			"triggers": {
-				"onStart": "Take 001",
-				"tap": "Take 001",
-				"swipeUp": null,
-				"swipeDown": null,
-				"swipeRight": null,
-				"swipeLeft": null,
-				"onDone": null,
-				"shake": "Take 001"
-			}
-		},
-		{
-			"scale": 200,
-			"rotate": {
-				"x": 0,
-				"y": 0,
-				"z": 0,
-				"w": 0
-			},
-			"name": "bb10"
-		},
-		{
-			"scale": 10,
-			"rotate": {
-				"x": 0,
-				"y": 0,
-				"z": 0,
-				"w": 0
-			},
-			"position": {
-				"x": 0,
-				"y": 0,
-				"z": 0
-			},
-			"name": "Astronaut",
-			"triggers": {
-				"onStart": null,
-				"tap": null,
-				"swipeUp": "astronaut-refill",
-				"swipeDown": "astronaut-drilling",
-				"swipeRight": "astronaut-drilling-to-warning",
-				"swipeLeft": "astronaut-drilling-to-warning",
-				"onDone": null,
-				"shake": null
-			}
-		},
-		{
-			"scale": 250,
-			"rotate": {
-				"x": 0,
-				"y": 0,
-				"z": 0,
-				"w": 0
-			},
-			"position": {
-				"x": 0,
-				"y": 0,
-				"z": 0
-			},
-			"name": "knight_dancing",
-			"triggers": {
-				"onStart": null,
-				"tap": "dance_A",
-				"swipeUp": null,
-				"swipeDown": null,
-				"swipeRight": null,
-				"swipeLeft": "dance_B",
-				"onDone": null,
-				"shake": null
-			}
-		}
-	]
+"version":"1No se usa",
+"url_data_base":"https://nuborisar.github.io/screensaver/",
+"type":"video|images|videoImages|videoGallery",
+"configSlideShow":{
+"info":"meter ajustes, que aplican al banner de imagenes",
+"transition":2,
+"show_title":true,
+"show_indicator":true,
+"images_delay_time_ms":3500
+},
+"images":[
+{
+"path":"images/1.jpg",
+"title":"titulo imagen 1"
+},
+{
+"path":"images/2.jpg",
+"title":"titulo imagen 2"
+},
+{
+"path":"images/3.jpg",
+"title":"titulo imagen 3"
+}
+],
+"videos":[
+{
+"path":"images/video001.mp4",
+"title":"titulo video 1"
+},
+{
+"path":"images/video002.mp4",
+"title":"titulo video 2"
+},
+{
+"path":"images/video003.mp4",
+"title":"titulo video 3"
+}
+]
 }
