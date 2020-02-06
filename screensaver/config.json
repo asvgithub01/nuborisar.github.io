@@ -25,15 +25,15 @@
 ],
 "videos":[
 {
-"path":"images/video001.webm",
+"path":"videos/video001.webm",
 "title":"titulo video 1"
 },
 {
-"path":"images/video002.webm",
+"path":"videos/video002.webm",
 "title":"titulo video 2"
 },
 {
-"path":"images/video003.webm",
+"path":"videos/video003.webm",
 "title":"titulo video 3"
 }
 ]
