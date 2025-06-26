@@ -54,7 +54,7 @@
     function sendMessageToNative() {
       const message = document.getElementById("messageInput").value;
 
-messageJson= JSON.stringify({ message: "$message" })
+	const messageJson= JSON.stringify({ message: message })
 
       // Android JavaScriptInterface
       if (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') {
