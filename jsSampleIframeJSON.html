@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JS Interface Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2em;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+
+    input, button {
+      font-size: 1.2em;
+      padding: 0.5em;
+    }
+
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+    }
+
+    #receivedMessages {
+      margin-top: 2em;
+      padding-top: 1em;
+      border-top: 1px solid #ccc;
+    }
+
+    .message {
+      margin-bottom: 0.5em;
+      padding: 0.5em;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <iframe src="https://play.famobi.com/wrapper/om-nom-run/A1000-10" title="AS"></iframe>
+
+  <h2>Enviar mensaje a nativo</h2>
+  <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." />
+  <button onclick="sendMessageToNative()">Enviar</button>
+
+  <div id="receivedMessages">
+    <h3>Mensajes desde nativo:</h3>
+    <!-- Los mensajes se insertarán aquí -->
+  </div>
+
+  <script>
+    function sendMessageToNative() {
+      const message = document.getElementById("messageInput").value;
+
+messageJson= JSON.stringify({ message: "$message" })
+
+      // Android JavaScriptInterface
+      if (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') {
+        window.NativeBridge.postMessage(messageJson);
+      }
+
+      // iOS WKWebView
+      else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.NativeBridge) {
+        window.webkit.messageHandlers.NativeBridge.postMessage(messageJson);
+      } else {
+        alert("Interfaz nativa no disponible.");
+      }
+    }
+
+    // 🔁 Función pública para recibir mensajes del nativo
+    window.onNativeMessage = function(message) {
+      const container = document.getElementById("receivedMessages");
+      const msgElement = document.createElement("div");
+      msgElement.className = "message";
+      msgElement.textContent = message;
+      container.appendChild(msgElement);
+    };
+  </script>
+</body>
+</html>
