@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendario de Adviento</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #f2f2f2; }
+    .calendar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 20px; }
+    .day {
+      background: #ccc; padding: 20px; cursor: pointer;
+      border-radius: 10px;
+    }
+    .day.locked { background: #eee; color: #aaa; cursor: not-allowed; }
+    #scratchScreen { display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: #000; z-index: 10; }
+    canvas { display: block; margin: 0 auto; }
+    .prize { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Calendario de Adviento</h1>
+  <div class="calendar" id="calendar"></div>
+  <div id="scratchScreen">
+    <canvas id="scratchCanvas" width="300" height="300"></canvas>
+    <div class="prize" id="prizeImage"></div>
+  </div>
+  
+  <script>
+    const calendar = document.getElementById('calendar');
+    const scratchScreen = document.getElementById('scratchScreen');
+    const scratchCanvas = document.getElementById('scratchCanvas');
+    const prizeImage = document.getElementById('prizeImage');
+    const ctx = scratchCanvas.getContext('2d');
+
+    const today = new Date().getDate();
+    const totalDays = 24;
+
+    for (let i = 1; i <= totalDays; i++) {
+      const day = document.createElement('div');
+      day.classList.add('day');
+      day.textContent = i;
+      if (i > today) {
+        day.classList.add('locked');
+      } else {
+        day.addEventListener('click', () => openScratchScreen(i));
+      }
+      calendar.appendChild(day);
+    }
+
+    function openScratchScreen(day) {
+      scratchScreen.style.display = 'flex';
+      ctx.fillStyle = '#999';
+      ctx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      ctx.globalCompositeOperation = 'destination-out';
+      scratchCanvas.addEventListener('mousedown', scratch);
+      scratchCanvas.addEventListener('touchstart', scratch);
+      prizeImage.innerHTML = '<p>Premio del día ' + day + '</p>' +
+        (Math.random() > 0.5 ? '<img src="https://via.placeholder.com/150/00ff00?text=¡Premio!">'
+                             : '<img src="https://via.placeholder.com/150/ff0000?text=No+premio">');
+    }
+
+    function scratch(e) {
+      e.preventDefault();
+      const rect = scratchCanvas.getBoundingClientRect();
+      function move(evt) {
+        const x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+        const y = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      function stop() {
+        scratchCanvas.removeEventListener('mousemove', move);
+        scratchCanvas.removeEventListener('touchmove', move);
+        document.removeEventListener('mouseup', stop);
+        document.removeEventListener('touchend', stop);
+      }
+      scratchCanvas.addEventListener('mousemove', move);
+      scratchCanvas.addEventListener('touchmove', move);
+      document.addEventListener('mouseup', stop);
+      document.addEventListener('touchend', stop);
+    }
+  </script>
+</body>
+</html>
