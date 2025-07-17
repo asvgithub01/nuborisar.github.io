@@ -12,7 +12,9 @@
       margin: 0;
       overflow: hidden;
     }
-
+	.gameHeader{
+		color:#ffffff;
+	}
     /* Contenedor general del árbol */
     .calendar {
       display: flex;
@@ -158,7 +160,7 @@
   </style>
 </head>
 <body>
-  <h1>Juego: <span id="gameId">Cargando...</span></h1>
+  <h1><div id="gameId" class="gameHeader">Cargando...</div></h1>
   <div class="calendar" id="calendar"></div>
 
   <div id="scratchScreen">
@@ -167,6 +169,8 @@
     <button id="backButton" class="back-button" style="display:none;">Volver al calendario</button>
 
 	<!-- Texto de carga -->
+	<p/>
+	<p/>
   <div id="loading">⌛ Pensando...</div>
   <!-- Resultado de la comunicación nativa -->
   <div id="output">Esperando datos desde nativo</div>
@@ -347,7 +351,7 @@
         "GameBridge", // Nombre del handler registrado en Kotlin
         JSON.stringify(message), // Datos enviados
         onCallback = function(response) { // Callback cuando Native responde
-          // ⏳ Espera mínima para que el loading se vea
+           
           setTimeout(() => {
             document.getElementById("loading").style.display = "none";
             try {
@@ -355,7 +359,7 @@
               const data = JSON.parse(response);
               // Mostrar respuesta
               document.getElementById("output").innerText =
-                "📲 Respuesta:\n" + JSON.stringify(data, null, 2);
+                "Respuesta desde KMP:\n" + JSON.stringify(data, null, 2);
               console.log("📲 Respuesta de Android:", data);
 
               // Destacar el botón pulsado
@@ -391,7 +395,7 @@
       document.getElementById("gameId").innerText = currentGameId;
       document.getElementById("scoreButtons").style.display = "block";
       document.getElementById("output").innerText =
-        "🎮 Datos recibidos:\n" + JSON.stringify(parsed, null, 2);
+        "Datos recibidos:\n" + JSON.stringify(parsed, null, 2);
 
       console.log("🎮 Datos recibidos desde Android:", parsed);
     };
