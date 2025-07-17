@@ -308,6 +308,88 @@
     }
 
     setInterval(createSnowflake, 300);
+
+	/*JSBridge*/
+	
+    // Variables globales para el estado del juego
+    let currentGameId = null;
+    let currentPayload = {};
+    let lastScoreSent = null;
+
+    // Función que se ejecuta al pulsar un botón de puntuación
+    function sendScore(score) {
+      // Validación básica: ¿hay bridge y gameId?
+      if (!window.kmpJsBridge || !currentGameId) {
+        alert("Bridge o GameId no disponible");
+        return;
+      }
+
+      lastScoreSent = score;
+
+      // Mostrar indicador de carga
+      document.getElementById("loading").style.display = "block";
+
+      // Crear el mensaje que se enviará al bridge nativo
+      const message = {
+        gameId: currentGameId,
+        userId: currentPayload.mcid || "unknown",
+        score: score.toString()
+      };
+
+      // Comunicación JS → Native con callback para respuesta
+      window.kmpJsBridge.callNative(
+        "GameBridge", // Nombre del handler registrado en Kotlin
+        JSON.stringify(message), // Datos enviados
+        onCallback = function(response) { // Callback cuando Native responde
+          // ⏳ Espera mínima para que el loading se vea
+          setTimeout(() => {
+            document.getElementById("loading").style.display = "none";
+            try {
+              // Interpretar respuesta como JSON
+              const data = JSON.parse(response);
+              // Mostrar respuesta
+              document.getElementById("output").innerText =
+                "📲 Respuesta:\n" + JSON.stringify(data, null, 2);
+              console.log("📲 Respuesta de Android:", data);
+
+              // Destacar el botón pulsado
+              highlightButton(score);
+            } catch (e) {
+              console.error("❌ Error al parsear respuesta:", e);
+              document.getElementById("output").innerText = "❌ Error en respuesta.";
+            }
+          }, 2000); // <-- retardo artificial para ver el loading
+        }
+      );
+    }
+
+    // Destaca el botón pulsado y oculta los demás
+    function highlightButton(score) {
+      const buttons = document.querySelectorAll("#scoreButtons button");
+      buttons.forEach((btn) => {
+        const btnScore = parseInt(btn.innerText);
+        if (btnScore === score) {
+          btn.classList.add("active");
+        } else {
+          btn.style.display = "none"; // Oculta los no pulsados
+        }
+      });
+    }
+
+    // Esta función la llama Kotlin/Native al cargar
+    window.receiveDataFromKMP = function(parsed) {
+      currentGameId = parsed.gameId;
+      currentPayload = parsed.payload || {};
+
+      // Mostrar datos recibidos y activar los botones
+      document.getElementById("gameId").innerText = currentGameId;
+      document.getElementById("scoreButtons").style.display = "block";
+      document.getElementById("output").innerText =
+        "🎮 Datos recibidos:\n" + JSON.stringify(parsed, null, 2);
+
+      console.log("🎮 Datos recibidos desde Android:", parsed);
+    };
+  
   </script>
 </body>
 </html>
