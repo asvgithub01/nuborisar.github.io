@@ -13,60 +13,70 @@
       overflow: hidden;
     }
 
+    /* Contenedor general del árbol */
     .calendar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 4 columnas fijas */
-      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 10px;
-      max-width: 400px; /* 4 * 90px aprox con margen */
-      margin: 0 auto; /* centrar horizontalmente */
+      max-width: 400px;
+      margin: 0 auto;
+      gap: 8px;
+    }
+
+    /* Cada fila del árbol */
+    .tree-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
     }
 
     .day {
-      aspect-ratio: 1/1;
+      aspect-ratio: 1 / 1;
+      width: 50px;
       background: #ccc;
       display: flex;
       align-items: flex-start;
       justify-content: flex-start;
       cursor: pointer;
       border-radius: 10px;
-      font-size: 2em;
+      font-size: 1.8em;
       padding: 5px 10px;
       user-select: none;
       background-image: url('juego/fondodias.jpg');
       background-size: cover;
-	  position: relative;
-	  color: white;
-	  font-weight: bold;
-	  font-size: 1.8em;
-	  text-shadow: 1px 1px 2px #000;
-	  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-	  transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      color: white;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .day.locked {
       background: #eee;
       color: #aaa;
       cursor: not-allowed;
-	    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-  transform: scale(1.05);
-  transition: 0.2s ease;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      transform: scale(1.05);
+      transition: 0.2s ease;
     }
-	.day.flip {
-  animation: flipOut 0.6s forwards;
-  transform-style: preserve-3d;
-}
+    .day.flip {
+      animation: flipOut 0.6s forwards;
+      transform-style: preserve-3d;
+    }
 
-@keyframes flipOut {
-  0% {
-    transform: rotateY(0deg);
-  }
-  100% {
-    transform: rotateY(90deg);
-  }
-}
+    @keyframes flipOut {
+      0% {
+        transform: rotateY(0deg);
+      }
+      100% {
+        transform: rotateY(90deg);
+      }
+    }
 
-    #scratchScreen {
+   #scratchScreen {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -114,7 +124,23 @@
         grid-template-columns: repeat(4, 1fr);
       }
     }
-
+	 .snowflake {
+      position: fixed;
+      top: -50px;
+      width: 30px;
+      height: 30px;
+       /*background-image: url('juego/copo1.png');   */
+      background-size: contain;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      z-index: 5;
+      animation: fall linear infinite;
+    }
+	 @keyframes fall {
+      to {
+        transform: translateY(110vh) rotate(360deg);
+      }
+    }
     @media (min-width: 769px) {
       body {
         transform: rotate(0deg);
@@ -143,7 +169,7 @@
 
   <script>
     const calendar = document.getElementById('calendar');
-    const scratchScreen = document.getElementById('scratchScreen');
+	const scratchScreen = document.getElementById('scratchScreen');
     const scratchCanvas = document.getElementById('scratchCanvas');
     const prizeImage = document.getElementById('prizeImage');
     const backButton = document.getElementById('backButton');
@@ -156,38 +182,52 @@
 	const PrizeText="Ganaste";
 	const NoPrizeImg="url('juego/siguebuscando.png')";
 	const PrizeImg="url('juego/premio.png')";
+	const copo1="url('juego/copo1.png')";
+	const copo2="url('juego/copo2.png')";
 
 	var textPrize="Sigue Buscando";
     const today = new Date().getDate();
-    const totalDays = 31;
+    const totalDays = 24;
 
-    for (let i = 1; i <= totalDays; i++) {
-      const day = document.createElement('div');
-      day.classList.add('day');
-      day.textContent = i;
-      if (i > today) {
-        day.classList.add('locked');
-      } else {
-         
-		day.addEventListener('click', (e) => {
-  const el = e.currentTarget;
-  el.classList.add('flip');
-  setTimeout(() => {
-    el.classList.remove('flip');
-    openScratchScreen(i);
-  }, 600); // Esperamos a que termine la animación (600ms)
-});
+    
+    const rows = [1, 2, 3, 4, 5, 6, 3]; // totla 24
 
+    let dayCounter = 1;
+    for(let r = 0; r < rows.length; r++) {
+      const rowDiv = document.createElement('div');
+      rowDiv.classList.add('tree-row');
+
+      for(let c = 0; c < rows[r]; c++) {
+        if(dayCounter > totalDays) break;
+        const day = document.createElement('div');
+        day.classList.add('day');
+        day.textContent = dayCounter;
+        if(dayCounter > today) {
+          day.classList.add('locked');
+        } else {
+           //pa q haga la animacion
+          day.addEventListener('click', (e) => {
+            const el = e.currentTarget;
+            el.classList.add('flip');
+            setTimeout(() => {
+              el.classList.remove('flip');
+              openScratchScreen(dayCounter);
+            }, 600);
+          });
+        }
+        rowDiv.appendChild(day);
+        dayCounter++;
       }
-      calendar.appendChild(day);
+      calendar.appendChild(rowDiv);
     }
 
+     
     function openScratchScreen(day) {
       scratchScreen.style.display = 'flex';
       prizeImage.innerHTML = '';
       backButton.style.display = 'none';
 
-      // Fondo de premio aleatorio
+      
       const fondo = Math.random() > 0.5 ? PrizeImg : NoPrizeImg;
       scratchCanvas.style.backgroundImage = fondo;
 	  if(fondo==PrizeImg)
@@ -245,13 +285,29 @@
     }
 
     function revealPrize() {
-      // Revelar premio
+      //   premio o nada
       prizeImage.innerHTML = '<p>¡'+ textPrize+'!</p>';
       backButton.style.display = 'inline-block';
       backButton.onclick = () => {
         scratchScreen.style.display = 'none';
       };
     }
+	 // Nieve animada
+    function createSnowflake() {
+      const snowflake = document.createElement('div');
+	  const fondo = Math.random() > 0.5 ? copo1 : copo2;
+      snowflake.style.backgroundImage = fondo;
+      snowflake.classList.add('snowflake');
+      const size = Math.random() * 20 + 10;
+      snowflake.style.width = size + 'px';
+      snowflake.style.height = size + 'px';
+      snowflake.style.left = Math.random() * window.innerWidth + 'px';
+      snowflake.style.animationDuration = (Math.random() * 5 + 5) + 's';
+      document.body.appendChild(snowflake);
+      setTimeout(() => snowflake.remove(), 10000);
+    }
+
+    setInterval(createSnowflake, 300);
   </script>
 </body>
 </html>
