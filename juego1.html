@@ -235,7 +235,9 @@
       scratchScreen.style.display = 'flex';
       prizeImage.innerHTML = '';
       backButton.style.display = 'none';
-
+	  document.getElementById("output").innerText ="";
+	  document.getElementById("loading").innerText ="";
+	  
       
       const fondo = Math.random() > 0.5 ? PrizeImg : NoPrizeImg;
       scratchCanvas.style.backgroundImage = fondo;
