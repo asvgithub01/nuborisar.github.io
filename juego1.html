@@ -158,13 +158,18 @@
   </style>
 </head>
 <body>
-  
+  <h1>Juego: <span id="gameId">Cargando...</span></h1>
   <div class="calendar" id="calendar"></div>
 
   <div id="scratchScreen">
     <canvas id="scratchCanvas" width="300" height="300"></canvas>
     <div class="prize" id="prizeImage"></div>
     <button id="backButton" class="back-button" style="display:none;">Volver al calendario</button>
+
+	<!-- Texto de carga -->
+  <div id="loading">⌛ Pensando...</div>
+  <!-- Resultado de la comunicación nativa -->
+  <div id="output">Esperando datos desde nativo</div>
   </div>
 
   <script>
@@ -285,6 +290,7 @@
     }
 
     function revealPrize() {
+	sendScore(textPrize);
       //   premio o nada
       prizeImage.innerHTML = '<p>¡'+ textPrize+'!</p>';
       backButton.style.display = 'inline-block';
