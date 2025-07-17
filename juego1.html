@@ -1,69 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calendario de Adviento</title>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
-      background: #f2f2f2;
+      background: #DB0007;
       margin: 0;
       overflow: hidden;
     }
+
     .calendar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      grid-template-columns: repeat(4, 1fr); /* 4 columnas fijas */
       gap: 10px;
       padding: 10px;
-      max-width: 100vw;
+      max-width: 400px; /* 4 * 90px aprox con margen */
+      margin: 0 auto; /* centrar horizontalmente */
     }
+
     .day {
-      aspect-ratio: 1 / 1; /* Cubo */
-      background: #ccc; 
+      aspect-ratio: 1/1;
+      background: #ccc;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      align-items: flex-start;
+      justify-content: flex-start;
       cursor: pointer;
       border-radius: 10px;
-      font-size: 1.5em;
+      font-size: 2em;
+      padding: 5px 10px;
       user-select: none;
-      /* Imagen de fondo para los días: */
-      /* background-image: url('ruta/fondodias.jpg'); background-size: cover; */
-	 background-image: url('juego/fondodias.jpg');
-	 background-size: cover;
+      background-image: url('juego/fondodias.jpg');
+      background-size: cover;
+	  position: relative;
+	  color: white;
+	  font-weight: bold;
+	  font-size: 1.8em;
+	  text-shadow: 1px 1px 2px #000;
+	  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+	  transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
+
     .day.locked {
-      background: #eee; 
-      color: #aaa; 
+      background: #eee;
+      color: #aaa;
       cursor: not-allowed;
+	    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+  transition: 0.2s ease;
     }
+	.day.flip {
+  animation: flipOut 0.6s forwards;
+  transform-style: preserve-3d;
+}
+
+@keyframes flipOut {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(90deg);
+  }
+}
+
     #scratchScreen {
-      display: none; 
-      position: fixed; 
+      display: none;
+      position: fixed;
       top: 0; left: 0;
-      width: 100vw; height: 100vh; 
-      background: #000; 
-      z-index: 10; 
+      width: 100vw; height: 100vh;
+      background: #DB0007;
+      z-index: 10;
       flex-direction: column;
       justify-content: center;
       align-items: center;
     }
+
     canvas {
-      display: block; 
+      display: block;
       margin: 0 auto;
       width: 300px; height: 300px;
-      /* Imagen que se va a rascar encima: */
-      /* background-image: url('ruta/a/imagen-superior.png'); background-size: cover; */
-	   background-image: url('juego/premio.png');
-	 background-size: cover;
+      background-size: cover;
+      touch-action: none;
     }
+
     .prize {
       margin-top: 20px;
-      /* Imagen que se revela al rascar debajo: */
-      /* Esta va en el contenido de #prizeImage dinámicamente */
-	   
+      color: white;
+      font-size: 1.2em;
+    }
+
+    .back-button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: white;
+      color: #DB0007;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     @media (orientation: portrait) and (max-width: 768px) {
@@ -71,11 +108,13 @@
         grid-template-columns: repeat(4, 1fr);
       }
     }
+
     @media (orientation: landscape) and (max-width: 768px) {
       .calendar {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
     }
+
     @media (min-width: 769px) {
       body {
         transform: rotate(0deg);
@@ -93,11 +132,13 @@
   </style>
 </head>
 <body>
-  <h1>Calendario de Adviento</h1>
+  
   <div class="calendar" id="calendar"></div>
+
   <div id="scratchScreen">
     <canvas id="scratchCanvas" width="300" height="300"></canvas>
     <div class="prize" id="prizeImage"></div>
+    <button id="backButton" class="back-button" style="display:none;">Volver al calendario</button>
   </div>
 
   <script>
@@ -105,10 +146,20 @@
     const scratchScreen = document.getElementById('scratchScreen');
     const scratchCanvas = document.getElementById('scratchCanvas');
     const prizeImage = document.getElementById('prizeImage');
+    const backButton = document.getElementById('backButton');
     const ctx = scratchCanvas.getContext('2d');
+    const width = scratchCanvas.width;
+    const height = scratchCanvas.height;
+    const totalPixels = width * height;
+    const revealThreshold = 0.40;
+	const NoPrizeText="Sigue Buscando";
+	const PrizeText="Ganaste";
+	const NoPrizeImg="url('juego/siguebuscando.png')";
+	const PrizeImg="url('juego/premio.png')";
 
+	var textPrize="Sigue Buscando";
     const today = new Date().getDate();
-    const totalDays = 24;
+    const totalDays = 31;
 
     for (let i = 1; i <= totalDays; i++) {
       const day = document.createElement('div');
@@ -117,46 +168,89 @@
       if (i > today) {
         day.classList.add('locked');
       } else {
-        day.addEventListener('click', () => openScratchScreen(i));
+         
+		day.addEventListener('click', (e) => {
+  const el = e.currentTarget;
+  el.classList.add('flip');
+  setTimeout(() => {
+    el.classList.remove('flip');
+    openScratchScreen(i);
+  }, 600); // Esperamos a que termine la animación (600ms)
+});
+
       }
       calendar.appendChild(day);
     }
 
     function openScratchScreen(day) {
       scratchScreen.style.display = 'flex';
+      prizeImage.innerHTML = '';
+      backButton.style.display = 'none';
+
+      // Fondo de premio aleatorio
+      const fondo = Math.random() > 0.5 ? PrizeImg : NoPrizeImg;
+      scratchCanvas.style.backgroundImage = fondo;
+	  if(fondo==PrizeImg)
+		textPrize = PrizeText;
+	  else
+		textPrize = NoPrizeText;
+
+      // Rellenar gris para rascar
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = '#999';
-      ctx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      ctx.fillRect(0, 0, width, height);
       ctx.globalCompositeOperation = 'destination-out';
 
-      scratchCanvas.addEventListener('mousedown', scratch);
-      scratchCanvas.addEventListener('touchstart', scratch);
-
-      prizeImage.innerHTML = '<p>Premio del día ' + day + '</p>' +
-        (Math.random() > 0.5 ? '<img src="https://via.placeholder.com/150/00ff00?text=¡Premio!">'
-                             : '<img src="https://via.placeholder.com/150/ff0000?text=No+premio">');
+      scratchCanvas.addEventListener('mousedown', startScratch);
+      scratchCanvas.addEventListener('touchstart', startScratch);
     }
 
-    function scratch(e) {
+    function startScratch(e) {
       e.preventDefault();
       const rect = scratchCanvas.getBoundingClientRect();
+
       function move(evt) {
         const x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
         const y = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
         ctx.beginPath();
         ctx.arc(x, y, 20, 0, Math.PI * 2);
         ctx.fill();
+        checkScratchProgress();
       }
+
       function stop() {
         scratchCanvas.removeEventListener('mousemove', move);
         scratchCanvas.removeEventListener('touchmove', move);
         document.removeEventListener('mouseup', stop);
         document.removeEventListener('touchend', stop);
       }
+
       scratchCanvas.addEventListener('mousemove', move);
       scratchCanvas.addEventListener('touchmove', move);
       document.addEventListener('mouseup', stop);
       document.addEventListener('touchend', stop);
+    }
+
+    function checkScratchProgress() {
+      const pixels = ctx.getImageData(0, 0, width, height).data;
+      let transparent = 0;
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) transparent++;
+      }
+      const percent = transparent / totalPixels;
+
+      if (percent > revealThreshold) {
+        revealPrize();
+      }
+    }
+
+    function revealPrize() {
+      // Revelar premio
+      prizeImage.innerHTML = '<p>¡'+ textPrize+'!</p>';
+      backButton.style.display = 'inline-block';
+      backButton.onclick = () => {
+        scratchScreen.style.display = 'none';
+      };
     }
   </script>
 </body>
