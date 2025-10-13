@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>JS Bridge Test</title>
+  </head>
+  <body>
+    <h1>Ejemplo JS ↔ Kotlin</h1>
+    <p>ID del juego: <span id="gameId">sin datos</span></p>
+
+    <button onclick="startGame()">Start Juego</button>
+    <button onclick="endGame()">Juego Terminado</button>
+
+    <pre id="output">Esperando datos desde nativo...</pre>
+
+    <script>
+      let currentGameId = null;
+      let currentPayload = {};
+
+      function startGame() {
+        if (!window.kmpJsBridge) {
+          alert("Bridge no disponible");
+          return;
+        }
+        const message = {
+          action: "startGame",
+          gameId: currentGameId || "demo",
+          userId: currentPayload.mcid || "unknown"
+        };
+        window.kmpJsBridge.callNative(
+          "GameBridge",
+          JSON.stringify(message),
+          function (response) {
+            document.getElementById("output").innerText =
+              "Respuesta desde nativo:\n" + response;
+          }
+        );
+      }
+
+      function endGame() {
+        if (!window.kmpJsBridge) {
+          alert("Bridge no disponible");
+          return;
+        }
+        const message = {
+          action: "endGame",
+          gameId: currentGameId || "demo"
+        };
+        window.kmpJsBridge.callNative(
+          "GameBridge",
+          JSON.stringify(message),
+          function (response) {
+            document.getElementById("output").innerText =
+              "Respuesta desde nativo:\n" + response;
+          }
+        );
+      }
+
+      // Esta función la invoca Kotlin
+      window.receiveDataFromKMP = function (data) {
+        if (data.action === "claim") {
+          alert("¡Claim recibido!");
+          return;
+        }
+        currentGameId = data.gameId;
+        currentPayload = data.payload || {};
+        document.getElementById("gameId").innerText = currentGameId;
+        document.getElementById("output").innerText =
+          "Datos recibidos desde Kotlin:\n" + JSON.stringify(data, null, 2);
+      };
+    </script>
+  </body>
+</html>
