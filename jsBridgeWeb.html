@@ -56,10 +56,31 @@
         );
       }
 
+       function closeGame() {
+        if (!window.kmpJsBridge) {
+          alert("Bridge no disponible");
+          return;
+        }
+        const message = {
+          action: "closeGame",
+          gameId: currentGameId || "demo",
+          userId: currentPayload.mcid || "unknown"
+        };
+        window.kmpJsBridge.callNative(
+          "GameBridge",
+          JSON.stringify(message),
+          function (response) {
+            document.getElementById("output").innerText =
+              "Respuesta desde nativo del closegame:\n" + response;
+          }
+        );
+      }
+
       // Esta función la invoca Kotlin
       window.receiveDataFromKMP = function (data) {
         if (data.action === "claim") {
-          alert("¡Claim recibido!");
+          alert("¡Claim recibido! ganaste:"+data);
+          closeGame();
           return;
         }
         currentGameId = data.gameId;
