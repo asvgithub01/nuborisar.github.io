@@ -91,10 +91,15 @@
      document.getElementById("inAction").innerText = data.action;
 
       if (data.action === "claimGame_from_KT") {
-        alert("¡Claim recibido! \n"+data.score +"\n\n Al cerrar el Dialog se cierra el Juego");
+        alert("¡Claim recibido! \n"+data.claimResponse +"\n\n Al cerrar el Dialog se cierra el Juego");
         closeGame();
         return;
       }
+	  if (data.action === "startGame_from_KT") {
+        alert("¡start hitorico recibido! \n"+data.startResponse +"");
+      }
+
+
       document.getElementById("output").innerText =
         "Datos recibidos desde Kotlin:\n" + JSON.stringify(data, null, 2);
     };
