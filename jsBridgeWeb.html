@@ -15,6 +15,10 @@
 
 <pre id="output">Esperando datos desde nativo...</pre>
 
+<a href="arcosmobile://games">catalogo de juegos</a>
+<a href="arcosmobile://games?id=68c1504d476236f381690c01">Calendario Navidad</a>
+<a href="arcosmobile://games?id=68e685e76f8af3513b594de5">Pablo juego</a>
+
 <script>
 
     let currentGameId = null;
@@ -87,7 +91,7 @@
      document.getElementById("inAction").innerText = data.action;
 
       if (data.action === "claimGame_from_KT") {
-        alert("¡Claim recibido! \n"+data.score);
+        alert("¡Claim recibido! \n"+data.score +"\n\n Al cerrar el Dialog se cierra el Juego");
         closeGame();
         return;
       }
