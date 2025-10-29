@@ -128,11 +128,15 @@
     document.getElementById("output").innerText =
       "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
 
-    // Lógica de acciones según tipo
+    // --- Lógica de acciones según tipo ---
     if (parsed.action === "claimGame_from_KT") {
-      const code = parsed.claimResponse?.code || "sin código";
-      const win = parsed.claimResponse?.winner ? "GANADOR" : "NO GANADOR";
-      alert(`🎯 Claim recibido\nResultado: ${win}\nCódigo: ${code}`);
+      const claim = parsed.claimResponse || {};
+      const win = claim.winner ? "GANADOR" : "NO GANADOR";
+      const code = claim.code ? `\nCódigo: ${claim.code}` : "";
+      const points = claim.loyaltyPoints != null ? `\nPuntos: ${claim.loyaltyPoints}` : "";
+      const extra = (!claim.code && claim.loyaltyPoints == null) ? "\n(Sin premio ni puntos)" : "";
+
+      alert(`🎯 Claim recibido\nResultado: ${win}${code}${points}${extra}`);
       closeGame();
     }
 
