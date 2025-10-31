@@ -5,15 +5,8 @@
   <title>JS Bridge Test</title>
   <style>
     body { font-family: sans-serif; padding: 16px; }
-    button { margin: 8px; padding: 8px 16px; cursor: pointer; }
-    pre { background: #eee; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
-    #copyCodeBtn {
-      display: none;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
+    button { margin: 8px; padding: 8px 16px; }
+    pre { background: #eee; padding: 10px; border-radius: 6px; }
   </style>
 </head>
 <body>
@@ -26,9 +19,6 @@
 <button onclick="startGame()">Start Juego</button>
 <button onclick="endGame()">Juego Terminado</button>
 
-<!-- Botón para copiar código -->
-<button id="copyCodeBtn" onclick="copyCode()">Copiar código</button>
-
 <pre id="output">Esperando datos desde nativo...</pre>
 
 <hr>
@@ -37,8 +27,8 @@
 <a href="arcosmobile://games?id=68e685e76f8af3513b594de5">Pablo juego</a>
 
 <script>
-  // --- Bridge universal para Swift / Kotlin ---
-  if (typeof window.kmpJsBridge === "undefined") {
+// --- Bridge universal para Swift / Kotlin ---
+  if (typeof window.kmpJsBridge === “undefined”) {
     window.kmpJsBridge = {
       callNative: function(handlerName, message, callback) {
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.kmpJsBridge) {
@@ -53,17 +43,26 @@
           const response = window.AndroidBridge.callNative(handlerName, message);
           if (callback) callback(response);
         } else {
-          alert("Bridge no disponible");
+          alert(“Bridge no disponible”);
         }
       }
     };
   }
 
+
+
+
+
+  // --- Estado ---
   let currentGameId = "demo";
-  let currentCode = null; // guardamos aquí el código si viene del claim
 
   // --- Funciones de envío hacia KMP ---
   function startGame() {
+    if (!window.kmpJsBridge) {
+      alert("Bridge no disponible");
+      return;
+    }
+
     const message = {
       action: "startGame_from_JS",
       gameId: currentGameId,
@@ -86,6 +85,11 @@
   }
 
   function endGame() {
+    if (!window.kmpJsBridge) {
+      alert("Bridge no disponible");
+      return;
+    }
+
     const message = {
       action: "endGame_from_JS",
       gameId: currentGameId,
@@ -108,6 +112,11 @@
   }
 
   function closeGame() {
+    if (!window.kmpJsBridge) {
+      alert("Bridge no disponible");
+      return;
+    }
+
     const message = {
       action: "closeGame_from_JS",
       gameId: currentGameId
@@ -125,16 +134,9 @@
     );
   }
 
-  // --- Nueva función para copiar el código ---
-  function copyCode() {
-    if (!currentCode) return;
-    navigator.clipboard.writeText(currentCode)
-      .then(() => alert("Código copiado al portapapeles: " + currentCode))
-      .catch(() => alert("Error al copiar el código"));
-  }
-
   // --- Función que invoca Kotlin ---
   window.receiveDataFromKMP = function (data) {
+    // A veces 'data' puede venir como string JSON desde evaluateJavascript
     let parsed;
     try {
       parsed = typeof data === "string" ? JSON.parse(data) : data;
@@ -147,6 +149,7 @@
     document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
     document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
 
+    // Mostrar en consola y pantalla
     console.log("📩 Datos recibidos desde Kotlin:", parsed);
     document.getElementById("output").innerText =
       "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
@@ -160,16 +163,6 @@
       const extra = (!claim.code && claim.loyaltyPoints == null) ? "\n(Sin premio ni puntos)" : "";
 
       alert(`🎯 Claim recibido\nResultado: ${win}${code}${points}${extra}`);
-
-      // Mostrar botón copiar si hay código
-      if (claim.code) {
-        currentCode = claim.code;
-        document.getElementById("copyCodeBtn").style.display = "inline-block";
-      } else {
-        currentCode = null;
-        document.getElementById("copyCodeBtn").style.display = "none";
-      }
-
       closeGame();
     }
 
