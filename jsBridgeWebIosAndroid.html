@@ -6,13 +6,13 @@
   <style>
     body { font-family: sans-serif; padding: 16px; }
     button { margin: 8px; padding: 8px 16px; cursor: pointer; }
-    pre { background: #eee; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
-    #copyCodeBtn {
-      display: none;
+    pre { background: #eee; padding: 10px; border-radius: 6px; }
+    #copyCodeButton {
       background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
+      display: none; /* Oculto por defecto */
     }
   </style>
 </head>
@@ -26,8 +26,8 @@
 <button onclick="startGame()">Start Juego</button>
 <button onclick="endGame()">Juego Terminado</button>
 
-<!-- Botón para copiar código -->
-<button id="copyCodeBtn" onclick="copyCode()">Copiar código</button>
+<!-- Botón que aparecerá solo cuando haya código -->
+<button id="copyCodeButton" onclick="copyCode()">Copiar código</button>
 
 <pre id="output">Esperando datos desde nativo...</pre>
 
@@ -42,14 +42,12 @@
     window.kmpJsBridge = {
       callNative: function(handlerName, message, callback) {
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.kmpJsBridge) {
-          // Comunicación con iOS
           window._kmpCallback = callback;
           window.webkit.messageHandlers.kmpJsBridge.postMessage({
             handler: handlerName,
             body: message
           });
         } else if (window.AndroidBridge && window.AndroidBridge.callNative) {
-          // Comunicación con Android
           const response = window.AndroidBridge.callNative(handlerName, message);
           if (callback) callback(response);
         } else {
@@ -60,10 +58,11 @@
   }
 
   let currentGameId = "demo";
-  let currentCode = null; // guardamos aquí el código si viene del claim
+  let currentCode = null;
 
-  // --- Funciones de envío hacia KMP ---
+  // --- Funciones hacia Kotlin ---
   function startGame() {
+    if (!window.kmpJsBridge) return alert("Bridge no disponible");
     const message = {
       action: "startGame_from_JS",
       gameId: currentGameId,
@@ -72,20 +71,15 @@
       claimResponse: null,
       startResponse: null
     };
-
     document.getElementById("outAction").innerText = message.action;
-
-    window.kmpJsBridge.callNative(
-      "GameBridge",
-      JSON.stringify(message),
-      function (response) {
-        document.getElementById("output").innerText =
-          "Respuesta desde nativo (startGame):\n" + response;
-      }
-    );
+    window.kmpJsBridge.callNative("GameBridge", JSON.stringify(message), function (response) {
+      document.getElementById("output").innerText =
+        "Respuesta desde nativo (startGame):\n" + response;
+    });
   }
 
   function endGame() {
+    if (!window.kmpJsBridge) return alert("Bridge no disponible");
     const message = {
       action: "endGame_from_JS",
       gameId: currentGameId,
@@ -94,46 +88,40 @@
       claimResponse: null,
       startResponse: null
     };
-
     document.getElementById("outAction").innerText = message.action;
-
-    window.kmpJsBridge.callNative(
-      "GameBridge",
-      JSON.stringify(message),
-      function (response) {
-        document.getElementById("output").innerText =
-          "Respuesta desde nativo (endGame):\n" + response;
-      }
-    );
+    window.kmpJsBridge.callNative("GameBridge", JSON.stringify(message), function (response) {
+      document.getElementById("output").innerText =
+        "Respuesta desde nativo (endGame):\n" + response;
+    });
   }
 
   function closeGame() {
+    if (!window.kmpJsBridge) return alert("Bridge no disponible");
     const message = {
       action: "closeGame_from_JS",
       gameId: currentGameId
     };
-
     document.getElementById("outAction").innerText = message.action;
-
-    window.kmpJsBridge.callNative(
-      "GameBridge",
-      JSON.stringify(message),
-      function (response) {
-        document.getElementById("output").innerText =
-          "Respuesta desde nativo (closeGame):\n" + response;
-      }
-    );
+    window.kmpJsBridge.callNative("GameBridge", JSON.stringify(message), function (response) {
+      document.getElementById("output").innerText =
+        "Respuesta desde nativo (closeGame):\n" + response;
+    });
   }
 
-  // --- Nueva función para copiar el código ---
+  // --- Nueva función: copiar código ---
   function copyCode() {
     if (!currentCode) return;
     navigator.clipboard.writeText(currentCode)
-      .then(() => alert("Código copiado al portapapeles: " + currentCode))
-      .catch(() => alert("Error al copiar el código"));
+      .then(() => {
+        alert(`✅ Código copiado: ${currentCode}`);
+        document.getElementById("copyCodeButton").style.display = "none";
+        currentCode = null;
+        closeGame(); // Cerramos juego tras copiar
+      })
+      .catch(err => alert("Error copiando el código: " + err));
   }
 
-  // --- Función que invoca Kotlin ---
+  // --- Recibir datos desde KMP ---
   window.receiveDataFromKMP = function (data) {
     let parsed;
     try {
@@ -146,12 +134,9 @@
 
     document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
     document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
-
-    console.log("📩 Datos recibidos desde Kotlin:", parsed);
     document.getElementById("output").innerText =
       "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
 
-    // --- Lógica de acciones según tipo ---
     if (parsed.action === "claimGame_from_KT") {
       const claim = parsed.claimResponse || {};
       const win = claim.winner ? "GANADOR" : "NO GANADOR";
@@ -161,16 +146,13 @@
 
       alert(`🎯 Claim recibido\nResultado: ${win}${code}${points}${extra}`);
 
-      // Mostrar botón copiar si hay código
+      // Si viene código, mostramos botón
       if (claim.code) {
         currentCode = claim.code;
-        document.getElementById("copyCodeBtn").style.display = "inline-block";
+        document.getElementById("copyCodeButton").style.display = "inline-block";
       } else {
-        currentCode = null;
-        document.getElementById("copyCodeBtn").style.display = "none";
+        closeGame();
       }
-
-     // closeGame();
     }
 
     if (parsed.action === "startGame_from_KT") {
