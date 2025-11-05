@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>JS Bridge Test</title>
   <style>
-    body { font-family: sans-serif; padding: 16px; background-color: #A9C141; }
+    body { font-family: sans-serif; padding: 16px; background-color: #ccC141; }
     button { margin: 8px; padding: 8px 16px; }
     pre { background: #eee; padding: 10px; border-radius: 6px; }
 
@@ -135,7 +135,12 @@
     const message = {
       action: "copyGame_from_JS",
       gameId: currentGameId,
-      code: currentClaimCode
+      userId: "",
+      score: "",
+      claimResponse: null,
+      startResponse: null,
+      startData: null
+
     };
 
     document.getElementById("outAction").innerText = message.action;
