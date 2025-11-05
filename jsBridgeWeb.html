@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>JS Bridge Test</title>
-  <style>
-    body { font-family: sans-serif; padding: 16px; }
-    button { margin: 8px; padding: 8px 16px; }
-    pre { background: #eee; padding: 10px; border-radius: 6px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>JS Bridge Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 16px; }
+        button { margin: 8px; padding: 8px 16px; }
+        pre { background: #eee; padding: 10px; border-radius: 6px; }
+    </style>
 </head>
 <body>
 <h1>JS ↔ Kotlin Bridge</h1>
@@ -27,123 +27,135 @@
 <a href="arcosmobile://games?id=68e685e76f8af3513b594de5">Pablo juego</a>
 
 <script>
-  // --- Estado ---
-  let currentGameId = "demo";
-
-  // --- Funciones de envío hacia KMP ---
-  function startGame() {
-    if (!window.kmpJsBridge) {
-      alert("Bridge no disponible");
-      return;
-    }
-
-    const message = {
-      action: "startGame_from_JS",
-      gameId: currentGameId,
-      userId: "user123",
-      score: "",
-      claimResponse: null,
-      startResponse: null
-    };
-
-    document.getElementById("outAction").innerText = message.action;
-
-    window.kmpJsBridge.callNative(
-      "GameBridge",
-      JSON.stringify(message),
-      function (response) {
-        document.getElementById("output").innerText =
-          "Respuesta desde nativo (startGame):\n" + response;
+    // --- Estado ---
+    let currentGameId = "innecesario";
+  
+    // --- Funciones de envío hacia KMP ---
+    function startGame() {
+      if (!window.kmpJsBridge) {
+        alert("Bridge no disponible");
+        return;
       }
-    );
-  }
-
-  function endGame() {
-    if (!window.kmpJsBridge) {
-      alert("Bridge no disponible");
-      return;
+  
+      const message = {
+        action: "startGame_from_JS",
+        gameId: currentGameId,
+        userId: "",
+        score: "",
+        claimResponse: null,
+        startResponse: null,
+        startData: null
+      };
+  
+      document.getElementById("outAction").innerText = message.action;
+  
+      window.kmpJsBridge.callNative(
+        "GameBridge",
+        JSON.stringify(message),
+        function (response) {
+          document.getElementById("output").innerText =
+            "Respuesta desde nativo (startGame):\n" + response;
+        }
+      );
     }
-
-    const message = {
-      action: "endGame_from_JS",
-      gameId: currentGameId,
-      userId: "user123",
-      score: "500",
-      claimResponse: null,
-      startResponse: null
-    };
-
-    document.getElementById("outAction").innerText = message.action;
-
-    window.kmpJsBridge.callNative(
-      "GameBridge",
-      JSON.stringify(message),
-      function (response) {
-        document.getElementById("output").innerText =
-          "Respuesta desde nativo (endGame):\n" + response;
+  
+    function endGame() {
+      if (!window.kmpJsBridge) {
+        alert("Bridge no disponible");
+        return;
       }
-    );
-  }
-
-  function closeGame() {
-    if (!window.kmpJsBridge) {
-      alert("Bridge no disponible");
-      return;
+  
+      const message = {
+        action: "endGame_from_JS",
+        gameId: currentGameId,
+        userId: "",
+        score: "",
+        claimResponse: null,
+        startResponse: null,
+        startData: null
+      };
+  
+      document.getElementById("outAction").innerText = message.action;
+  
+      window.kmpJsBridge.callNative(
+        "GameBridge",
+        JSON.stringify(message),
+        function (response) {
+          document.getElementById("output").innerText =
+            "Respuesta desde nativo (endGame):\n" + response;
+        }
+      );
     }
-
-    const message = {
-      action: "closeGame_from_JS",
-      gameId: currentGameId
-    };
-
-    document.getElementById("outAction").innerText = message.action;
-
-    window.kmpJsBridge.callNative(
-      "GameBridge",
-      JSON.stringify(message),
-      function (response) {
-        document.getElementById("output").innerText =
-          "Respuesta desde nativo (closeGame):\n" + response;
+  
+    function closeGame() {
+      if (!window.kmpJsBridge) {
+        alert("Bridge no disponible");
+        return;
       }
-    );
-  }
-
-  // --- Función que invoca Kotlin ---
-  window.receiveDataFromKMP = function (data) {
-    // A veces 'data' puede venir como string JSON desde evaluateJavascript
-    let parsed;
-    try {
-      parsed = typeof data === "string" ? JSON.parse(data) : data;
-    } catch (e) {
-      console.error("Error parseando JSON recibido:", e, data);
-      alert("Error parseando datos desde Kotlin");
-      return;
+  
+      const message = {
+        action: "closeGame_from_JS",
+        gameId: currentGameId
+      };
+  
+      document.getElementById("outAction").innerText = message.action;
+  
+      window.kmpJsBridge.callNative(
+        "GameBridge",
+        JSON.stringify(message),
+        function (response) {
+          document.getElementById("output").innerText =
+            "Respuesta desde nativo (closeGame):\n" + response;
+        }
+      );
     }
-
-    document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
-    document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
-
-    // Mostrar en consola y pantalla
-    console.log("📩 Datos recibidos desde Kotlin:", parsed);
-    document.getElementById("output").innerText =
-      "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
-
-    // --- Lógica de acciones según tipo ---
-    if (parsed.action === "claimGame_from_KT") {
-      const claim = parsed.claimResponse || {};
-      const win = claim.winner ? "GANADOR" : "NO GANADOR";
-      const code = claim.code ? `\nCódigo: ${claim.code}` : "";
-      const points = claim.loyaltyPoints != null ? `\nPuntos: ${claim.loyaltyPoints}` : "";
-      const extra = (!claim.code && claim.loyaltyPoints == null) ? "\n(Sin premio ni puntos)" : "";
-
-      alert(`🎯 Claim recibido\nResultado: ${win}${code}${points}${extra}`);
-      closeGame();
-    }
-
-    if (parsed.action === "startGame_from_KT") {
-      alert("🏁 Histórico de premios recibido:\n" + JSON.stringify(parsed.startResponse, null, 2));
-    }
-  };
+  
+    // --- Función que invoca Kotlin ---
+    window.receiveDataFromKMP = function (data) {
+      // A veces 'data' puede venir como string JSON desde evaluateJavascript
+      let parsed;
+      try {
+        parsed = typeof data === "string" ? JSON.parse(data) : data;
+      } catch (e) {
+        console.error("Error parseando JSON recibido:", e, data);
+        alert("Error parseando datos desde Kotlin");
+        return;
+      }
+  
+      document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
+      document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
+  
+      // Mostrar en consola y pantalla
+      console.log("📩 Datos recibidos desde Kotlin:", parsed);
+      document.getElementById("output").innerText =
+        "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
+  
+      // --- Lógica de acciones según tipo ---
+      if (parsed.action === "claimGame_from_KT") {
+        const claim = parsed.claimResponse || {};
+        const win = claim.winner ? "GANADOR" : "NO GANADOR";
+        const code = claim.code ? `\nCódigo: ${claim.code}` : "";
+        const points = claim.loyaltyPoints != null ? `\nPuntos: ${claim.loyaltyPoints}` : "";
+        const extra = (!claim.code && claim.loyaltyPoints == null) ? "\n(Sin premio ni puntos)" : "";
+  
+        alert(`🎯 Claim recibido\nResultado: ${win}${code}${points}${extra}`);
+        closeGame();
+      }
+  
+      if (parsed.action === "startGame_from_KT") {
+        let msg = "🏁 Histórico de premios:\n" +
+          JSON.stringify(parsed.startResponse, null, 2);
+  
+        if (parsed.startData && parsed.startData.length > 0) {
+          msg += "\n\n⚙️ Configuración recibida:\n";
+          parsed.startData.forEach((item, index) => {
+            msg += `#${index + 1} → Label: ${item.label || "-"}, Value: ${item.value || "-"}, Type: ${item.type || "-"}\n`;
+          });
+        }
+  
+        alert(msg);
+      }
+    };
 </script>
 </body>
 </html>
