@@ -62,7 +62,7 @@
 <a href="arcosmobile://games?id=68e685e76f8af3513b594de5">Pablo juego</a>
 
 <script>
-  let currentGameId = "demo";
+  let currentGameId = "";
   let currentClaimCode = null;
 
   function startGame() {
@@ -71,11 +71,12 @@
     const message = {
       action: "startGame_from_JS",
       gameId: currentGameId,
-      userId: "user123",
+      userId: "",
       score: "",
       claimResponse: null,
       startResponse: null,
-      startData: null
+        startData: null,
+          startCurrent:  null
     };
 
     document.getElementById("outAction").innerText = message.action;
@@ -91,11 +92,12 @@
     const message = {
       action: "endGame_from_JS",
       gameId: currentGameId,
-      userId: "user123",
-      score: "500",
+      userId: "",
+      score: "",
       claimResponse: null,
       startResponse: null,
-      startData: null
+        startData: null,
+        startCurrent: null
     };
 
     document.getElementById("outAction").innerText = message.action;
@@ -139,7 +141,8 @@
       score: "",
       claimResponse: null,
       startResponse: null,
-      startData: null
+        startData: null,
+        startCurrent: null
 
     };
 
@@ -149,49 +152,74 @@
     });
   }
 
-  window.receiveDataFromKMP = function (data) {
-    let parsed;
-    try {
-      parsed = typeof data === "string" ? JSON.parse(data) : data;
-    } catch (e) {
-      console.error("Error parseando JSON recibido:", e, data);
-      return alert("Error parseando datos desde Kotlin");
-    }
+    window.receiveDataFromKMP = function (data) {
+        let parsed;
+        try {
+            parsed = typeof data === "string" ? JSON.parse(data) : data;
+        } catch (e) {
+            console.error("Error parseando JSON recibido:", e, data);
+            return alert("Error parseando datos desde Kotlin");
+        }
 
-    document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
-    document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
-    document.getElementById("output").innerText =
-      "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
+        document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
+        document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
+        document.getElementById("output").innerText =
+            "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
 
-    if (parsed.action === "claimGame_from_KT") {
-      const claim = parsed.claimResponse || {};
-      const winner = claim.winner === true;
-      const hasCode = claim.code && claim.code.trim().length > 0;
-      const points = claim.loyaltyPoints != null ? `\nPuntos: ${claim.loyaltyPoints}` : "";
-      const msg = `🎯 Claim recibido\nResultado: ${winner ? "GANADOR" : "NO GANADOR"}${hasCode ? "\nCódigo: " + claim.code : ""}${points}`;
+        // --- CLAIM GAME ---
+        if (parsed.action === "claimGame_from_KT") {
+            const claim = parsed.claimResponse || {};
+            const winner = claim.winner === true;
+            const hasCode = claim.code && claim.code.trim().length > 0;
+            const points = claim.loyaltyPoints != null ? `\nPuntos: ${claim.loyaltyPoints}` : "";
+            const msg = `🎯 Claim recibido\nResultado: ${winner ? "GANADOR" : "NO GANADOR"}${hasCode ? "\nCódigo: " + claim.code : ""}${points}`;
 
-      alert(msg);
+            alert(msg);
 
-      if (winner && hasCode) {
-        currentClaimCode = claim.code;
-        document.getElementById("claimCode").innerText = claim.code;
-        document.getElementById("codeBox").style.display = "block";
-      } else {
-        closeGame();
-      }
-    }
+            if (winner && hasCode) {
+                currentClaimCode = claim.code;
+                document.getElementById("claimCode").innerText = claim.code;
+                document.getElementById("codeBox").style.display = "block";
+            } else {
+                closeGame();
+            }
+        }
 
-    if (parsed.action === "startGame_from_KT") {
-      let msg = "🏁 Histórico de premios:\n" + JSON.stringify(parsed.startResponse, null, 2);
-      if (parsed.startData && parsed.startData.length > 0) {
-        msg += "\n\n⚙️ Configuración recibida:\n";
-        parsed.startData.forEach((item, index) => {
-          msg += `#${index + 1} → Label: ${item.label || "-"}, Value: ${item.value || "-"}, Type: ${item.type || "-"}\n`;
-        });
-      }
-      alert(msg);
-    }
-  };
+        // --- START GAME ---
+        if (parsed.action === "startGame_from_KT") {
+            let msg = "🏁 Histórico de premios:\n" + JSON.stringify(parsed.startResponse, null, 2);
+
+            // Mostrar configuración (startData)
+            if (parsed.startData && parsed.startData.length > 0) {
+                msg += "\n\n⚙️ Configuración recibida:\n";
+                parsed.startData.forEach((item, index) => {
+                    msg += `#${index + 1} → Label: ${item.label || "-"}, Value: ${item.value || "-"}, Type: ${item.type || "-"}\n`;
+                });
+            }
+
+            // 🆕 NUEVO: Mostrar startCurrent
+            if (parsed.startCurrent) {
+                const sc = parsed.startCurrent;
+                msg += "\n\n🎁 Premio actual (startCurrent):\n";
+                msg += `Código: ${sc.code || "-"}\n`;
+                msg += `Valor: ${sc.value || "-"}\n`;
+                msg += `Tipo: ${sc.type || "-"}\n`;
+                msg += `Usado: ${sc.used ? "✅ Sí" : "❌ No"}\n`;
+
+                if (sc.promotionDetails) {
+                    const pd = sc.promotionDetails;
+                    msg += `\n📢 Promoción:\n`;
+                    msg += `Nombre: ${pd.name || "-"}\n`;
+                    msg += `Descripción: ${pd.description || "-"}\n`;
+                    msg += `Fecha fin: ${pd.dateTo || "-"}\n`;
+                    msg += `Imagen: ${pd.imageUrl || "-"}\n`;
+                    msg += `URL: ${pd.url || "-"}\n`;
+                }
+            }
+
+            alert(msg);
+        }
+    };
 </script>
 </body>
 </html>
