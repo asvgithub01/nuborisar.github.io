@@ -405,7 +405,8 @@
             // --- terms already accepted
             if (parsed.action === "alreadyAcceptedTCGame_from_KT") {
                 // Ocultar la capa terminosLockScreen y permitir continuar (mostrar la web)
-                try {
+                setTimeout(() => { try {
+
                     const lock = document.getElementById("terminosLockScreen");
                     if (lock) lock.style.display = "none";
                 } catch (e) { /* ignore */ }
@@ -414,7 +415,7 @@
                     const terms = document.getElementById("terminosycondicionesScreen");
                     if (terms) terms.style.display = "none";
                 } catch (e) { /* ignore */ }
-
+                }, 4000)
                 // si quieres, aquí podrías forzar algún comportamiento de continuación,
                 // por ahora respetamos tu petición: simplemente ocultamos la capa y mostramos la web.
             }
