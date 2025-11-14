@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>JS Bridge Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 16px;
+            background-color: #AcF201;
+            position: relative;
+        }
+
+        button {
+            margin: 8px;
+            padding: 8px 16px;
+        }
+
+        pre {
+            background: #eee;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        #codeBox {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            background: #f4f4f4;
+            border: 2px dashed #888;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #claimCode {
+            font-weight: bold;
+            font-size: 1.4em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        #copyBtn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        #copyBtn:hover {
+            background: #0056b3;
+        }
+
+        /* 🔒 Capa de bloqueo */
+        .overlayFull {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 6px solid #eee;
+            border-top: 6px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin-top: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* Pantalla de términos */
+        #terminosycondicionesScreen {
+            display: none;
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 8px;
+            position: fixed;
+            top: 5%;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            overflow-y: auto;
+            z-index: 10000;
+            box-shadow: 0 0 10px black;
+        }
+
+        #terminosText {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        #acceptBtn {
+            padding: 10px 16px;
+            margin-top: 12px;
+            background: green;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            opacity: 0.4;
+        }
+
+        #acceptBtn.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>JS ↔ Kotlin Bridge</h1>
+
+<p><strong>ID del juego:</strong> <span id="gameId">sin datos</span></p>
+<p><strong>Action recibido:</strong> <span id="inAction">sin datos</span></p>
+<p><strong>Action enviado:</strong> <span id="outAction">sin datos</span></p>
+
+<button onclick="startGame()">Start Juego</button>
+<button onclick="endGame()">Juego Terminado</button>
+
+<pre id="output">Esperando datos desde nativo...</pre>
+
+<div id="codeBox">
+    <span id="claimCode"></span>
+    <button id="copyBtn" onclick="copyCodeToClipboard()">Copiar código</button>
+</div>
+
+<hr>
+<a href="arcosmobile://games">Catálogo de juegos</a><br>
+<a href="arcosmobile://games?id=68c1504d476236f381690c01">Calendario Navidad</a><br>
+<a href="arcosmobile://games?id=68e685e76f8af3513b594de5">Pablo juego</a>
+
+
+<!-- 🔒 CAPA BLOQUEO: terminosLockScreen -->
+<div id="terminosLockScreen" class="overlayFull">
+    <h2>Chequeando términos y condiciones...</h2>
+    <div class="spinner"></div>
+</div>
+
+<!-- 📝 CAPA TÉRMINOS Y CONDICIONES -->
+<div id="terminosycondicionesScreen">
+    <h2 style="text-align:center;">Términos y Condiciones</h2>
+
+    <p id="terminosText">
+        Lorem fistrum no te digo trigo por no llamarte Rodrigor apetecan va usté muy cargadoo tiene musho peligro 
+        a wan diodeno a peich ese hombree. Ese hombree jarl llevame al sircoo se calle ustée mamaar por la gloria 
+        de mi madre diodeno. Amatomaa tiene musho peligro ese que llega al ataquerl diodenoo. Condemor qué dise 
+        usteer te va a hasé pupitaa amatomaa caballo blanco caballo negroorl a wan torpedo al ataquerl. Torpedo 
+        no te digo trigo por no llamarte Rodrigor ese pedazo de tiene musho peligro amatomaa jarl hasta luego Lucas 
+        pecador qué dise usteer tiene musho peligro. Mamaar de la pradera ese pedazo de sexuarl caballo blanco 
+        caballo negroorl ese hombree está la cosa muy malar qué dise usteer ese hombree. Me cago en tus muelas 
+        benemeritaar se calle ustée jarl torpedo se calle ustée condemor. Tiene musho peligro al ataquerl no te 
+        digo trigo por no llamarte Rodrigor tiene musho peligro pecador ese pedazo de ahorarr a wan condemor. Jarl 
+        por la gloria de mi madre a peich va usté muy cargadoo ese que llega al ataquerl al ataquerl por la gloria 
+        de mi madre a peich condemor por la gloria de mi madre.
+    </p>
+
+    <label style="display:block; text-align:center; margin:12px 0;">
+        <input type="checkbox" id="tcCheckbox"> He leído y acepto los términos y condiciones expuestos.
+    </label>
+
+    <div style="text-align:center;">
+        <button id="acceptBtn" disabled>Aceptar</button>
+    </div>
+</div>
+
+
+<script>
+    let currentGameId = "";
+    let currentClaimCode = null;
+
+    // -------------------------------------------------------
+    // 🔼 NUEVA FUNCIÓN: sendCheckTCAction()
+    // -------------------------------------------------------
+    function sendCheckTCAction() {
+        if (!window.kmpJsBridge) return;
+
+        const message = {
+            action: "checkTCGame_from_JS",
+            gameId: currentGameId
+        };
+
+        document.getElementById("outAction").innerText = message.action;
+        window.kmpJsBridge.callNative("GameBridge", JSON.stringify(message), function (resp) {
+            console.log("checkTCGame_from_JS enviado:", resp);
+        });
+    }
+
+    // -------------------------------------------------------
+    // 🔼 NUEVA FUNCIÓN: sendSaveTCAction()
+    // -------------------------------------------------------
+    function sendSaveTCAction() {
+        if (!window.kmpJsBridge) return;
+
+        const message = {
+            action: "saveTCGame_from_JS",
+            gameId: currentGameId
+        };
+
+        document.getElementById("outAction").innerText = message.action;
+        window.kmpJsBridge.callNative("GameBridge", JSON.stringify(message), function (resp) {
+            console.log("saveTCGame_from_JS enviado:", resp);
+        });
+    }
+
+    // -------------------------------------------------------
+    // COPIAR CÓDIGO
+    // -------------------------------------------------------
+    function copyCodeToClipboard() {
+        if (!currentClaimCode) return;
+
+        navigator.clipboard.writeText(currentClaimCode)
+            .then(() => {
+                alert("📋 Código copiado al portapapeles: " + currentClaimCode);
+                sendCopyAction();
+                closeGame();
+            })
+            .catch(() => alert("Error copiando el código"));
+    }
+
+    function sendCopyAction() {
+        if (!window.kmpJsBridge) return;
+
+        const message = {
+            action: "copyGame_from_JS",
+            gameId: currentGameId
+        };
+
+        document.getElementById("outAction").innerText = message.action;
+        window.kmpJsBridge.callNative("GameBridge", JSON.stringify(message), function (res) {
+            console.log("copyGame_from_JS enviado:", res);
+        });
+    }
+
+    // -------------------------------------------------------
+    // ACCIONES DESDE KOTLIN
+    // -------------------------------------------------------
+    window.receiveDataFromKMP = function (data) {
+        let parsed;
+        try {
+            parsed = typeof data === "string" ? JSON.parse(data) : data;
+        } catch (e) {
+            console.error("Error parseando JSON:", e);
+            return;
+        }
+
+        document.getElementById("inAction").innerText = parsed.action || "(sin acción)";
+        document.getElementById("gameId").innerText = parsed.gameId || "(sin id)";
+        document.getElementById("output").innerText =
+            "Datos recibidos desde Kotlin:\n" + JSON.stringify(parsed, null, 2);
+
+        // -------- START GAME ----------
+        if (parsed.action === "startGame_from_KT") {
+
+            // 🔒 MOSTRAR CAPA DE BLOQUEO
+            document.getElementById("terminosLockScreen").style.display = "flex";
+
+            // 🆕 ENVIAR ACCIÓN DE COMPROBAR TC
+            sendCheckTCAction();
+        }
+
+        // -------- MOSTRAR TÉRMINOS ----------
+        if (parsed.action === "showTCGame_from_KT") {
+
+            // Quitamos lockScreen
+            document.getElementById("terminosLockScreen").style.display = "none";
+
+            // Mostramos pantalla TC
+            document.getElementById("terminosycondicionesScreen").style.display = "block";
+        }
+
+        // -------- YA ACEPTADOS ----------
+        if (parsed.action === "alreadyAcceptedTCGame_from_KT") {
+
+            // Ocupar lockscreen
+            document.getElementById("terminosLockScreen").style.display = "none";
+
+            // Asegurar que NO se muestran términos
+            document.getElementById("terminosycondicionesScreen").style.display = "none";
+        }
+
+        // -------- CLAIM ----------
+        if (parsed.action === "claimGame_from_KT") {
+            const claim = parsed.claimResponse || {};
+            const winner = claim.winner === true;
+
+            if (winner && claim.code) {
+                currentClaimCode = claim.code;
+                document.getElementById("claimCode").innerText = claim.code;
+                document.getElementById("codeBox").style.display = "block";
+            } else {
+                closeGame();
+            }
+        }
+    };
+
+    // -------------------------------------------------------
+    // CHECKBOX Y BOTÓN ACEPTAR
+    // -------------------------------------------------------
+    document.getElementById("tcCheckbox").addEventListener("change", function () {
+        const btn = document.getElementById("acceptBtn");
+        if (this.checked) {
+            btn.disabled = false;
+            btn.classList.add("enabled");
+        } else {
+            btn.disabled = true;
+            btn.classList.remove("enabled");
+        }
+    });
+
+    document.getElementById("acceptBtn").addEventListener("click", function () {
+        if (!document.getElementById("tcCheckbox").checked) return;
+
+        // Enviar acción saveTCGame_from_JS
+        sendSaveTCAction();
+
+        // Ocultar pantalla de términos
+        document.getElementById("terminosycondicionesScreen").style.display = "none";
+    });
+</script>
+</body>
+</html>
