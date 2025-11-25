@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ruleta de Sorteo</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 40px;
+        background: #f2f2f2;
+    }
+
+    #wheel {
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        border: 8px solid #333;
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden;
+        transition: transform 4s cubic-bezier(.17,.67,.32,1.27);
+    }
+
+    #wheel div {
+        position: absolute;
+        width: 50%;
+        height: 50%;
+        top: 50%;
+        left: 50%;
+        transform-origin: 0% 0%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        text-shadow: 1px 1px 3px black;
+        padding-left: 10px;
+    }
+
+    #indicator {
+        width: 0; 
+        height: 0; 
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-bottom: 30px solid red;
+        margin: 0 auto;
+    }
+
+    #winnerBox {
+        margin-top: 30px;
+        font-size: 22px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 1s ease;
+    }
+</style>
+</head>
+<body>
+
+<h2>🎡 Ruleta de Sorteo</h2>
+
+<input id="reasonInput" type="text" placeholder="Motivo del sorteo..." style="padding:8px; width:260px;">
+<button onclick="spinWheel()" style="padding:10px 18px; font-size:15px;">SORTEAR</button>
+
+<div id="indicator"></div>
+<div id="wheel"></div>
+
+<div id="winnerBox"></div>
+
+<script>
+const names = [
+    "Héctor","Javi","Nacho","Beni","Alberto",
+    "Andrés","Pablo","Carlos M.","Carlos O.","Mica"
+];
+
+const colors = [
+    "#FF5733", "#33A1FF", "#9D33FF", "#33FF57", "#FFC300",
+    "#FF33A8", "#33FFF6", "#FF8F33", "#3385FF", "#7DFF33"
+];
+
+const wheel = document.getElementById("wheel");
+
+// --- PINTAMOS LOS 10 SECTORES ---
+const sliceDeg = 360 / names.length;
+
+names.forEach((name, i) => {
+    const slice = document.createElement("div");
+    slice.textContent = name;
+
+    slice.style.transform = `rotate(${sliceDeg * i}deg) skewY(${90 - sliceDeg}deg)`;
+    slice.style.background = colors[i];
+
+    wheel.appendChild(slice);
+});
+
+let currentRotation = 0;
+
+function spinWheel() {
+    const reason = document.getElementById("reasonInput").value.trim();
+    if (!reason) {
+        alert("Escribe el motivo del sorteo");
+        return;
+    }
+
+    // Apagar mensaje anterior
+    const winnerBox = document.getElementById("winnerBox");
+    winnerBox.style.opacity = 0;
+    winnerBox.textContent = "";
+
+    // Giro aleatorio entre 3 y 6 vueltas + sector final
+    const randomSpin = 360 * (3 + Math.random() * 3);  
+    currentRotation += randomSpin;
+
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+    // Calcular ganador a los 4s
+    setTimeout(() => {
+        const normalizedDeg = currentRotation % 360;
+        const index = Math.floor((360 - normalizedDeg) / sliceDeg) % names.length;
+        const winner = names[index];
+
+        winnerBox.innerHTML = `🎉 El ganador de <strong>${reason}</strong> es: <span style="color:red;">${winner}</span> 🎉`;
+        winnerBox.style.opacity = 1;
+
+    }, 4000);
+}
+</script>
+
+</body>
+</html>
