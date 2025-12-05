@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mcd links</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        .link-output {
+            word-wrap: break-word;
+            word-break: break-word;
+            color: #007bff;
+        }
+    </style>
+ 
+</head>
+<body>
+<div class="container">
+        <h1>Generador de Enlace HTML</h1>
+
+        <label for="inputLink">Pega tu enlace aquí:</label>
+        <input type="text" id="inputLink" placeholder="Pegue el enlace aquí...">
+        
+        <button onclick="generateLink()">Generar Enlace</button>
+
+        <div class="result" id="result">
+            <p>El enlace generado aparecerá aquí:</p>
+            <p id="generatedLink" class="link-output"></p>
+        </div>
+    </div>
+
+    <script>
+        function generateLink() {
+            const inputLink = document.getElementById('inputLink').value.trim();
+            const generatedLinkElement = document.getElementById('generatedLink');
+
+            // Verifica si el campo de texto no está vacío
+            if (inputLink) {
+                generatedLinkElement.innerHTML = `<a href="${inputLink}" target="_blank">${inputLink}</a>`;
+            } else {
+                generatedLinkElement.innerHTML = "Por favor, pega un enlace válido.";
+            }
+        }
+    </script>
+ <h1>Notificaciones con Links</h1>
+    <ul>
+        <li><a href="arcosmobileapp://refresh_order?c={{country_code_mayus}}&id={{order_id}}&s={{order_status}}?utm_source=indigitall&utm_medium=push&utm_campaign=silent_push&utm_content=silent">Silent push</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_pending&utm_content=payment_status">PAYMENT_PENDING</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_done&utm_content=payment_status">PAYMENT_DONE</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_received&utm_content=transactional">FLEX_RECEIVED</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_accepted&utm_content=transactional">FLEX_ACCEPTED</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_staging&utm_content=transactional">FLEX_STAGING</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_preparing&utm_content=transactional">FLEX_PREPARING</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_ready&utm_content=transactional">FLEX_READY</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_sending&utm_content=transactional">FLEX_SENDING</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivering&utm_content=transactional">FLEX_DELIVERING</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivered&utm_content=transactional">FLEX_DELIVERED</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_cancelled&utm_content=transactional">FLEX_CANCELLED</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_error&utm_content=transactional">FLEX_ERROR</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=cancelled&utm_content=order_status">CANCELLED</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=finished&utm_content=order_status">FINISHED</a></li>
+        <li><a href="arcosmobileapp://ecommerce_rating_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=rate_order&utm_content=satisfaction_poll">SATISFACTION_POLL</a></li>
+        <li><a href="arcosmobileapp://ecommerce?c={{country_code_mayus}}&r={{restaurant_code}}?utm_source=indigitall&utm_medium=push&utm_campaign=x-selling-postre-cafe&utm_content=order_based_suggestion">ORDER_BASED_SUGGESTION</a></li>
+        <li><a href="arcosmobileapp://ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=mcdia&utm_content=mcdia_order">MCDIA_ORDER_DLV</a></li>
+    </ul>
+    <h1>mcd-latam-landings-q.gigigoapps.com</h1>
+    <ul>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/refresh_order?c={{country_code_mayus}}&id={{order_id}}&s={{order_status}}?utm_source=indigitall&utm_medium=push&utm_campaign=silent_push&utm_content=silent">Silent push</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_pending&utm_content=payment_status">PAYMENT_PENDING</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_done&utm_content=payment_status">PAYMENT_DONE</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_received&utm_content=transactional">FLEX_RECEIVED</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_accepted&utm_content=transactional">FLEX_ACCEPTED</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_staging&utm_content=transactional">FLEX_STAGING</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_preparing&utm_content=transactional">FLEX_PREPARING</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_ready&utm_content=transactional">FLEX_READY</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_sending&utm_content=transactional">FLEX_SENDING</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivering&utm_content=transactional">FLEX_DELIVERING</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivered&utm_content=transactional">FLEX_DELIVERED</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_cancelled&utm_content=transactional">FLEX_CANCELLED</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_error&utm_content=transactional">FLEX_ERROR</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=cancelled&utm_content=order_status">CANCELLED</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=finished&utm_content=order_status">FINISHED</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_rating_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=rate_order&utm_content=satisfaction_poll">SATISFACTION_POLL</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce?c={{country_code_mayus}}&r={{restaurant_code}}?utm_source=indigitall&utm_medium=push&utm_campaign=x-selling-postre-cafe&utm_content=order_based_suggestion">ORDER_BASED_SUGGESTION</a></li>
+        <li><a href="https://mcd-latam-landings-q.gigigoapps.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=mcdia&utm_content=mcdia_order">MCDIA_ORDER_DLV</a></li>
+    </ul>
+
+    <h1>mcd-landings-q.appmcdonalds.com</h1>
+    <ul>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/refresh_order?c={{country_code_mayus}}&id={{order_id}}&s={{order_status}}?utm_source=indigitall&utm_medium=push&utm_campaign=silent_push&utm_content=silent">Silent push</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_pending&utm_content=payment_status">PAYMENT_PENDING</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_done&utm_content=payment_status">PAYMENT_DONE</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_received&utm_content=transactional">FLEX_RECEIVED</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_accepted&utm_content=transactional">FLEX_ACCEPTED</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_staging&utm_content=transactional">FLEX_STAGING</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_preparing&utm_content=transactional">FLEX_PREPARING</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_ready&utm_content=transactional">FLEX_READY</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_sending&utm_content=transactional">FLEX_SENDING</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivering&utm_content=transactional">FLEX_DELIVERING</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivered&utm_content=transactional">FLEX_DELIVERED</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_cancelled&utm_content=transactional">FLEX_CANCELLED</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_error&utm_content=transactional">FLEX_ERROR</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=cancelled&utm_content=order_status">CANCELLED</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=finished&utm_content=order_status">FINISHED</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_rating_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=rate_order&utm_content=satisfaction_poll">SATISFACTION_POLL</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce?c={{country_code_mayus}}&r={{restaurant_code}}?utm_source=indigitall&utm_medium=push&utm_campaign=x-selling-postre-cafe&utm_content=order_based_suggestion">ORDER_BASED_SUGGESTION</a></li>
+        <li><a href="https://mcd-landings-q.appmcdonalds.com/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=mcdia&utm_content=mcdia_order">MCDIA_ORDER_DLV</a></li>
+    </ul>
+
+    <h1>www.mcdonalds.cl</h1>
+    <ul>
+        <li><a href="https://www.mcdonalds.cl/refresh_order?c={{country_code_mayus}}&id={{order_id}}&s={{order_status}}?utm_source=indigitall&utm_medium=push&utm_campaign=silent_push&utm_content=silent">Silent push</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_pending&utm_content=payment_status">PAYMENT_PENDING</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=payment_done&utm_content=payment_status">PAYMENT_DONE</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_received&utm_content=transactional">FLEX_RECEIVED</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_accepted&utm_content=transactional">FLEX_ACCEPTED</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_staging&utm_content=transactional">FLEX_STAGING</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_preparing&utm_content=transactional">FLEX_PREPARING</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_ready&utm_content=transactional">FLEX_READY</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_sending&utm_content=transactional">FLEX_SENDING</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivering&utm_content=transactional">FLEX_DELIVERING</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_delivered&utm_content=transactional">FLEX_DELIVERED</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_cancelled&utm_content=transactional">FLEX_CANCELLED</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=order_error&utm_content=transactional">FLEX_ERROR</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=cancelled&utm_content=order_status">CANCELLED</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=finished&utm_content=order_status">FINISHED</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_rating_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=rate_order&utm_content=satisfaction_poll">SATISFACTION_POLL</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce?c={{country_code_mayus}}&r={{restaurant_code}}?utm_source=indigitall&utm_medium=push&utm_campaign=x-selling-postre-cafe&utm_content=order_based_suggestion">ORDER_BASED_SUGGESTION</a></li>
+        <li><a href="https://www.mcdonalds.cl/ecommerce_order?c={{country_code_mayus}}&id={{order_id}}?utm_source=indigitall&utm_medium=push&utm_campaign=mcdia&utm_content=mcdia_order">MCDIA_ORDER_DLV</a></li>
+    </ul>
+
+    <!-- Puedes continuar con los otros hosts de la misma forma. -->
+</body>
+</html>
