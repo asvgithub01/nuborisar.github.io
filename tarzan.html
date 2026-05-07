@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compresor Tarzán Español</title>
+
+  <style>
+    body {
+      background: #0f1115;
+      color: #e6e6e6;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #7ee787;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      background: #161b22;
+      color: #fff;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 15px;
+      resize: vertical;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background: #238636;
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    .stats {
+      margin-top: 15px;
+      color: #8b949e;
+      font-size: 14px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media(max-width: 900px){
+      .container{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🪨 Tarzán Español Compressor</h1>
+
+  <div class="container">
+
+    <div>
+      <h3>Prompt original</h3>
+      <textarea id="input"></textarea>
+    </div>
+
+    <div>
+      <h3>Prompt comprimido</h3>
+      <textarea id="output" readonly></textarea>
+    </div>
+
+  </div>
+
+  <button onclick="compressText()">Comprimir</button>
+  <button onclick="copyOutput()">Copiar</button>
+
+  <div class="stats" id="stats"></div>
+
+  <script>
+
+    const phraseReplacements = {
+      "por favor": "",
+      "podrías": "",
+      "podria": "",
+      "me gustaría": "",
+      "sería recomendable": "",
+      "es importante tener en cuenta que": "",
+      "ten en cuenta que": "",
+      "en este caso": "",
+      "de alguna manera": "",
+      "básicamente": "",
+      "en realidad": "",
+      "quiero que": "",
+      "necesito que": "",
+      "me puedes": "",
+      "podrías ayudarme": "ayuda",
+      "por lo tanto": "=>",
+      "debido a": "x",
+      "con el objetivo de": "para",
+    };
+
+    const wordReplacements = {
+      "autenticación": "auth",
+      "autenticacion": "auth",
+      "aplicación": "app",
+      "aplicacion": "app",
+      "configuración": "cfg",
+      "configuracion": "cfg",
+      "servidor": "srv",
+      "usuario": "usr",
+      "usuarios": "usr",
+      "petición": "req",
+      "peticiones": "req",
+      "respuesta": "rsp",
+      "respuestas": "rsp",
+      "base de datos": "db",
+      "información": "info",
+      "informacion": "info",
+      "archivo": "file",
+      "archivos": "files",
+      "contraseña": "pwd",
+      "javascript": "js",
+      "typescript": "ts",
+      "documentación": "docs",
+      "documentacion": "docs",
+      "función": "fn",
+      "funciones": "fns",
+      "ejemplo": "ej",
+      "parámetro": "param",
+      "parametro": "param",
+    };
+
+    const fillerWords = [
+      "el",
+      "la",
+      "los",
+      "las",
+      "un",
+      "una",
+      "unos",
+      "unas",
+      "de",
+      "del",
+      "que",
+      "muy",
+      "realmente",
+      "simplemente",
+      "solamente",
+      "entonces"
+    ];
+
+    function protectCodeBlocks(text) {
+      const blocks = [];
+      const protectedText = text.replace(/```[\s\S]*?```/g, match => {
+        const token = `__CODEBLOCK_${blocks.length}__`;
+        blocks.push(match);
+        return token;
+      });
+
+      return { protectedText, blocks };
+    }
+
+    function restoreCodeBlocks(text, blocks) {
+      blocks.forEach((block, i) => {
+        text = text.replace(`__CODEBLOCK_${i}__`, block);
+      });
+
+      return text;
+    }
+
+    function compressText() {
+
+      let input = document.getElementById("input").value;
+
+      const originalLength = input.length;
+
+      // proteger código markdown
+      const { protectedText, blocks } = protectCodeBlocks(input);
+
+      let text = protectedText.toLowerCase();
+
+      // reemplazo frases
+      for (const [key, value] of Object.entries(phraseReplacements)) {
+        const regex = new RegExp(`\\b${escapeRegex(key)}\\b`, "gi");
+        text = text.replace(regex, value);
+      }
+
+      // reemplazo palabras
+      for (const [key, value] of Object.entries(wordReplacements)) {
+        const regex = new RegExp(`\\b${escapeRegex(key)}\\b`, "gi");
+        text = text.replace(regex, value);
+      }
+
+      // eliminar filler
+      fillerWords.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, "gi");
+        text = text.replace(regex, "");
+      });
+
+      // limpiar espacios
+      text = text
+        .replace(/\s+/g, " ")
+        .replace(/\n\s+/g, "\n")
+        .trim();
+
+      // restaurar código
+      text = restoreCodeBlocks(text, blocks);
+
+      document.getElementById("output").value = text;
+
+      const compressedLength = text.length;
+      const saved = (
+        (1 - compressedLength / originalLength) * 100
+      ).toFixed(1);
+
+      document.getElementById("stats").innerHTML = `
+        Original: ${originalLength} chars |
+        Comprimido: ${compressedLength} chars |
+        Ahorro: ${saved}%
+      `;
+    }
+
+    function copyOutput() {
+      const output = document.getElementById("output");
+
+      output.select();
+      document.execCommand("copy");
+    }
+
+    function escapeRegex(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+  </script>
+
+</body>
+</html>
