@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Icono de Calendario Series">
+  <rect width="128" height="128" rx="30" fill="#2b1d58"/>
+  <rect x="22" y="27" width="84" height="79" rx="18" fill="#f8efff"/>
+  <path d="M22 50h84" stroke="#ff73c8" stroke-width="12"/>
+  <path d="M43 19v18M85 19v18" stroke="#f8efff" stroke-width="9" stroke-linecap="round"/>
+  <path d="m55 64 26 15-26 15Z" fill="#2b1d58"/>
+</svg>

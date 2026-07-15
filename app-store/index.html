@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0e0f">
+  <meta name="description" content="Catálogo privado de aplicaciones Android y archivo de APKs.">
+  <title>Builds — App store privado</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
+
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Builds, inicio">
+      <span class="brand-mark" aria-hidden="true">B</span>
+      <span>BUILDS</span>
+    </a>
+    <nav class="desktop-nav" aria-label="Navegación principal">
+      <a class="is-active" href="#catalogo">Catálogo</a>
+      <a href="#actualizaciones">Actualizaciones</a>
+      <a href="#archivo">Archivo APK</a>
+    </nav>
+    <a class="header-action" href="#archivo">Ver versiones <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <div class="hero-kicker"><span></span> Distribución privada · Android</div>
+      <h1 id="hero-title">Tus apps.<br><em>Sin intermediarios.</em></h1>
+      <div class="hero-lower">
+        <p>Un espacio directo para probar las últimas versiones, consultar qué ha cambiado y recuperar cualquier APK anterior.</p>
+        <dl class="hero-stats" aria-label="Resumen del catálogo">
+          <div><dt id="app-count">02</dt><dd>Aplicaciones</dd></div>
+          <div><dt id="build-count">02</dt><dd>Builds disponibles</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="catalogo" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">01 / CATÁLOGO</p>
+          <h2 id="catalog-title">Elige una app</h2>
+        </div>
+        <label class="search-box">
+          <span class="sr-only">Buscar aplicaciones</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+          <input id="app-search" type="search" placeholder="Buscar app..." autocomplete="off">
+        </label>
+      </div>
+
+      <div class="filter-row" role="group" aria-label="Filtrar aplicaciones">
+        <button class="filter-chip is-active" type="button" data-filter="all">Todas</button>
+        <button class="filter-chip" type="button" data-filter="mapas">Mapas</button>
+        <button class="filter-chip" type="button" data-filter="entretenimiento">Entretenimiento</button>
+      </div>
+      <div class="app-grid" id="app-grid"></div>
+      <p class="empty-state" id="empty-state" hidden>No hay aplicaciones que coincidan con la búsqueda.</p>
+    </section>
+
+    <section class="updates-section" id="actualizaciones" aria-labelledby="updates-title">
+      <div class="section-heading light-heading">
+        <div>
+          <p class="eyebrow">02 / ÚLTIMAS VERSIONES</p>
+          <h2 id="updates-title">Qué hay de nuevo</h2>
+        </div>
+        <p>Notas, capturas y descarga directa. Todo lo necesario antes de instalar.</p>
+      </div>
+      <div id="app-details"></div>
+    </section>
+
+    <section class="archive-section" id="archivo" aria-labelledby="archive-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">03 / ARCHIVO</p>
+          <h2 id="archive-title">Histórico de APKs</h2>
+        </div>
+        <p>Cada build conserva su versión, fecha, tamaño y huella SHA-256.</p>
+      </div>
+      <div class="archive-table-wrap">
+        <table class="archive-table">
+          <thead><tr><th>Aplicación</th><th>Versión</th><th>Fecha</th><th>Tamaño</th><th>Canal</th><th><span class="sr-only">Descarga</span></th></tr></thead>
+          <tbody id="archive-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand footer-brand" href="#inicio"><span class="brand-mark">B</span><span>BUILDS</span></a>
+    <p>APKs para pruebas internas. Activa la instalación desde fuentes desconocidas solo para este sitio.</p>
+    <p class="footer-meta">ANDROID · GITHUB PAGES · <span id="footer-year"></span></p>
+  </footer>
+
+  <dialog class="lightbox" id="lightbox">
+    <button class="lightbox-close" type="button" aria-label="Cerrar imagen">×</button>
+    <button class="lightbox-arrow lightbox-prev" type="button" aria-label="Captura anterior">←</button>
+    <figure><img src="" alt=""><figcaption></figcaption></figure>
+    <button class="lightbox-arrow lightbox-next" type="button" aria-label="Captura siguiente">→</button>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="data/apps.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
