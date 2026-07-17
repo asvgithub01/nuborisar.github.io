@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Despensia">
+  <rect width="96" height="96" rx="24" fill="#b8f3db"/>
+  <path d="M21 31h54v45H21z" fill="#173d35"/>
+  <path d="M27 22h42l6 9H21z" fill="#fff7db" stroke="#173d35" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M32 43v21m7-21v21m7-21v21m10-21v21m7-21v21" stroke="#b8f3db" stroke-width="4"/>
+</svg>

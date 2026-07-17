@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="LuDusDyno">
+  <rect width="96" height="96" rx="24" fill="#8ed8ff"/>
+  <path d="M28 68c-7-8-5-20 1-25l3 12V28a5 5 0 0 1 10 0v22-29a5 5 0 0 1 10 0v28-25a5 5 0 0 1 10 0v27-17a5 5 0 0 1 10 0v22c0 15-10 24-24 24-8 0-15-4-20-12Z" fill="#173754"/>
+  <path d="M23 16v12m-6-6h12M72 68h11m-5-5 5 5-5 5" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

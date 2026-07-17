@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="LuDusClimb">
+  <rect width="96" height="96" rx="24" fill="#99dfff"/>
+  <path d="m16 76 24-43 12 18 9-13 20 38Z" fill="#153b5a"/>
+  <circle cx="56" cy="28" r="6" fill="#fff"/>
+  <path d="m55 36-8 14 11 7 8-13m-18 7-8 8m19-2-5 12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
