@@ -149,13 +149,29 @@ window.APP_CATALOG = [
     accent: "#9fe870",
     description: "Prepara mochilas por actividad, controla el peso y reutiliza tu biblioteca de material.",
     longDescription: "Planifica una carga completa para montaña, vivac o trekking. Crea perfiles, organiza el equipo por secciones, visualiza el peso total y reutiliza material guardado incluso cuando estás sin cobertura.",
-    features: ["Mochilas y perfiles", "Peso total por secciones", "Biblioteca de material", "Modo offline y sincronización"],
+    features: ["Mochilas y perfiles", "Peso total por secciones", "Biblioteca de material", "Cuenta, biometría y sincronización"],
     minAndroid: "Android 8.0+",
     packageName: "com.basepack.mochilalist",
     screenshots: [
       { src: "assets/screenshots/mochilalist-01.png", alt: "Pantalla de mochilas de BasePack" }
     ],
     versions: [
+      {
+        version: "1.0.0",
+        code: 1,
+        date: "18 jul 2026",
+        isoDate: "2026-07-18",
+        size: "30,5 MB",
+        channel: "Debug · ADB",
+        apk: "apks/mochilalist/basepack-1.0.0-20260718-debug.apk",
+        sha256: "024E83A8178269CC87C00E853197AD8A7DC7561E8A2008AC1CA31FA199EE9134",
+        changes: [
+          "Subida de las imágenes del material a Firebase Storage durante la sincronización.",
+          "Inicio de sesión con Google para perfiles y datos multiusuario.",
+          "Autenticación biométrica para proteger el acceso a la aplicación.",
+          "Sincronización con Firestore integrada con las secciones anidadas de la mochila."
+        ]
+      },
       {
         version: "1.0.0",
         code: 1,
