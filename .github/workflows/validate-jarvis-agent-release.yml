@@ -1,0 +1,22 @@
+name: Validate Jarvis Agent release
+
+on:
+  push:
+    paths:
+      - "jarvis-agent/**"
+      - "scripts/validate-jarvis-agent-release.ps1"
+      - ".github/workflows/validate-jarvis-agent-release.yml"
+  pull_request:
+    paths:
+      - "jarvis-agent/**"
+      - "scripts/validate-jarvis-agent-release.ps1"
+      - ".github/workflows/validate-jarvis-agent-release.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifests and ZIPs
+        shell: pwsh
+        run: ./scripts/validate-jarvis-agent-release.ps1

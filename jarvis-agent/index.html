@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jarvis Agent releases</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0b1014; color: #e9f3ec; }
+    body { max-width: 760px; margin: 0 auto; padding: 48px 24px; line-height: 1.55; }
+    h1 { color: #a9f06b; margin-bottom: 8px; }
+    .card { border: 1px solid #294038; border-radius: 14px; padding: 20px; margin: 24px 0; background: #111a1f; }
+    code { color: #bcecff; overflow-wrap: anywhere; }
+    a { color: #a9f06b; }
+    .candidate { color: #ffd479; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>Jarvis Agent</h1>
+  <p>Canal público de releases del agente local de Jarvis.</p>
+
+  <section class="card">
+    <h2>0.3.0 · <span class="candidate">candidate</span></h2>
+    <p>Primera versión con consola de terminal, actualización de Codex en reposo y
+      self-update verificado mediante manifest y SHA-256.</p>
+    <ul>
+      <li><a href="releases/0.3.0/jarvis-agent-0.3.0-windows-x64.zip">Windows x64</a></li>
+      <li><a href="releases/0.3.0/jarvis-agent-0.3.0-macos-arm64.zip">macOS Apple Silicon</a></li>
+      <li><a href="releases/0.3.0/release-notes.md">Notas de versión</a></li>
+    </ul>
+  </section>
+
+  <p>Manifest de prueba:
+    <a href="update/candidate.json"><code>update/candidate.json</code></a>
+  </p>
+  <p>El canal estable se habilitará tras validar instalación y rollback en equipos reales.</p>
+</body>
+</html>
