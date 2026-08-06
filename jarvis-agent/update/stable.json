@@ -1,0 +1,21 @@
+{
+    "schemaVersion":  1,
+    "channel":  "stable",
+    "version":  "0.3.1",
+    "publishedAt":  "2026-08-06T15:14:21.9330796Z",
+    "required":  false,
+    "minimumAutoUpdateVersion":  "0.3.0",
+    "releaseNotesUrl":  "../releases/0.3.1/release-notes.md",
+    "platforms":  {
+                      "windows-x64":  {
+                                          "url":  "../releases/0.3.1/jarvis-agent-0.3.1-windows-x64.zip",
+                                          "sha256":  "733d8f6034ad17659af250c1a03ed1227ee585992149c18e8c530d148022f52e",
+                                          "sizeBytes":  339494
+                                      },
+                      "macos-arm64":  {
+                                          "url":  "../releases/0.3.1/jarvis-agent-0.3.1-macos-arm64.zip",
+                                          "sha256":  "7a3ba87aa8d6c7a5e8f740f1af016dcfa2e1c7f9fba88217b4e252f1d015e848",
+                                          "sizeBytes":  360262
+                                      }
+                  }
+}
