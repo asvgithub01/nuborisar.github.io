@@ -575,5 +575,57 @@ window.APP_CATALOG = [
         ]
       }
     ]
+  },
+  {
+    "id": "mtgfucker",
+    "name": "MTG Biblio",
+    "category": "coleccionismo",
+    "categoryLabel": "Cartas y coleccionismo",
+    "icon": "assets/icons/mtgfucker.png",
+    "accent": "#f4a261",
+    "description": "Escanea cartas de Magic, organiza tu biblioteca y consulta ediciones, idiomas y precios.",
+    "longDescription": "Un gestor visual para colecciones de Magic: The Gathering. Reconoce cartas con la cámara, ayuda a identificar su edición e idioma, organiza copias en bibliotecas y mazos y mantiene imágenes, estados y valoraciones en una interfaz pensada para grandes colecciones.",
+    "features": [
+      "Escaneo OCR de cartas",
+      "Identificación visual de edición",
+      "Bibliotecas, mazos y agrupaciones",
+      "Imágenes, estado y valoración"
+    ],
+    "minAndroid": "Android 6.0+",
+    "packageName": "io.asv.mtgocr.ocrreader",
+    "screenshots": [
+      {
+        "src": "assets/screenshots/mtgfucker-01.png",
+        "alt": "Pantalla de acceso a una biblioteca de MTG Biblio"
+      },
+      {
+        "src": "assets/screenshots/mtgfucker-02.png",
+        "alt": "Biblioteca visual de cartas en MTG Biblio"
+      },
+      {
+        "src": "assets/screenshots/mtgfucker-03.png",
+        "alt": "Detalle de una carta, su estado y precio en MTG Biblio"
+      }
+    ],
+    "versions": [
+      {
+        "version": "2.8",
+        "code": 10,
+        "date": "14 sep 2026",
+        "isoDate": "2026-09-14",
+        "size": "66,9 MB",
+        "channel": "Debug",
+        "apk": "apks/mtgfucker/mtgfucker-2.8-10-20260914-debug.apk",
+        "sha256": "621E122AC30783A70E5AA79F3E1ABFAB986EB5A01CD33CBBADFF292C1A469CDA",
+        "changes": [
+          "feat(scanner): confirm repeated card scans",
+          "ui(scanner): simplify border match feedback",
+          "feat(scanner): emphasize language and confidence values",
+          "fix(scanner): verify card language from rules text",
+          "feat(scanner): highlight best edition match",
+          "fix(scanner): align crop detector and magnifier"
+        ]
+      }
+    ]
   }
 ];

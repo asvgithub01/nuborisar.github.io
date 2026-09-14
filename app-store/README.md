@@ -68,3 +68,6 @@ El script:
 
 Para añadir otro proyecto al actualizador, crea primero su ficha en `data/apps.js` y
 añade su `id` y `projectRoot` a `tools/app-sources.json`.
+
+La configuración actual incluye también MTG Biblio (`mtgfucker`), cuyo proyecto se
+encuentra en `C:\asv\proyectos\2026\mtgfucker\mtgfucker`.
