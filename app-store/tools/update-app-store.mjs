@@ -211,12 +211,31 @@ function validateCatalog(apps) {
   if (errors.length) throw new Error(`Catálogo inválido:\n- ${errors.join("\n- ")}`);
 }
 
+function changedPathsFromPorcelain(output) {
+  const paths = [];
+  const entries = output.split("\0");
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    if (entry.length < 4) continue;
+    const status = entry.slice(0, 2);
+    paths.push(entry.slice(3));
+    if (status.includes("R") || status.includes("C")) {
+      const originalPath = entries[++index];
+      if (originalPath) paths.push(originalPath);
+    }
+  }
+  return paths;
+}
+
 function publish(options) {
-  const status = run("git", ["status", "--porcelain", "--untracked-files=all"]);
-  const outsideStore = status.split(/\r?\n/).filter(Boolean).filter((line) => {
-    const changedPath = line.slice(3).replace(/^"|"$/g, "").replaceAll("\\", "/");
-    return !changedPath.startsWith("app-store/");
-  });
+  const statusResult = run("git", ["status", "--porcelain=v1", "-z", "--untracked-files=all"], { allowFailure: true });
+  if (statusResult.error || statusResult.status !== 0) {
+    const detail = statusResult.stderr?.trim() || statusResult.error?.message || `código ${statusResult.status}`;
+    throw new Error(`No se pudo comprobar el estado del repositorio: ${detail}`);
+  }
+  const outsideStore = changedPathsFromPorcelain(statusResult.stdout)
+    .map((changedPath) => changedPath.replaceAll("\\", "/"))
+    .filter((changedPath) => !changedPath.startsWith("app-store/"));
   if (outsideStore.length) {
     throw new Error(`Hay cambios fuera de app-store; no se publicará para evitar mezclarlos:\n${outsideStore.join("\n")}`);
   }

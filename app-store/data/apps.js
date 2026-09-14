@@ -613,6 +613,19 @@ window.APP_CATALOG = [
         "code": 10,
         "date": "14 sep 2026",
         "isoDate": "2026-09-14",
+        "size": "67,2 MB",
+        "channel": "Debug",
+        "apk": "apks/mtgfucker/mtgfucker-2.8-10-20260914-debug-3e965f82.apk",
+        "sha256": "3E965F8234AA814F360595469CF062BAAF5B4B5E125979CD92C970972359BDAE",
+        "changes": [
+          "Nueva compilación incorporada automáticamente al catálogo."
+        ]
+      },
+      {
+        "version": "2.8",
+        "code": 10,
+        "date": "14 sep 2026",
+        "isoDate": "2026-09-14",
         "size": "66,9 MB",
         "channel": "Debug",
         "apk": "apks/mtgfucker/mtgfucker-2.8-10-20260914-debug.apk",
