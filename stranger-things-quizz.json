@@ -1,0 +1,362 @@
+{
+  "id": "6900000000000000000quizz2",
+  "name": "¿Qué personaje eres de Stranger Things?",
+  "active": true,
+  "featured": false,
+  "country": "BR",
+  "type": "PERCENT_BASED",
+  "winningDecision": "INTERNAL",
+  "dateFrom": "2026-01-01T00:00:00Z",
+  "dateTo": "2030-01-01T00:00:00Z",
+  "listPrizes": [],
+  "gameTypeByPrize": "NONE",
+  "integration": {
+    "type": "NATIVE",
+    "url": "",
+    "reference": "quizz"
+  },
+  "dynamicData": [
+    {
+      "label": "quiz-title",
+      "value": "¿Qué personaje eres de Stranger Things?",
+      "type": "string"
+    },
+    {
+      "label": "quiz-intro-title",
+      "value": "¿Qué personaje de Stranger Things",
+      "type": "string"
+    },
+    {
+      "label": "quiz-intro-title-bottom",
+      "value": "eres?",
+      "type": "string"
+    },
+    {
+      "label": "quiz-intro-disclaimer",
+      "value": "Descubre tu lado de Hawkins con 3 preguntas. Quiz de personalidad creado por fans, sin afiliación oficial. Solo por diversión.",
+      "type": "string"
+    },
+    {
+      "label": "quiz-questions-quantity",
+      "value": "Pregunta %1$d de %2$d",
+      "type": "string"
+    },
+    {
+      "label": "quiz-result-title",
+      "value": "Tu personaje de Stranger Things",
+      "type": "string"
+    },
+    {
+      "label": "quiz-exit-title",
+      "value": "¿Quieres salir del juego?",
+      "type": "string"
+    },
+    {
+      "label": "quiz-exit-message",
+      "value": "Si sales ahora, podrás volver a empezar cuando quieras. ¡Hawkins te espera!",
+      "type": "string"
+    },
+    {
+      "label": "share-text-one",
+      "value": "¡Mi resultado en el quiz de Stranger Things es: %1$s! ¿Cuál es el tuyo?",
+      "type": "string"
+    },
+    {
+      "label": "share-text-two",
+      "value": "Descubre qué personaje de Stranger Things eres con este quiz.",
+      "type": "string"
+    },
+    {
+      "label": "store-url",
+      "value": "https://arcosar.onelink.me/eXj8/aiwe43yd",
+      "type": "string"
+    },
+    {
+      "label": "btn-start",
+      "value": "Entrar en Hawkins",
+      "type": "string"
+    },
+    {
+      "label": "btn-back",
+      "value": "Volver",
+      "type": "string"
+    },
+    {
+      "label": "btn-next",
+      "value": "Siguiente",
+      "type": "string"
+    },
+    {
+      "label": "btn-finish",
+      "value": "Descubrir mi personaje",
+      "type": "string"
+    },
+    {
+      "label": "btn-share",
+      "value": "Compartir resultado",
+      "type": "string"
+    },
+    {
+      "label": "btn-play-again",
+      "value": "Volver a jugar",
+      "type": "string"
+    },
+    {
+      "label": "btn-exit-confirm",
+      "value": "Salir del juego",
+      "type": "string"
+    },
+    {
+      "label": "btn-exit-cancel",
+      "value": "Seguir en Hawkins",
+      "type": "string"
+    },
+    {
+      "label": "theme-primary-color",
+      "value": "#B91C1C",
+      "type": "string"
+    },
+    {
+      "label": "theme-primary-border-color",
+      "value": "#EF4444",
+      "type": "string"
+    },
+    {
+      "label": "theme-text-color",
+      "value": "#000000",
+      "type": "string"
+    },
+    {
+      "label": "theme-background-color",
+      "value": "#080A0F",
+      "type": "string"
+    },
+    {
+      "label": "theme-intro-background-color",
+      "value": "#09090B",
+      "type": "string"
+    },
+    {
+      "label": "theme-countdown-background-color",
+      "value": "#101B30",
+      "type": "string"
+    },
+    {
+      "label": "theme-questions-background-color",
+      "value": "#F3F4F6",
+      "type": "string"
+    },
+    {
+      "label": "theme-result-background-color",
+      "value": "#180C14",
+      "type": "string"
+    },
+    {
+      "label": "theme-card-background-color",
+      "value": "#FFFFFF",
+      "type": "string"
+    },
+    {
+      "label": "theme-answer-selected-color",
+      "value": "#FECACA",
+      "type": "string"
+    },
+    {
+      "label": "theme-disabled-color",
+      "value": "#4B5563",
+      "type": "string"
+    },
+    {
+      "label": "quiz-brand-logo",
+      "value": "file:///android_asset/mocks/assets/quizz/lg_mcdonalds.png",
+      "type": "string"
+    },
+    {
+      "label": "quiz-intro-logo",
+      "value": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-logo.png",
+      "type": "string"
+    },
+    {
+      "label": "quiz-intro-animation",
+      "value": "https://asvgithub01.github.io/nuborisar.github.io/intro-animation-stranger-things.json",
+      "type": "string"
+    },
+    {
+      "label": "quiz-countdown-animation",
+      "value": "https://asvgithub01.github.io/nuborisar.github.io/countdown-animation-stranger-things.json",
+      "type": "string"
+    },
+    {
+      "label": "icon-close",
+      "value": "file:///android_asset/mocks/assets/quizz/ic_close.png",
+      "type": "string"
+    },
+    {
+      "label": "icon-back",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "label": "quiz-animations-enabled",
+      "value": true,
+      "type": "boolean"
+    },
+    {
+      "label": "quiz-questions",
+      "value": [
+        {
+          "id": 1,
+          "title": "Las luces parpadean y escucháis un ruido extraño. ¿Qué haces?",
+          "answers": [
+            {
+              "key": "A",
+              "text": "Me pongo delante de mis amigos para protegerlos, aunque tenga miedo."
+            },
+            {
+              "key": "B",
+              "text": "Reúno al grupo y propongo un plan para investigar sin separarnos."
+            },
+            {
+              "key": "C",
+              "text": "Busco una explicación y preparo el walkie-talkie. ¡Esto hay que investigarlo!"
+            },
+            {
+              "key": "D",
+              "text": "Compruebo las salidas y preparo lo necesario por si hay peligro."
+            },
+            {
+              "key": "E",
+              "text": "Me fijo en los detalles: quizá haya una señal que los demás no han notado."
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Tenéis una tarde libre en Hawkins. ¿Qué plan eliges?",
+          "answers": [
+            {
+              "key": "A",
+              "text": "Probar algo nuevo con mis amigos y terminar compartiendo unos gofres."
+            },
+            {
+              "key": "B",
+              "text": "Organizar una partida de Dungeons & Dragons para reunir a toda la pandilla."
+            },
+            {
+              "key": "C",
+              "text": "Montar un invento y retar al grupo a descubrir cómo funciona."
+            },
+            {
+              "key": "D",
+              "text": "Jugar al baloncesto y disfrutar de un poco de competición amistosa."
+            },
+            {
+              "key": "E",
+              "text": "Dibujar personajes y crear un mundo de fantasía para nuestra próxima aventura."
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Un amigo siente que no encaja en el grupo. ¿Cómo le ayudas?",
+          "answers": [
+            {
+              "key": "A",
+              "text": "Le demuestro con hechos que estoy a su lado y que no tiene que cambiar quién es."
+            },
+            {
+              "key": "B",
+              "text": "Le recuerdo lo importante que es para nosotros y hago que participe en el próximo plan."
+            },
+            {
+              "key": "C",
+              "text": "Le saco una sonrisa y encuentro una afición que podamos compartir."
+            },
+            {
+              "key": "D",
+              "text": "Hablo con él sin rodeos y le ayudo a buscar una solución concreta."
+            },
+            {
+              "key": "E",
+              "text": "Le escucho con calma y le doy espacio para contar cómo se siente."
+            }
+          ]
+        }
+      ],
+      "type": "object"
+    },
+    {
+      "label": "quiz-outcomes",
+      "value": [
+        {
+          "key": "A",
+          "name": "Eres Once",
+          "description": "Tu fuerza está en el cariño que sientes por los tuyos. Eres una persona valiente, auténtica y protectora: aunque tengas miedo, das un paso adelante por tus amigos. No necesitas poderes para marcar la diferencia.",
+          "cardImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-once.png",
+          "shareImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-once.png"
+        },
+        {
+          "key": "B",
+          "name": "Eres Mike Wheeler",
+          "description": "Eres el punto de encuentro de la pandilla. Tu lealtad y tu iniciativa ayudan a mantener al grupo unido, y nunca das por perdido a un amigo. Para ti, las mejores aventuras se viven en equipo.",
+          "cardImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-mike.png",
+          "shareImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-mike.png"
+        },
+        {
+          "key": "C",
+          "name": "Eres Dustin Henderson",
+          "description": "La curiosidad y el humor son tus superpoderes. Te entusiasma entender lo desconocido, compartir tus ideas y encontrar soluciones ingeniosas. Contigo, incluso un misterio de Hawkins puede convertirse en una aventura divertida.",
+          "cardImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-dustin.png",
+          "shareImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-dustin.png"
+        },
+        {
+          "key": "D",
+          "name": "Eres Lucas Sinclair",
+          "description": "Tienes los pies en la tierra y no te rindes fácilmente. Antes de actuar, valoras los riesgos; cuando llega el momento, te implicas de verdad. Tu sinceridad y tu sentido práctico hacen de ti un apoyo esencial para tus amigos.",
+          "cardImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-lucas.png",
+          "shareImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-lucas.png"
+        },
+        {
+          "key": "E",
+          "name": "Eres Will Byers",
+          "description": "Tu imaginación y tu sensibilidad te permiten ver lo que otros pasan por alto. Sabes escuchar, valoras los vínculos de verdad y encuentras refugio en la creatividad. Tu forma de entender a los demás aporta algo único a la pandilla.",
+          "cardImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-will.png",
+          "shareImageUrl": "https://asvgithub01.github.io/nuborisar.github.io/stranger-things-will.png"
+        }
+      ],
+      "type": "object"
+    },
+    {
+      "label": "quiz-logic",
+      "value": {
+        "rules": [
+          {
+            "answerKey": "A",
+            "outcomeKey": "A"
+          },
+          {
+            "answerKey": "B",
+            "outcomeKey": "B"
+          },
+          {
+            "answerKey": "C",
+            "outcomeKey": "C"
+          },
+          {
+            "answerKey": "D",
+            "outcomeKey": "D"
+          },
+          {
+            "answerKey": "E",
+            "outcomeKey": "E"
+          }
+        ],
+        "tieBreaker": {
+          "questionId": 3,
+          "doubleValueInCaseOfTie": true
+        }
+      },
+      "type": "object"
+    }
+  ]
+}
