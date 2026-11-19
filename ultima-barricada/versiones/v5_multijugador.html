@@ -367,7 +367,7 @@ function fire(){
   flash.visible=true;flashT=.05;flashL.intensity=2;sShot(d);netShot(d);
   const targets=occ.concat(zombies.map(z=>z.g)),scored=new Set();
   for(let p=0;p<(d.pel||1);p++){
-    const sp=d.scope?.05*(1-ads):d.spread*(1-.7*ads),dir=dir0.clone();dir.x+=(R()-.5)*2*sp;dir.y+=(R()-.5)*2*sp;dir.z+=(R()-.5)*2*sp;dir.normalize();
+    const sp=d.scope?.05*(1-ads):(d.spread||0)*(1-.7*ads),dir=dir0.clone();dir.x+=(R()-.5)*2*sp;dir.y+=(R()-.5)*2*sp;dir.z+=(R()-.5)*2*sp;dir.normalize();
     ray.set(camera.position,dir);const hits=ray.intersectObjects(targets,true),done=new Set();
     let end=camera.position.clone().addScaledVector(dir,60);
     for(const h of hits){const z=h.object.userData.z;
