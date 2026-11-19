@@ -608,22 +608,42 @@ function sShotAt(m){if(!AC)return;try{const o=at(m.x,m.z,1);nz(m.b?.45:.22,'lowp
 function netInfo(t){$('netinfo').textContent=t;}
 function hostGame(){if(net.peer)return;if(!window.Peer){netInfo('No se pudo cargar el módulo de red (¿sin internet?)');return;}
   const code=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[R()*24|0]).join('');netInfo('Creando partida…');
-  const peer=net.peer=new Peer('ubarricada-'+code);peer.on('call',voiceIn);
+  const peer=net.peer=new Peer('ubarricada-'+code);peer.on('call',voiceIn);net.hcode=code;relayHost(code);
   peer.on('open',()=>{net.on=net.host=true;net.code=code;$('lobbyBtns').style.display='none';netInfo('Código de la partida: '+code+' · Jugadores: 1. Pulsa JUGAR cuando quieras.');});
   peer.on('error',e=>{netInfo('Error de red: '+e.type);if(!net.on)net.peer=null;});
-  peer.on('connection',c=>{const r={conn:c,id:pid++,x:P.x,z:P.z,yaw:0,hp:100,dead:true};
-    c.on('open',()=>{r.g=avatar(r.id);r.g.visible=false;remotes.push(r);c.send({t:'init',id:r.id,vp:remotes.filter(o=>o!==r).map(o=>o.conn.peer)});msg('Se ha unido el Jugador '+(r.id+1));netInfo('Código de la partida: '+code+' · Jugadores: '+(remotes.length+1));});
-    c.on('data',d=>hostMsg(r,d));
-    c.on('close',()=>{const i=remotes.indexOf(r);if(i>=0){remotes.splice(i,1);scene.remove(r.g);msg('El Jugador '+(r.id+1)+' se ha ido');}});});}
+  peer.on('connection',c=>{const r=addRemote(c);c.on('open',r.open);c.on('data',d=>hostMsg(r,d));c.on('close',r.close);});}
+function addRemote(c){const r={conn:c,id:pid++,x:P.x,z:P.z,yaw:0,hp:100,dead:true};
+  r.open=()=>{r.g=avatar(r.id);r.g.visible=false;remotes.push(r);c.send({t:'init',id:r.id,vp:remotes.filter(o=>o!==r&&o.conn.peer).map(o=>o.conn.peer)});msg('Se ha unido el Jugador '+(r.id+1));netInfo('Código de la partida: '+net.hcode+' · Jugadores: '+(remotes.length+1));};
+  r.close=()=>{const i=remotes.indexOf(r);if(i>=0){remotes.splice(i,1);scene.remove(r.g);msg('El Jugador '+(r.id+1)+' se ha ido');}};return r;}
+// --- vía alternativa por servidor (cuando la conexión directa entre navegadores no se abre) ---
+const RELAY='wss://broker.emqx.io:8084/mqtt',RT='ubarricada/v6/';
+function loadMq(cb){if(window.mqtt)return cb();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';s.onload=()=>cb();s.onerror=()=>cb(1);document.head.appendChild(s);}
+function relayHost(code){loadMq(err=>{if(err)return;const m=net.mq=mqtt.connect(RELAY,{reconnectPeriod:3000}),cl={};
+  m.on('connect',()=>m.subscribe(RT+code+'/h'));
+  m.on('message',(t,p)=>{let d;try{d=JSON.parse(p.toString());}catch(e){return;}if(!d||!d.f||!d.d)return;let c=cl[d.f];
+    if(!c){if(d.d.t!='hello')return;c=cl[d.f]={open:true,peer:null,send(x){m.publish(RT+code+'/c/'+d.f,JSON.stringify(x));}};c.r=addRemote(c);c.last=performance.now();c.r.open();return;}
+    c.last=performance.now();if(d.d.t=='hello')c.send({t:'init',id:c.r.id,vp:[]});else hostMsg(c.r,d.d);});
+  setInterval(()=>{const n=performance.now();for(const k in cl){const c=cl[k];if(n-c.last>12000){c.open=false;c.r.close();delete cl[k];}else c.send({t:'ka'});}},2000);});}
+function relayJoin(code){if(net.on||net.mq)return;net.mq=1;netInfo('La conexión directa no se abre; probando por servidor…');
+  loadMq(err=>{if(err){net.mq=null;net.peer=null;netInfo('No se pudo conectar: sin acceso al servidor.');return;}
+  const me=Math.random().toString(36).slice(2,10),m=net.mq=mqtt.connect(RELAY,{reconnectPeriod:3000});let last=0,ok=false,tries=0;
+  const c={open:false,peer:null,send(x){m.publish(RT+code+'/h',JSON.stringify({f:me,d:x}));}};
+  m.on('connect',()=>m.subscribe(RT+code+'/c/'+me,()=>c.send({t:'hello'})));
+  m.on('message',(t,p)=>{let d;try{d=JSON.parse(p.toString());}catch(e){return;}last=performance.now();
+    if(!ok){ok=true;c.open=true;net.conn=c;net.on=net.client=true;net.code=code;voice.relay=true;$('lobbyBtns').style.display='none';netInfo('Conectado a la partida '+code+' (por servidor, sin voz). Pulsa JUGAR.');}
+    clientMsg(d);});
+  const iv=setInterval(()=>{if(!ok){if(++tries>6){clearInterval(iv);m.end(true);net.mq=null;net.peer=null;netInfo('No se encontró la partida '+code+'. Revisa el código y que el anfitrión siga con la partida abierta.');}else c.send({t:'hello'});}
+    else{c.send({t:'ka'});if(performance.now()-last>12000){clearInterval(iv);m.end(true);if(state!='dead'){msg('Conexión perdida');gameOver();}}}},2000);});}
 function joinGame(){if(net.peer)return;const code=$('code').value.trim().toUpperCase();
   if(!window.Peer){netInfo('No se pudo cargar el módulo de red (¿sin internet?)');return;}
   if(code.length!=4){netInfo('Escribe el código de 4 letras de la partida');return;}
   netInfo('Conectando…');const peer=net.peer=new Peer();peer.on('call',voiceIn);
-  peer.on('error',e=>{netInfo('No se pudo conectar ('+e.type+'). Revisa el código.');if(!net.on)net.peer=null;});
+  let dead=false;const fb=setTimeout(()=>{if(!dead&&!net.on){if(net.conn)try{net.conn.close();}catch(e){}relayJoin(code);}},7000);
+  peer.on('error',e=>{if(net.on||net.mq)return;if(e.type=='peer-unavailable'){dead=true;clearTimeout(fb);netInfo('No existe la partida '+code+'. Revisa el código.');net.peer=null;}else{clearTimeout(fb);relayJoin(code);}});
   peer.on('open',()=>{const c=net.conn=peer.connect('ubarricada-'+code,{reliable:true});
-    c.on('open',()=>{net.on=net.client=true;net.code=code;$('lobbyBtns').style.display='none';netInfo('Conectado a la partida '+code+'. Pulsa JUGAR.');});
+    c.on('open',()=>{if(net.mq){c.close();return;}clearTimeout(fb);net.on=net.client=true;net.code=code;$('lobbyBtns').style.display='none';netInfo('Conectado a la partida '+code+'. Pulsa JUGAR.');});
     c.on('data',clientMsg);
-    c.on('close',()=>{if(state!='dead'){msg('Conexión perdida');gameOver();}});});}
+    c.on('close',()=>{if(net.mq)return;if(state!='dead'){msg('Conexión perdida');gameOver();}});});}
 $('mkHost').onclick=hostGame;$('mkJoin').onclick=joinGame;
 function hostMsg(r,d){
   if(d.t=='me'){r.x=d.x;r.z=d.z;r.yaw=d.yaw;r.hp=d.hp;r.dead=!!d.dead;}
@@ -661,7 +681,7 @@ function applySnap(d){
 }
 function clientMsg(d){
   if(d.t=='s')applySnap(d);
-  else if(d.t=='init'){net.id=d.id;voice.peers=[net.conn.peer].concat(d.vp||[]);if(voice.ready)voice.peers.forEach(voiceCall);}
+  else if(d.t=='init'){net.id=d.id;voice.peers=[net.conn.peer].concat(d.vp||[]).filter(Boolean);if(voice.ready)voice.peers.forEach(voiceCall);}
   else if(d.t=='pts')P.pts+=d.n;
   else if(d.t=='kill')P.kills++;
   else if(d.t=='hurt')hurtP(d.d);
@@ -704,7 +724,7 @@ function setTalk(){const on=!!voice.track&&(voice.open||voice.ptt);if(voice.trac
   if(on!==voice.on){voice.on=on;if(net.client)toHost({t:'talk',on:on?1:0});micHud();}}
 function micHud(){if(!net.on||!voice.started)return;
   const who=Object.keys(voice.talk).filter(k=>voice.talk[k]).map(k=>'Jugador '+(+k+1));
-  set('mic',(!voice.ready?'Esperando permiso del micrófono…':voice.nomic?'Sin micrófono: solo escuchas':voice.on?'● HABLANDO'+(voice.open?' (micro abierto, Y lo cierra)':''):'T: hablar · Y: micro abierto')+(who.length?'   ·   Habla: '+who.join(', '):''));}
+  set('mic',(voice.relay?'Voz no disponible con esta conexión':!voice.ready?'Esperando permiso del micrófono…':voice.nomic?'Sin micrófono: solo escuchas':voice.on?'● HABLANDO'+(voice.open?' (micro abierto, Y lo cierra)':''):'T: hablar · Y: micro abierto')+(who.length?'   ·   Habla: '+who.join(', '):''));}
 
 // ---------- entrada ----------
 addEventListener('keydown',e=>{
@@ -803,7 +823,7 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000
 camera.position.set(P.x,EYE,P.z);requestAnimationFrame(loop);
 // con la pestaña oculta el navegador para la animación: en red seguimos simulando
 let hl=performance.now();setInterval(()=>{const n=performance.now();if(document.hidden&&net.on&&state=='play'){let e=Math.min(1.2,(n-hl)/1000);while(e>0){update(Math.min(.05,e));e-=.05;}}hl=n;},50);
-window.G={P,zombies,traps,get state(){return state;},get round(){return round;},update,spawnZombie,fire,placeTrap,give,voice,net,remotes,AL,hostGame,joinGame,hurtP,ct,flow,GATES,ENTRIES,dist,grid,gi,set round(v){round=v;},set aim(v){aim=v;}};
+window.G={P,zombies,traps,get state(){return state;},get round(){return round;},update,spawnZombie,fire,placeTrap,give,voice,net,relayJoin,remotes,AL,hostGame,joinGame,hurtP,ct,flow,GATES,ENTRIES,dist,grid,gi,set round(v){round=v;},set aim(v){aim=v;}};
 </script>
 </body>
 </html>
