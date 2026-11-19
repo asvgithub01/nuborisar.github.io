@@ -2,9 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Última Barricada · cooperativo v7</title>
 <style>
-  html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Segoe UI,Arial,sans-serif;color:#eee;user-select:none}
+  html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Segoe UI,Arial,sans-serif;color:#eee;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  canvas,#tc{touch-action:none}
   canvas{display:block}
   .h{position:fixed;pointer-events:none;text-shadow:0 0 4px #000,0 0 2px #000}
   #round{left:24px;bottom:16px;font-size:64px;font-weight:900;color:#b3140f}
@@ -34,6 +36,19 @@
   #mic{left:24px;bottom:98px;font-size:14px;font-weight:700;color:#9f9}
   .nb{font-size:15px;padding:8px 14px;background:#333;color:#fff;border:1px solid #777;cursor:pointer}
   #go{margin-top:14px;font-size:22px;padding:12px 34px;background:#b3140f;color:#fff;border:0;cursor:pointer;font-weight:700}
+  #ov>div{max-height:100%;overflow:auto;padding:8px;box-sizing:border-box}
+  #tc{position:fixed;inset:0;display:none;z-index:3}
+  #tc .b{position:absolute;border-radius:50%;background:#fff2;border:2px solid #fff7;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;text-shadow:0 0 3px #000}
+  #tc .b.on{background:#ffd75a88}
+  #joyB{position:absolute;width:110px;height:110px;margin:-55px;border-radius:50%;border:2px solid #fff5;display:none}
+  #joyK{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px;border-radius:50%;background:#fff6}
+  #rot{position:fixed;inset:0;z-index:9;background:#000;display:none;align-items:center;justify-content:center;text-align:center;font-size:22px;font-weight:700;padding:20px}
+  @media (orientation:portrait) and (pointer:coarse){#rot{display:flex}}
+  body.touch #br{bottom:auto;top:8px;right:12px}body.touch #ammo{font-size:26px}body.touch #pts{font-size:20px}
+  body.touch #round{font-size:40px;left:50%;bottom:auto;top:4px;margin-left:-150px}
+  body.touch #hpw{bottom:8px}body.touch #mic{bottom:auto;top:44px;left:12px;font-size:12px}body.touch #msgs{font-size:13px}
+  body.touch #ovc{display:none}body.touch #prompt{top:22%;font-size:15px}
+  @media (max-height:520px){#ov h1{font-size:30px}#ov table{font-size:12px;margin:4px auto}#go{margin-top:6px;padding:9px 28px}}
 </style>
 </head>
 <body>
@@ -48,6 +63,8 @@
 <div id="pow" class="h"></div>
 <div id="build" class="h"></div>
 <div id="dmg" class="h"></div>
+<div id="tc"><div id="joyB"><div id="joyK"></div></div></div>
+<div id="rot">Gira el móvil: el juego solo funciona en horizontal</div>
 <div id="ov"><div>
   <h1 id="ovt">ÚLTIMA BARRICADA</h1>
   <p id="ovs">Aguanta en la casa. En la ronda 3 se abre la salida al pueblo.</p>
@@ -768,6 +785,10 @@ $('go').onclick=()=>{
   if(state=='dead'){location.reload();return;}
   if(!AC){try{initAudio();}catch(e){AC=null;}}else AC.resume();voiceStart();
   $('lobbyBtns').style.display='none';
+  // pantalla completa (y en móvil, bloqueo en horizontal donde el navegador lo permite)
+  try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;if(fs&&!(document.fullscreenElement||document.webkitFullscreenElement)){
+    const pr=fs.call(el,{navigationUI:'hide'}),lk=()=>{try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');if(o&&o.catch)o.catch(()=>{});}catch(e){}};
+    if(pr&&pr.then)pr.then(lk,()=>{});else lk();}}catch(e){}
   if(state=='menu'){give('pistol');if(!net.client)startRound();}
   state='play';$('ov').style.display='none';try{const p=renderer.domElement.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(e){}
 };
@@ -776,6 +797,39 @@ function gameOver(){if(state=='dead')return;if(net.host)bc({t:'over'});state='de
   $('ovt').textContent='HAS CAÍDO';$('ovs').textContent='Sobreviviste hasta la ronda '+round+' · '+P.kills+' bajas · '+P.pts+' puntos · Récord: ronda '+best;
   $('ovc').style.display='none';$('go').textContent='REINTENTAR';$('ov').style.display='flex';}
 
+// ---------- controles táctiles ----------
+let touchOn=false;const TC=$('tc'),joy={id:null,x:0,y:0},look={id:null,x:0,y:0};
+function tBtn(label,css,down,up){const b=document.createElement('div');b.className='b';b.textContent=label;b.style.cssText=css;TC.appendChild(b);
+  b.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();P.act=time;if(state!='play'||P.dead)return;b.classList.add('on');down(e.changedTouches[0],b);},{passive:false});
+  const end=e=>{e.preventDefault();e.stopPropagation();if(!b.dataset.hold)b.classList.remove('on');if(up)up(e.changedTouches[0]);};
+  b.addEventListener('touchend',end,{passive:false});b.addEventListener('touchcancel',end,{passive:false});return b;}
+function touchInit(){if(touchOn)return;touchOn=true;document.body.classList.add('touch');TC.style.display='block';
+  $('ovs').textContent='Izquierda: moverte (empuja a tope para correr) · Derecha: mirar · Botones: disparar, mira, recargar, usar…';
+  const S=(r,b,z)=>'right:'+r+'px;bottom:'+b+'px;width:'+z+'px;height:'+z+'px';
+  // el botón de disparo también sirve para mirar mientras se mantiene
+  tBtn('FUEGO',S(22,56,82),t=>{firing=true;pressed=true;if(look.id==null){look.id=t.identifier;look.x=t.clientX;look.y=t.clientY;}},t=>{firing=false;if(look.id==t.identifier)look.id=null;});
+  const ab=tBtn('MIRA',S(118,22,58),(t,b)=>{aim=!aim;b.classList.toggle('on',aim);});ab.dataset.hold=1;
+  tBtn('RECARGA',S(118,96,58),()=>reload());
+  tBtn('SALTO',S(26,152,56),()=>{if(P.y==0)P.vy=5.5;});
+  tBtn('ARMA',S(192,22,54),()=>{if(slots.length>1)switchTo((ci+1)%slots.length);});
+  tBtn('USAR',S(192,90,54),()=>interact());
+  tBtn('REPARA',S(262,22,54),()=>{keys.KeyF=true;},()=>{keys.KeyF=false;});
+  tBtn('GRANADA',S(100,170,50),()=>throwG());
+  tBtn('CUCHILLO',S(164,160,50),()=>knife());
+  tBtn('VOZ','left:14px;top:70px;width:50px;height:50px',()=>{voice.ptt=true;setTalk();},()=>{voice.ptt=false;setTalk();});
+  const JB=$('joyB'),JK=$('joyK'),stop=()=>{joy.id=null;JB.style.display='none';keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=keys.ShiftLeft=false;};
+  TC.addEventListener('touchstart',e=>{e.preventDefault();P.act=time;for(const t of e.changedTouches){
+    if(t.clientX<innerWidth*.42&&joy.id==null){joy.id=t.identifier;joy.x=t.clientX;joy.y=t.clientY;JB.style.left=t.clientX+'px';JB.style.top=t.clientY+'px';JK.style.transform='';JB.style.display='block';}
+    else if(look.id==null){look.id=t.identifier;look.x=t.clientX;look.y=t.clientY;}}},{passive:false});
+  // el movimiento se escucha en toda la ventana para seguir el dedo aunque empezase sobre un botón
+  addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('#ov'))return;e.preventDefault();P.act=time;for(const t of e.changedTouches){
+    if(t.identifier==joy.id){let dx=t.clientX-joy.x,dy=t.clientY-joy.y;const l=Math.hypot(dx,dy),m=55;if(l>m){dx*=m/l;dy*=m/l;}JK.style.transform='translate('+dx+'px,'+dy+'px)';
+      keys.KeyW=dy<-16;keys.KeyS=dy>16;keys.KeyA=dx<-16;keys.KeyD=dx>16;keys.ShiftLeft=dy<-48;}
+    else if(t.identifier==look.id){const k=.0055*sens*camera.fov/75;if(state=='play'){P.yaw-=(t.clientX-look.x)*k;P.pitch=Math.max(-1.5,Math.min(1.5,P.pitch-(t.clientY-look.y)*k));}look.x=t.clientX;look.y=t.clientY;}}},{passive:false});
+  const tEnd=e=>{for(const t of e.changedTouches){if(t.identifier==joy.id)stop();if(t.identifier==look.id)look.id=null;}};
+  addEventListener('touchend',tEnd);addEventListener('touchcancel',tEnd);}
+addEventListener('touchstart',touchInit,{passive:true});
+
 // ---------- rondas ----------
 function startRound(){round++;toSpawn=Math.round((5+round*2.8)*(1+.6*remotes.length));if(net.host){const a=AL[0]||P;bc({t:'revive',x:a.x,z:a.z});revive(a.x,a.z);}spawnT=2.5;repPts=0;msg('Ronda '+round);tone(220,440,.6,'triangle',.12);}
 
@@ -783,7 +837,7 @@ function startRound(){round++;toSpawn=Math.round((5+round*2.8)*(1+.6*remotes.len
 const cache={};function set(id,v){if(cache[id]!==v){cache[id]=v;$(id).textContent=v;}}
 function update(dt){
   time+=dt;AL.length=0;
-  if(net.on){const lim=document.pointerLockElement==renderer.domElement?25:8,a=!P.dead&&time-(P.act||0)>lim;if(a!=!!P.afk){P.afk=a;if(net.host&&a){msg('Jugador 1 inactivo');bc({t:'msg',s:'Jugador 1 inactivo'});}}}
+  if(net.on){const lim=touchOn||document.pointerLockElement==renderer.domElement?25:8,a=!P.dead&&time-(P.act||0)>lim;if(a!=!!P.afk){P.afk=a;if(net.host&&a){msg('Jugador 1 inactivo');bc({t:'msg',s:'Jugador 1 inactivo'});}}}
   if(net.host)for(const r of remotes.slice()){if(r.last&&time-r.last>20){msg('Jugador '+(r.id+1)+' sin conexión');r.conn.open=false;try{r.conn.close&&r.conn.close();}catch(e){}r.close();continue;}
     const a=!r.dead&&(!!r.afkc||(r.last&&time-r.last>4));if(a!=!!r.afk){r.afk=a;if(a){const t='Jugador '+(r.id+1)+' inactivo: los zombis lo ignoran';msg(t);bc({t:'msg',s:t});}}}
   if(!P.dead&&!P.afk)AL.push(P);for(const r of remotes)if(!r.dead&&!r.afk)AL.push(r);
@@ -860,7 +914,7 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000
 camera.position.set(P.x,EYE,P.z);requestAnimationFrame(loop);
 // con la pestaña oculta el navegador para la animación: en red seguimos simulando
 let hl=performance.now();setInterval(()=>{const n=performance.now();if(document.hidden&&net.on&&state=='play'){let e=Math.min(1.2,(n-hl)/1000);while(e>0){update(Math.min(.05,e));e-=.05;}}hl=n;},50);
-window.G={P,zombies,traps,get state(){return state;},get round(){return round;},update,spawnZombie,fire,placeTrap,give,voice,net,relayJoin,limbOff,reload,cur,remotes,AL,hostGame,joinGame,hurtP,ct,flow,GATES,ENTRIES,dist,grid,gi,set round(v){round=v;},set aim(v){aim=v;}};
+window.G={P,zombies,traps,get state(){return state;},get round(){return round;},update,spawnZombie,fire,placeTrap,give,voice,net,relayJoin,touchInit,limbOff,reload,cur,remotes,AL,hostGame,joinGame,hurtP,ct,flow,GATES,ENTRIES,dist,grid,gi,set round(v){round=v;},set aim(v){aim=v;}};
 </script>
 </body>
 </html>
