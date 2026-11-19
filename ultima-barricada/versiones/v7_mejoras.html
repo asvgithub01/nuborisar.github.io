@@ -446,7 +446,7 @@ function mkZ(pl){
 function spawnZombie(){
   const B=AL[R()*AL.length|0]||P;let sx,sz,ok=false;const pin=indoor[gi(Math.floor(B.x),Math.floor(B.z))];
   for(let i=0;i<50&&!ok;i++){const a=R()*6.283,d=13+R()*15;sx=B.x+Math.cos(a)*d;sz=B.z+Math.sin(a)*d;
-    if(ct(sx,sz)!=0)continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
+    if(ct(sx,sz)!=0||blocked(sx,sz,.3))continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
     if(i<30&&!pin&&los(B.x,B.z,sx,sz))continue;ok=true;}
   if(!ok)return false;
   const z=mkZ(round>=3&&R()<.14);z.pos.set(sx,0,sz);z.g.position.copy(z.pos);return true;

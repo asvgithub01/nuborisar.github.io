@@ -399,7 +399,7 @@ const plumbM=M(0x26406e),capM=M(0xd9b21a),pipeM=M(0x8a8f96),shirtM=M(0x9a9a8c);
 function spawnZombie(){
   let sx,sz,ok=false;const pin=indoor[gi(Math.floor(P.x),Math.floor(P.z))];
   for(let i=0;i<50&&!ok;i++){const a=R()*6.283,d=13+R()*15;sx=P.x+Math.cos(a)*d;sz=P.z+Math.sin(a)*d;
-    if(ct(sx,sz)!=0)continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
+    if(ct(sx,sz)!=0||blocked(sx,sz,.3))continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
     if(i<30&&!pin&&los(P.x,P.z,sx,sz))continue;ok=true;}
   if(!ok)return false;
   const pl=round>=3&&R()<.14;

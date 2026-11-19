@@ -469,7 +469,7 @@ function mkZ(pl){
 function spawnZombie(){
   const B=AL[R()*AL.length|0]||P;let sx,sz,ok=false;const pin=indoor[gi(Math.floor(B.x),Math.floor(B.z))];
   for(let i=0;i<50&&!ok;i++){const a=R()*6.283,d=13+R()*15;sx=B.x+Math.cos(a)*d;sz=B.z+Math.sin(a)*d;
-    if(ct(sx,sz)!=0)continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
+    if(ct(sx,sz)!=0||blocked(sx,sz,.3))continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
     if(i<30&&!pin&&los(B.x,B.z,sx,sz))continue;ok=true;}
   if(!ok)return false;
   const z=mkZ(round>=3&&R()<.14);z.pos.set(sx,0,sz);z.g.position.copy(z.pos);return true;
@@ -511,6 +511,10 @@ function updZombies(dt){
     if(z.dead)continue;
     if(z.burn>0){z.burn-=dt;hurtZ(z,Math.max(25,z.max*.08)*dt,false,false);if(z.dead)continue;if(R()<.2)spray(new V3(z.pos.x,1.2,z.pos.z),0xff7a1a,1,1,-3,.3);}
     const T=nearP(z.pos.x,z.pos.z)||P,dxp=T.x-z.pos.x,dzp=T.z-z.pos.z,dP=Math.hypot(dxp,dzp);
+    // anti-atasco: si está metido en un muro se le lleva al centro de su casilla; si lleva 10 s sin avanzar, reaparece en otro sitio
+    if(z.state=='chase'){if(blocked(z.pos.x,z.pos.z,.28)&&ct(z.pos.x,z.pos.z)==0){z.pos.x+=(Math.floor(z.pos.x)+.5-z.pos.x)*.3;z.pos.z+=(Math.floor(z.pos.z)+.5-z.pos.z)*.3;}
+      z.wt=(z.wt||0)+dt;if(z.wt>10){if(z.wx!=null&&dP>3&&Math.hypot(z.pos.x-z.wx,z.pos.z-z.wz)<.6){z.dead=true;zombies.splice(zombies.indexOf(z),1);scene.remove(z.g);toSpawn++;continue;}z.wt=0;z.wx=z.pos.x;z.wz=z.pos.z;}}
+    else z.wt=0;
     let tx=z.pos.x,tz=z.pos.z,move=false,face=null;
     const cx=Math.floor(z.pos.x),cz=Math.floor(z.pos.z),my=ct(cx,cz)>=0?dist[gi(cx,cz)]:-1;
     if(z.state=='board'){const e=z.e;face=[e.c.x-z.pos.x,e.c.z-z.pos.z];
