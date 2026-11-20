@@ -124,7 +124,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x06080d);scene.fog=new THREE.FogExp2(0x06080d,.03);
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.05,200);camera.rotation.order='YXZ';scene.add(camera);
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.05,90);camera.rotation.order='YXZ';scene.add(camera);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 scene.add(new THREE.HemisphereLight(0x55688f,0x0e0c0a,.38));
 const moon=new THREE.DirectionalLight(0x7f95d8,.3);moon.position.set(-20,40,10);scene.add(moon);
@@ -168,7 +168,7 @@ const X0=-OX,X1=GW-OX,Z0=-OZ,Z1=GH-OZ;
     m.frustumCulled=false;scene.add(m);occ.push(m);};
   rebuildWalls();
   const tm=M(0x3b2a1a),lm=M(0x16301a);
-  for(let i=0;i<130;i++){const s=i%4,o=2+R()*24,x=s==0?X0-o:s==1?X1+o:X0+R()*(X1-X0),z=s==2?Z0-o:s==3?Z1+o:Z0+R()*(Z1-Z0);
+  for(let i=0;i<0;i++){const s=i%4,o=2+R()*24,x=s==0?X0-o:s==1?X1+o:X0+R()*(X1-X0),z=s==2?Z0-o:s==3?Z1+o:Z0+R()*(Z1-Z0);
     const t=new THREE.Mesh(new THREE.CylinderGeometry(.25,.35,3,6),tm);t.position.set(x,1.5,z);scene.add(t);
     const l=new THREE.Mesh(new THREE.ConeGeometry(2,6+R()*3,7),lm);l.position.set(x,6,z);scene.add(l);}
   for(const p of[]){const t=new THREE.Mesh(new THREE.CylinderGeometry(.06,.09,4,6),M(0x222222));t.position.set(p[0],2,p[1]);scene.add(t);
@@ -176,18 +176,27 @@ const X0=-OX,X1=GW-OX,Z0=-OZ,Z1=GH-OZ;
 }
 // ---------- ciudad: modelos del pack en un archivo por zona, una malla instanciada por modelo ----------
 const cityG=new THREE.Group();scene.add(cityG);let cityWarm=false;
-function cityBuild(D){const mat=cityM,by=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;};
+// La ciudad se funde en bloques de 25 m (una malla por bloque y material) en vez de dibujar cada modelo por separado:
+// pasan de unas 430 órdenes de dibujo a unas pocas decenas, y los bloques fuera de la vista o tras la niebla no se dibujan.
+class GBuf{constructor(){this.n=0;this.c=6e4;this.p=new Float32Array(this.c*3);this.q=new Int8Array(this.c*3);this.k=new Uint8Array(this.c*3);}
+  need(v){if(this.n+v<=this.c)return;while(this.n+v>this.c)this.c*=2;const p=new Float32Array(this.c*3),q=new Int8Array(this.c*3),k=new Uint8Array(this.c*3);p.set(this.p.subarray(0,this.n*3));q.set(this.q.subarray(0,this.n*3));k.set(this.k.subarray(0,this.n*3));this.p=p;this.q=q;this.k=k;}}
+function cityBuild(D){const by=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;};
   while(cityG.children.length){const c=cityG.children[0];cityG.remove(c);c.geometry.dispose();}
-  cityG.position.set(-D.rect[0],-.06-ZONAS[zi].y0,-D.rect[1]);
+  cityG.position.set(0,0,0);const ox=-D.rect[0],oy=-.06-ZONAS[zi].y0,oz=-D.rect[1],CH=25,NX=Math.ceil(GW/CH),NZ=Math.ceil(GH/CH),bufs=[];
+  const buf=(cx,cz,mt)=>{const id=((cz<0?0:cz>=NZ?NZ-1:cz)*NX+(cx<0?0:cx>=NX?NX-1:cx))*2+mt;return bufs[id]||(bufs[id]=new GBuf());};
   for(const m of D.models){const u=by(m.d),q=new Int16Array(u.buffer,0,m.nv*3),cc=new Uint16Array(u.buffer,m.nv*6,m.nt),o=m.nv*6+m.nt*2,ix=m.w?new Uint32Array(u.buffer.slice(o),0,m.nt*3):new Uint16Array(u.buffer.slice(o),0,m.nt*3);
-    const pos=new Float32Array(m.nt*9),col=new Float32Array(m.nt*9),k=m.s/32767;
-    for(let t=0;t<m.nt;t++){const c=cc[t],r=(c>>11)/31,g=(c>>5&63)/63,b=(c&31)/31;for(let j=0;j<3;j++){const v=ix[t*3+j]*3,p=t*9+j*3;pos[p]=q[v]*k;pos[p+1]=q[v+1]*k;pos[p+2]=q[v+2]*k;col[p]=r;col[p+1]=g;col[p+2]=b;}}
-    const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(pos,3));ge.setAttribute('color',new THREE.BufferAttribute(col,3));ge.computeVertexNormals();
-    // los triángulos de asfalto van al final (m.r) y se dibujan con el material de carretera
-    const f=new Float32Array(by(m.i).buffer),M4=new THREE.Matrix4(),nn=m.nt-(m.r||0);if(m.r){ge.addGroup(0,nn*3,0);ge.addGroup(nn*3,m.r*3,1);}
-    const im=new THREE.InstancedMesh(ge,m.r?[mat,roadM]:mat,m.k);
-    for(let i=0;i<m.k;i++){const a=f.subarray(i*12,i*12+12);M4.set(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11],0,0,0,1);im.setMatrixAt(i,M4);}
-    im.frustumCulled=false;im.raycast=()=>{};cityG.add(im);}
+    const k=m.s/32767,f=new Float32Array(by(m.i).buffer),nn=m.nt-(m.r||0);
+    for(let i=0;i<m.k;i++){const a=i*12,m0=f[a],m1=f[a+1],m2=f[a+2],m3=f[a+3]+ox,m4=f[a+4],m5=f[a+5],m6=f[a+6],m7=f[a+7]+oy,m8=f[a+8],m9=f[a+9],m10=f[a+10],m11=f[a+11]+oz;
+      const flip=m0*(m5*m10-m6*m9)-m1*(m4*m10-m6*m8)+m2*(m4*m9-m5*m8)<0;
+      for(let t=0;t<m.nt;t++){let v=ix[t*3]*3,x=q[v]*k,y=q[v+1]*k,z=q[v+2]*k;const ax=m0*x+m1*y+m2*z+m3,ay=m4*x+m5*y+m6*z+m7,az=m8*x+m9*y+m10*z+m11;
+        v=ix[t*3+(flip?2:1)]*3;x=q[v]*k;y=q[v+1]*k;z=q[v+2]*k;const bx=m0*x+m1*y+m2*z+m3,by_=m4*x+m5*y+m6*z+m7,bz=m8*x+m9*y+m10*z+m11;
+        v=ix[t*3+(flip?1:2)]*3;x=q[v]*k;y=q[v+1]*k;z=q[v+2]*k;const cx=m0*x+m1*y+m2*z+m3,cy=m4*x+m5*y+m6*z+m7,cz=m8*x+m9*y+m10*z+m11;
+        let nx=(by_-ay)*(cz-az)-(bz-az)*(cy-ay),ny=(bz-az)*(cx-ax)-(bx-ax)*(cz-az),nz=(bx-ax)*(cy-ay)-(by_-ay)*(cx-ax);const nl=127/(Math.hypot(nx,ny,nz)||1);nx*=nl;ny*=nl;nz*=nl;
+        const B=buf(Math.floor((ax+bx+cx)/3/CH),Math.floor((az+bz+cz)/3/CH),t<nn?0:1);B.need(3);let w=B.n*3;const P=B.p,Q=B.q,K=B.k,c=cc[t],r=(c>>11)*255/31,g=(c>>5&63)*255/63,bl=(c&31)*255/31;
+        P[w]=ax;P[w+1]=ay;P[w+2]=az;P[w+3]=bx;P[w+4]=by_;P[w+5]=bz;P[w+6]=cx;P[w+7]=cy;P[w+8]=cz;
+        for(let j=0;j<3;j++,w+=3){Q[w]=nx;Q[w+1]=ny;Q[w+2]=nz;K[w]=r;K[w+1]=g;K[w+2]=bl;}B.n+=3;}}}
+  bufs.forEach((B,id)=>{if(!B||!B.n)return;const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(B.p.slice(0,B.n*3),3));ge.setAttribute('normal',new THREE.BufferAttribute(B.q.slice(0,B.n*3),3,true));ge.setAttribute('color',new THREE.BufferAttribute(B.k.slice(0,B.n*3),3,true));
+    ge.computeBoundingSphere();const me=new THREE.Mesh(ge,id&1?roadM:cityM);me.raycast=()=>{};me.matrixAutoUpdate=false;cityG.add(me);});
   if(cityWarm)return;cityWarm=true;
   // precarga de los modelos de zombi para que no den un tirón la primera vez que aparece cada tipo
   const wg=new THREE.Group();wg.position.set(SPX,-40,SPZ);for(let ti=0;ti<ZTYPES.length;ti++){const z={g:new THREE.Group(),lm:0};zSkin(z,ti);wg.add(z.g);}scene.add(wg);
@@ -216,7 +225,8 @@ function portalsBuild(){while(portalG.children.length)portalG.remove(portalG.chi
     const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.13,8,24),MB(0x66d0ff));ring.position.y=1.35;g.add(ring);
     const disc=new THREE.Mesh(new THREE.CircleGeometry(1.05,24),new THREE.MeshBasicMaterial({color:0x2a8cff,transparent:true,opacity:.35,side:THREE.DoubleSide,depthWrite:false}));disc.position.y=1.35;g.add(disc);
     const sp=label('Ir a\n'+ZONAS[p.to].n,'#9fe0ff');sp.scale.set(2.6,.98,1);sp.position.y=3.1;g.add(sp);portalG.add(g);}}
-function portalTick(dt){portalCd-=dt;for(const g of portalG.children)g.rotation.y+=dt*1.4;if(portalCd>0||P.dead||state!='play')return;
+let stCull=0;
+function portalTick(dt){if((stCull-=dt)<=0){stCull=.4;for(const o of stations)if(o.g)o.g.visible=Math.hypot(o.x-P.x,o.z-P.z)<45;}portalCd-=dt;for(const g of portalG.children)g.rotation.y+=dt*1.4;if(portalCd>0||P.dead||state!='play')return;
   const ps=ZONAS[zi].portals;for(let i=0;i<ps.length;i++){const p=ps[i];if(Math.hypot(P.x-p.x,P.z-p.z)<1.3){portalCd=3;if(net.client)toHost({t:'zone',i});else goZone(p.to,p.tx,p.tz);return;}}}
 // cambio de zona: nueva rejilla y muros, se retiran zombis y trampas, se recolocan puestos, luces y jugador, y se cargan los modelos
 function goZone(i,x,z){zi=i;const Z=ZONAS[i];SPX=x!=null?x:Z.sp[0];SPZ=z!=null?z:Z.sp[1];zArr=[SPX,SPZ];
@@ -714,12 +724,13 @@ function zGeo(ti){if(zGC[ti])return zGC[ti];const[body,head]=ZTYPES[ti],dd=k=>zS
     si[k]=p.D.sk[s];si[k+1]=p.D.sk[s+1];sw[k]=p.D.sk[s+2]/255;sw[k+1]=1-sw[k];}}}
   const g=swGeo(pos,col);g.setAttribute('skinIndex',new THREE.BufferAttribute(si,4));g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4));
   const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.BufferAttribute(new Float32Array(ep),3));g2.setAttribute('skinIndex',new THREE.BufferAttribute(new Uint16Array(ei),4));g2.setAttribute('skinWeight',new THREE.BufferAttribute(new Float32Array(ew),4));
+  g.boundingSphere=g2.boundingSphere=new THREE.Sphere(new V3(0,.95,0),1.8);
   return zGC[ti]={g,g2,bd};}
 const noRay=()=>{};
 function zSkin(z,ti){const G0=zGeo(ti),bd=G0.bd,bones=[],B={},rest={};
   bd.forEach((b,i)=>{const o=new THREE.Bone();o.name=b[0];const p=b[1]<0?[0,0,0]:bd[b[1]].slice(2);o.position.set(b[2]-p[0],b[3]-p[1],b[4]-p[2]);rest[b[0]]=o.position.clone();bones.push(o);B[b[0]]=o;if(b[1]>=0)bones[b[1]].add(o);});
-  const mesh=new THREE.SkinnedMesh(G0.g,zSkinM);mesh.add(bones[0]);mesh.updateMatrixWorld(true);mesh.bind(new THREE.Skeleton(bones));mesh.frustumCulled=false;mesh.raycast=noRay;
-  const eyes=new THREE.SkinnedMesh(G0.g2,zEyeM);eyes.bind(mesh.skeleton,mesh.bindMatrix);eyes.frustumCulled=false;eyes.raycast=noRay;
+  const mesh=new THREE.SkinnedMesh(G0.g,zSkinM);mesh.add(bones[0]);mesh.updateMatrixWorld(true);mesh.bind(new THREE.Skeleton(bones));mesh.raycast=noRay;
+  const eyes=new THREE.SkinnedMesh(G0.g2,zEyeM);eyes.bind(mesh.skeleton,mesh.bindMatrix);eyes.raycast=noRay;
   for(const o of z.g.children)if(o!=z.zp)o.visible=false;z.g.add(mesh);z.g.add(eyes);z.sk={B,rest,bones,k:R()*9,ti};}
 const ZLB=['Shoulder_R','Shoulder_L','UpperLeg_R','UpperLeg_L'],zLC={};
 function zLimb(ti,i){const key=ti+'_'+i;if(zLC[key])return zLC[key];const G0=zGeo(ti),pa=G0.g.attributes.position.array,ca=G0.g.attributes.color.array,sa=G0.g.attributes.skinIndex.array,bd=G0.bd,
