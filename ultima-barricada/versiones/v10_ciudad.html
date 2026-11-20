@@ -237,14 +237,16 @@ function goZone(i,x,z){zi=i;const Z=ZONAS[i];SPX=x!=null?x:Z.sp[0];SPZ=z!=null?z
   P.x=SPX;P.z=SPZ;P.vy=0;portalCd=3;flowT=0;
   zLamps.forEach(([l,p])=>l.position.set(SPX+p[0],l.position.y,SPZ+p[1]));showG.position.set(SPX-7.5,0,SPZ-19);
   placeStations();portalsBuild();cityLoad(i);msg('Zona: '+Z.n);}
+const PF={u:0,r:0,n:0,c:0,t:0};let frameN=0;
 {// medidor de rendimiento y resolución adaptativa: si baja de 45 fps de forma sostenida se dibuja a menos resolución (y se recupera si sobra)
   const d=document.createElement('div');d.style.cssText='position:fixed;right:8px;top:8px;font:12px monospace;color:#9f9;background:rgba(0,0,0,.5);padding:3px 6px;z-index:9;pointer-events:none';document.body.appendChild(d);
+  const gl0=renderer.getContext(),ex0=gl0.getExtension('WEBGL_debug_renderer_info'),gpu=(ex0?gl0.getParameter(ex0.UNMASKED_RENDERER_WEBGL):'?').replace(/ANGLE \(|Direct3D.*|\)$/g,'').slice(0,60);d.style.textAlign='right';
   const pr0=renderer.getPixelRatio();let pr=pr0,n=0,w=0,l=performance.now(),t0=l,low=0,high=0;
   const k=()=>{const t=performance.now(),dt=t-l;l=t;n++;if(dt>w&&dt<2000)w=dt;
     if(t-t0>=1000){const f=n*1000/(t-t0);
       if(state=='play'&&!document.hidden){if(f<45){low++;high=0;}else if(f>57){high++;low=0;}else low=high=0;
         if(low>=2&&pr>.6){pr=Math.max(.6,pr-.15);renderer.setPixelRatio(pr);low=0;}else if(high>=6&&pr<pr0){pr=Math.min(pr0,pr+.1);renderer.setPixelRatio(pr);high=0;}}
-      d.textContent=Math.round(f)+' fps · peor '+Math.round(w)+' ms · res '+Math.round(pr*100)+'% · '+zombies.length+' zombis';n=0;w=0;t0=t;}
+      const q=PF.n||1;d.innerHTML=Math.round(f)+' fps · peor '+Math.round(w)+' ms · res '+Math.round(pr*100)+'% · '+zombies.length+' zombis<br>cálculo '+(PF.u/q).toFixed(1)+' ms · dibujo '+(PF.r/q).toFixed(1)+' ms · '+PF.c+' órdenes · '+(PF.t/1000|0)+'k tri<br>'+innerWidth+'×'+innerHeight+' · '+gpu;PF.u=PF.r=PF.n=0;n=0;w=0;t0=t;}
     requestAnimationFrame(k);};requestAnimationFrame(k);}
 const frameM=M(0xffffff,{map:tex('#7a5a48','brick',2,1)}),boardM=M(0x8a6336);
 for(const e of ENTRIES){
@@ -739,27 +741,30 @@ function zGeo(ti){if(zGC[ti])return zGC[ti];const[body,head]=ZTYPES[ti],dd=k=>zS
   else parts.push({D:A,a:0,b:A.nt,o:[0,0,0]});
   const nt=parts.reduce((s,p)=>s+p.b-p.a,0),pos=new Float32Array(nt*9),col=new Float32Array(nt*9),si=new Uint16Array(nt*12),sw=new Float32Array(nt*12),ep=[],ei=[],ew=[];let t=0;
   for(const p of parts){const er=p.D.rg.find(r=>r.n=='ojos');for(let i=p.a;i<p.b;i++,t++){const eye=er&&i>=er.a&&i<er.b;for(let j=0;j<3;j++){const s=i*9+j*3,d=t*9+j*3,k=(t*3+j)*4;
-    if(eye){ep.push(p.D.pos[s]+p.o[0],p.D.pos[s+1]+p.o[1],p.D.pos[s+2]+p.o[2]+.002);ei.push(p.D.sk[s],p.D.sk[s+1],0,0);ew.push(p.D.sk[s+2]/255,1-p.D.sk[s+2]/255,0,0);continue;}
+    
     pos[d]=p.D.pos[s]+p.o[0];pos[d+1]=p.D.pos[s+1]+p.o[1];pos[d+2]=p.D.pos[s+2]+p.o[2];col[d]=p.D.col[s];col[d+1]=p.D.col[s+1];col[d+2]=p.D.col[s+2];
     if(tint&&p.D==A){const a=tint[0],b=tint[1];if(Math.abs(col[d]-a[0])+Math.abs(col[d+1]-a[1])+Math.abs(col[d+2]-a[2])<.3){const q=(col[d]+col[d+1]+col[d+2])/(a[0]+a[1]+a[2]);col[d]=b[0]*q;col[d+1]=b[1]*q;col[d+2]=b[2]*q;}}
+    if(eye){col[d]=2;col[d+1]=0;col[d+2]=0;}
     si[k]=p.D.sk[s];si[k+1]=p.D.sk[s+1];sw[k]=p.D.sk[s+2]/255;sw[k+1]=1-sw[k];}}}
   const g=swGeo(pos,col);g.setAttribute('skinIndex',new THREE.BufferAttribute(si,4));g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4));
   const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.BufferAttribute(new Float32Array(ep),3));g2.setAttribute('skinIndex',new THREE.BufferAttribute(new Uint16Array(ei),4));g2.setAttribute('skinWeight',new THREE.BufferAttribute(new Float32Array(ew),4));
   g.boundingSphere=g2.boundingSphere=new THREE.Sphere(new V3(0,.95,0),1.8);
   return zGC[ti]={g,g2,bd};}
 const noRay=()=>{};
+// los ojos van en la misma malla que el cuerpo, marcados con rojo=2: el sombreador los pinta de amarillo sin sombra (una orden de dibujo por zombi en vez de dos)
+zSkinM.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n float ey=step(1.5,vColor.r);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(0.0),ey);totalEmissiveRadiance+=ey*vec3(1.0,.82,.23);');};
+function zSkelUpd(){if(!this.skip)THREE.Skeleton.prototype.update.call(this);}
 function zSkin(z,ti){const G0=zGeo(ti),bd=G0.bd,bones=[],B={},rest={};
   bd.forEach((b,i)=>{const o=new THREE.Bone();o.name=b[0];const p=b[1]<0?[0,0,0]:bd[b[1]].slice(2);o.position.set(b[2]-p[0],b[3]-p[1],b[4]-p[2]);rest[b[0]]=o.position.clone();bones.push(o);B[b[0]]=o;if(b[1]>=0)bones[b[1]].add(o);});
   const mesh=new THREE.SkinnedMesh(G0.g,zSkinM);mesh.add(bones[0]);mesh.updateMatrixWorld(true);mesh.bind(new THREE.Skeleton(bones));mesh.raycast=noRay;
-  const eyes=new THREE.SkinnedMesh(G0.g2,zEyeM);eyes.bind(mesh.skeleton,mesh.bindMatrix);eyes.raycast=noRay;
-  for(const o of z.g.children)if(o!=z.zp)o.visible=false;z.g.add(mesh);z.g.add(eyes);z.sk={B,rest,bones,k:R()*9,ti};}
+  for(const o of z.g.children)if(o!=z.zp)o.visible=false;z.g.add(mesh);z.sk={B,rest,bones,k:R()*9,ti,skel:mesh.skeleton,n:0};mesh.skeleton.update=zSkelUpd;}
 const ZLB=['Shoulder_R','Shoulder_L','UpperLeg_R','UpperLeg_L'],zLC={};
 function zLimb(ti,i){const key=ti+'_'+i;if(zLC[key])return zLC[key];const G0=zGeo(ti),pa=G0.g.attributes.position.array,ca=G0.g.attributes.color.array,sa=G0.g.attributes.skinIndex.array,bd=G0.bd,
     want=i<2?['Shoulder','Elbow','Hand','Fingers']:['UpperLeg','LowerLeg','Ankle'],sd=i%2?'_L':'_R',ok=bd.map(b=>b[0].endsWith(sd)&&want.some(w=>b[0].startsWith(w))),pv=bd.find(b=>b[0]==ZLB[i]),ps=[],cs=[];
   for(let t=0;t<pa.length/9;t++){if(!ok[sa[t*12]])continue;for(let j=0;j<9;j++){ps.push(pa[t*9+j]-pv[2+j%3]);cs.push(ca[t*9+j]);}}
   return zLC[key]=swGeo(new Float32Array(ps),new Float32Array(cs));}
 // pose de cada fotograma: andar arrastrando una pierna, brazos al frente, cabeza ladeada; mv = si avanza, atk = si está golpeando
-function zPose(z,mv,atk){const S=z.sk;if(!S)return;const B=S.B;for(const b of S.bones){b.quaternion.set(0,0,0,1);b.position.copy(S.rest[b.name]);}
+function zPose(z,mv,atk){const S=z.sk;if(!S)return;S.skel.skip=S.n++>3&&(z.pos.x-P.x)*(z.pos.x-P.x)+(z.pos.z-P.z)*(z.pos.z-P.z)>324&&(frameN+z.id)%3!=0;if(S.skel.skip)return;const B=S.B;for(const b of S.bones){b.quaternion.set(0,0,0,1);b.position.copy(S.rest[b.name]);}
   for(let i=0;i<4;i++)if(z.lm>>i&1)B[ZLB[i]].scale.setScalar(.001);
   const t=time+S.k,s=Math.sin(z.ph),a=mv?1:0,run=z.speed>3.3,aL=(run?.75:.45)*a,aR=(run?.75:.26)*a;
   B.Hips.position.y+=Math.abs(s)*.02*a-.03;B.Hips.rotation.z=s*.08*a;B.Spine_01.rotation.x=run?.42:.26;B.Spine_03.rotation.z=Math.sin(z.ph*.5)*.08;B.Spine_02.rotation.y=s*.12*a;
@@ -1365,11 +1370,11 @@ addEventListener('keydown',e=>{if(e.code=='F2'&&(state=='play'||editMode)){e.pre
 let last=0;
 // el arma y los brazos se pintan en una segunda pasada con la profundidad limpia: ni zombis ni paredes los tapan
 let lightN=0;
-function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;if(state=='play')update(dt);
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000);last=t;frameN++;const _a=performance.now();if(state=='play')update(dt);const _b=performance.now();
   if(lightN--<=0){lightN=30;scene.traverse(o=>{if(o.isLight)o.layers.enable(1);});}
   gun.traverse(o=>o.layers.set(1));FPA.g.traverse(o=>o.layers.set(1));
-  renderer.autoClearColor=true;camera.layers.set(0);renderer.render(scene,camera);
-  renderer.autoClearColor=false;camera.layers.set(1);renderer.render(scene,camera);camera.layers.set(0);}
+  renderer.autoClearColor=true;camera.layers.set(0);renderer.render(scene,camera);PF.c=renderer.info.render.calls;PF.t=renderer.info.render.triangles;
+  renderer.autoClearColor=false;camera.layers.set(1);renderer.render(scene,camera);camera.layers.set(0);PF.u+=_b-_a;PF.r+=performance.now()-_b;PF.n++;}
 camera.position.set(P.x,EYE,P.z);requestAnimationFrame(loop);
 // con la pestaña oculta el navegador para la animación: en red seguimos simulando
 let hl=performance.now();setInterval(()=>{const n=performance.now();if(document.hidden&&net.on&&state=='play'){let e=Math.min(1.2,(n-hl)/1000);while(e>0){update(Math.min(.05,e));e-=.05;}}hl=n;},50);
