@@ -577,7 +577,7 @@ function carScan(m,q,k,f,ox,oz){if(m.car===undefined){let a=[1e9,1e9,1e9],b=[-1e
     if(CARS.some(c=>Math.hypot(c.x-x,c.z-z)<9))continue;let ux=f[o+m.car.ax],uz=f[o+8+m.car.ax];const n=Math.hypot(ux,uz)||1;ux/=n;uz/=n;const h=m.car.L*n/2-.15,ls=[];
     for(const sg of[-1,1]){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0xff8a18,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(1.5,1.5,1);sp.position.set(x+ux*h*sg,.8,z+uz*h*sg);scene.add(sp);ls.push(sp);}
     CARS.push({x,z,ls,al:0,hz:CARS.length%3==0,bp:0});}}
-function carHit(p){if(p.y>2.4)return;for(const c of CARS)if(c.al<=0&&Math.hypot(c.x-p.x,c.z-p.z)<2.7){c.al=12;c.bp=0;if(!net.client&&!flare){flare={x:c.x,z:c.z,t:12};flareL.position.set(c.x,1.6,c.z);flowT=0;}return;}}
+function carHit(p){if(p.y>2.4)return;for(const c of CARS)if(c.al<=0&&Math.hypot(c.x-p.x,c.z-p.z)<2.7){c.al=12;c.bp=0;c.fr=R()<.5;if(!net.client){if(c.fr){frenzyT=12;msg('La alarma ha enloquecido a los zombis');}else if(!flare){flare={x:c.x,z:c.z,t:12};flareL.position.set(c.x,1.6,c.z);flowT=0;}}return;}}
 // cuervos: bandadas posadas en la calle; si te acercas echan a volar graznando y vuelven pasado un rato
 const FLOCKS=[],crowM=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),crowGeo=(()=>{const pos=[],col=[],F=[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]];
     const bx=(x0,y0,z0,x1,y1,z1,r,g,b)=>{const Q=[];for(let i=0;i<8;i++)Q.push([i&4?x1:x0,i&2?y1:y0,i&1?z1:z0]);for(const f of F)for(const i of[0,1,2,0,2,3]){pos.push(...Q[f[i]]);col.push(r,g,b);}};
@@ -610,6 +610,8 @@ function hordeGo(x,z){if(time<hordeCd)return;hordeCd=time+45;const f=FLOCKS.find
   if(f)for(const c of f.corp){if(!c.o.g.visible)continue;const o=mkZ(false,0);for(const m of o.g.children.slice())if(m.isSkinnedMesh){o.g.remove(m);m.skeleton.dispose();}
     zSkin(o,c.ti);zPose(o,false,false);o.pos.set(c.x,0,c.z);o.g.position.copy(o.pos);o.g.rotation.set(-Math.PI/2,c.ry,0);o.stun=1.2;runner(o);GETUP.push({z:o,t:0});n--;}
   HQ.push({x,z,n,t:.6});hordeFx(x,z);if(net.host)bc({t:'hordefx',x,z});}
+let frenzyT=0;
+function frenzyTick(dt){if(net.client||frenzyT<=0)return;frenzyT-=dt;const on=frenzyT>0;for(const z of zombies){if(z.bn)continue;if(on&&!z.fz){const k=Math.max(1,(3.6+R()*.8)/(z.speed0||z.speed));z.fz=k;z.speed*=k;z.speed0*=k;}else if(!on&&z.fz){z.speed/=z.fz;z.speed0/=z.fz;z.fz=0;}}}
 function corpRaise(x,z){for(const f of FLOCKS){if(Math.hypot(f.x-x,f.z-z)>16||!f.corp.some(c=>c.o.g.visible))continue;
     for(const c of f.corp){if(!c.o.g.visible)continue;c.o.g.visible=false;const o=mkZ(false,0);for(const m of o.g.children.slice())if(m.isSkinnedMesh){o.g.remove(m);m.skeleton.dispose();}
       zSkin(o,c.ti);zPose(o,false,false);o.pos.set(c.x,0,c.z);o.g.position.copy(o.pos);o.g.rotation.set(-Math.PI/2,c.ry,0);o.stun=1.2;GETUP.push({z:o,t:0});howlFx(c.x,c.z,0);}
@@ -651,9 +653,9 @@ function amb2Tick(dt){const A=AMB,cp=camera.position;
   // charcos
   for(let i=POOLS.length-1;i>=0;i--){const o=POOLS[i];o.t+=dt;const g=Math.min(1,o.t/2.5);o.m.scale.set(.15+o.rx*g,1,.15+o.rz*g);if(o.t>37)o.m.material.opacity=.8*Math.max(0,1-(o.t-37)/8);if(o.t>45){scene.remove(o.m);o.m.material.dispose();POOLS.splice(i,1);}}
   // coches
-  for(const c of CARS){const d=Math.hypot(c.x-P.x,c.z-P.z);let on=0;if(c.al>0){c.al-=dt;on=Math.sin(time*16)>0?1:0;if((c.bp-=dt)<=0){c.bp=.42;if(AC&&d<70)try{osc('square',c.al%.84>.42?980:1320,c.al%.84>.42?980:1320,.2,.3,at(c.x,c.z,1.6));}catch(e){}}}
-    else if(c.hz)on=Math.sin(time*5+c.x)>.2?.8:0;for(const l of c.ls){l.visible=d<50&&on>0;l.material.opacity=.9*on;}}
-  crowTick(dt);hordeTick(dt);
+  for(const c of CARS){const d=Math.hypot(c.x-P.x,c.z-P.z);let on=0;if(c.al>0){c.al-=dt;on=Math.sin(time*16)>0?1:0;if((c.bp-=dt)<=0){c.bp=c.fr?.2:.42;if(AC&&d<70)try{const fq=c.fr?(c.al%.4>.2?1750:2300):(c.al%.84>.42?980:1320);osc('square',fq,fq,c.fr?.1:.2,.3,at(c.x,c.z,1.6));}catch(e){}}}
+    else if(c.hz)on=Math.sin(time*5+c.x)>.2?.8:0;for(const l of c.ls){l.visible=d<50&&on>0;l.material.opacity=.9*on;l.material.color.setHex(c.al>0&&c.fr?0xff2020:0xff8a18);}}
+  crowTick(dt);hordeTick(dt);frenzyTick(dt);
   // sonido de fondo: viento y lluvia continuos, sirenas y lamentos lejanos de vez en cuando
   if(AC){ambSnd();if(A.snd){A.snd.rain.g.gain.value=.05*A.rain*(roof?.4:1);A.snd.wind.g.gain.value=Math.max(0,.1+.06*Math.sin(time*.23)+.04*Math.sin(time*.61)+.08*A.rain);A.snd.wind.b.frequency.value=320+140*Math.sin(time*.17);}
     if((A.sirT-=dt)<=0){A.sirT=55+R()*90;try{const a=R()*6.283,o=at(P.x+Math.cos(a)*60,P.z+Math.sin(a)*60,3),t=AC.currentTime;for(let i=0;i<5;i++){osc('sine',640,960,.55,.5,o,t+i*1.1);osc('sine',960,640,.55,.5,o,t+i*1.1+.55);}}catch(e){}}
