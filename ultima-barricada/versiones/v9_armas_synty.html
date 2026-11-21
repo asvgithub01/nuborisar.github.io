@@ -1302,7 +1302,7 @@ const cache={};function set(id,v){if(cache[id]!==v){cache[id]=v;$(id).textConten
 function update(dt){
   time+=dt;AL.length=0;
   if(net.on){const lim=touchOn||document.pointerLockElement==renderer.domElement?25:8,a=!P.dead&&time-(P.act||0)>lim;if(a!=!!P.afk){P.afk=a;if(net.host&&a){msg('Jugador 1 inactivo');bc({t:'msg',s:'Jugador 1 inactivo'});}}}
-  if(net.host)for(const r of remotes.slice()){if(r.last&&time-r.last>20){msg('Jugador '+(r.id+1)+' sin conexión');r.conn.open=false;try{r.conn.close&&r.conn.close();}catch(e){}r.close();continue;}
+  if(net.host)for(const r of remotes.slice()){if(r.last&&time-r.last>20){msg('Jugador '+(r.id+1)+' sin conexión');try{r.conn.open=false;}catch(e){}try{r.conn.close&&r.conn.close();}catch(e){}try{r.close();}catch(e){const i=remotes.indexOf(r);if(i>=0)remotes.splice(i,1);}continue;}
     const a=!r.dead&&(!!r.afkc||(r.last&&time-r.last>4));if(a!=!!r.afk){r.afk=a;if(a){const t='Jugador '+(r.id+1)+' inactivo: los zombis lo ignoran';msg(t);bc({t:'msg',s:t});}}}
   if(!P.dead&&!P.afk)AL.push(P);for(const r of remotes)if(!r.dead&&!r.afk)AL.push(r);
   if(!AL.length){if(!P.dead)AL.push(P);for(const r of remotes)if(!r.dead)AL.push(r);}
