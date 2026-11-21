@@ -591,10 +591,14 @@ function crowPlace(){for(const f of FLOCKS)scene.remove(f.g);FLOCKS.length=0;con
   for(let q=0,n=Math.min(7,C.length);q<n;q++){const[x,z]=C[Math.floor(q*C.length/n)],g=new THREE.Group(),cs=[];for(let i=0;i<7;i++){const c=new THREE.Group(),b=new THREE.Mesh(crowGeo,crowM),wl=new THREE.Mesh(wingGeo,crowM),wr=new THREE.Mesh(wingGeo,crowM);wl.position.set(.05,.2,0);wr.position.set(-.05,.2,0);wr.scale.x=-1;wl.visible=wr.visible=false;
       c.add(b);c.add(wl);c.add(wr);c.scale.setScalar(1.8);const o={c,wl,wr,ox:(R()-.5)*3,oz:(R()-.5)*3,ph:R()*6,ry:R()*6.283,v:new V3()};c.position.set(x+.5+o.ox,0,z+.5+o.oz);c.rotation.y=o.ry;g.add(c);cs.push(o);}
     scene.add(g);FLOCKS.push({x:x+.5,z:z+.5,g,cs,st:0,t:0});}}
+// espantar a los cuervos despierta a una horda: grito y 24 zombis más en la ronda (como mucho una cada 45 s)
+let hordeCd=0;
+function sScream(x,z){if(!AC)return;try{const o=at(x,z,2.2),t=AC.currentTime;osc('sawtooth',280,920,.35,.6,o,t);osc('sawtooth',920,240,1.3,.6,o,t+.33);osc('square',420,1380,.35,.2,o,t);osc('square',1380,360,1.3,.2,o,t+.33);nz(1.6,'bandpass',1900,.5,o,t,2);}catch(e){}}
+function hordeGo(x,z){if(time<hordeCd)return;hordeCd=time+45;toSpawn+=24;spawnT=Math.min(spawnT,.6);sScream(x,z);msg('Los cuervos han despertado a una horda');if(net.host)bc({t:'hordefx',x,z});}
 function crowTick(dt){for(const f of FLOCKS){const d=Math.hypot(f.x-P.x,f.z-P.z);f.g.visible=d<52&&f.st<2;
     if(f.st==0){if(d<52)for(const o of f.cs)o.c.rotation.x=Math.pow(Math.max(0,Math.sin(time*1.7+o.ph)),10)*.7;
-      let go=d<7.5&&!(P.lv|0);if(!go&&d<40)for(const z of zombies)if(Math.hypot(z.pos.x-f.x,z.pos.z-f.z)<3){go=true;break;}
-      if(go){f.st=1;f.t=0;sCaw(f.x,f.z,5+(R()*4|0));for(const o of f.cs){const a=Math.atan2(f.z+o.oz-P.z,f.x+o.ox-P.x)+(R()-.5)*1.6,sp=5+R()*3;o.v.set(Math.cos(a)*sp,2.6+R()*2,Math.sin(a)*sp);o.c.rotation.set(0,Math.atan2(o.v.x,o.v.z),0);o.wl.visible=o.wr.visible=true;}}}
+      let go=d<7.5&&!(P.lv|0)&&!P.dead;const byP=go;if(!go&&d<40)for(const z of zombies)if(Math.hypot(z.pos.x-f.x,z.pos.z-f.z)<3){go=true;break;}
+      if(go){f.st=1;f.t=0;sCaw(f.x,f.z,5+(R()*4|0));if(byP){if(net.client)toHost({t:'horde',x:f.x,z:f.z});else hordeGo(f.x,f.z);}for(const o of f.cs){const a=Math.atan2(f.z+o.oz-P.z,f.x+o.ox-P.x)+(R()-.5)*1.6,sp=5+R()*3;o.v.set(Math.cos(a)*sp,2.6+R()*2,Math.sin(a)*sp);o.c.rotation.set(0,Math.atan2(o.v.x,o.v.z),0);o.wl.visible=o.wr.visible=true;}}}
     else if(f.st==1){f.t+=dt;for(const o of f.cs){o.c.position.addScaledVector(o.v,dt);const w=Math.sin(time*24+o.ph)*.9;o.wl.rotation.z=w;o.wr.rotation.z=-w;}if(f.t>1.2&&f.t-dt<=1.2)sCaw(f.x,f.z,2);if(f.t>7){f.st=2;f.t=0;}}
     else{f.t+=dt;if(f.t>90&&d>36){f.st=0;for(const o of f.cs){o.c.position.set(f.x+o.ox,0,f.z+o.oz);o.c.rotation.set(0,o.ry,0);o.wl.visible=o.wr.visible=false;}}}}
   if((AMB.cawT-=dt)<=0){AMB.cawT=18+R()*30;let b=null,bd=60;for(const f of FLOCKS)if(f.st==0){const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<bd){bd=d;b=f;}}if(b)sCaw(b.x,b.z,1+(R()*2|0));}}
@@ -1376,7 +1380,7 @@ $('mkHost').onclick=hostGame;$('mkJoin').onclick=joinGame;
 function hostMsg(r,d){
   if(d.t=='me'){r.x=d.x;r.z=d.z;r.yaw=d.yaw;r.hp=d.hp;r.dead=!!d.dead;r.afkc=!!d.afk;r.last=time;}
   else if(d.t=='hit'){const z=zombies.find(z=>z.id==d.id);if(z){credit=r;if(d.stun)z.stun=.6;if(d.burn)z.burn=2.5;hurtZ(z,d.d,!!d.head,!!d.pts,d.part);credit=null;}}
-  else if(d.t=='boom'){credit=r;explode(new V3(d.p[0],d.p[1],d.p[2]),d.rad,d.dmg,false,r);credit=null;}
+  else if(d.t=='horde')hordeGo(d.x,d.z);else if(d.t=='boom'){credit=r;explode(new V3(d.p[0],d.p[1],d.p[2]),d.rad,d.dmg,false,r);credit=null;}
   else if(d.t=='rep'){const e=ENTRIES[d.i];if(e&&e.boards<6){e.boards++;showBoards(e);}}
   else if(d.t=='gate'){if(GATES[d.i])GATES[d.i].openIt();}
   else if(d.t=='flare'){flareAt(d.x,d.z);bc({t:'flare',x:d.x,z:d.z});}
@@ -1416,7 +1420,7 @@ function clientMsg(d){
   else if(d.t=='pts')P.pts+=d.n;
   else if(d.t=='kill')P.kills++;
   else if(d.t=='hurt')hurtP(d.d);
-  else if(d.t=='howl'){sHowl(d.x,d.z);howlFx(d.x,d.z,0);}
+  else if(d.t=='hordefx'){sScream(d.x,d.z);msg('Los cuervos han despertado a una horda');}else if(d.t=='howl'){sHowl(d.x,d.z);howlFx(d.x,d.z,0);}
   else if(d.t=='fx')boomFx(new V3(d.p[0],d.p[1],d.p[2]),d.rad);
   else if(d.t=='pw')powerFx(d.k);
   else if(d.t=='msg')msg(d.s);
