@@ -1535,6 +1535,17 @@ const jukeM=MB(0x402000);
   box(.62,.5,.03,jukeM,x,1.25,z-.26);box(.7,.45,.03,M(0x111111),x,.45,z-.26);box(.74,.05,.04,M(0xc9a23a),x,.95,z-.26);
   const s=label('Máquina de discos\n100','#ffd75a');s.position.set(x,2.15,z-.2);scene.add(s);
   stations.push({x,z:z-.4,text:()=>music.on?'Cambiar de tema':'Poner un tema de metal',cost:()=>100,buy:startMusic});}
+let specI=0,specOn=false,specName=null;
+function specCam(){const on=net.on&&P.dead&&!(P.down>0)&&state=='play';if(!on){if(specOn){specOn=false;gun.visible=true;}return null;}
+  const L=net.host?remotes.filter(r=>!r.dead&&r.g).map(r=>({g:r.g,yaw:r.yaw})):Object.keys(net.others||{}).map(k=>net.others[k]).filter(o=>o.g.visible&&!o.dn).map(o=>({g:o.g,yaw:o.yaw}));
+  if(!L.length){if(specOn){specOn=false;gun.visible=true;}return null;}specOn=true;gun.visible=false;P.hp=P.max;const t=L[specI%L.length],p=t.g.position,fx=-Math.sin(t.yaw),fz=-Math.cos(t.yaw);
+  camera.position.set(p.x-fx*2.5,p.y+2.3,p.z-fz*2.5);camera.rotation.set(-.24,t.yaw,0);return pName(t.g);}
+addEventListener('mousedown',()=>{if(specOn)specI++;});addEventListener('touchstart',()=>{if(specOn)specI++;},{passive:true});
+// arma en la mano de los demás jugadores: el mismo modelo que llevan, delante del pecho; con armas largas el brazo izquierdo también va al frente
+function avGun(g,k){const U=g.userData;if(U.wk===k&&U.gmFor===U.m)return;if(U.gm){g.remove(U.gm);U.gm=null;}U.wk=k;U.gmFor=U.m;const d=k&&WEAPONS[k];let m=null;
+  try{if(d&&!d.melee){if(SW[k])m=swStatic(SW[k]).g;else if(GM[k]){const r=gmMesh(k,d.len);m=new THREE.Group();m.add(r.body);if(r.part)m.add(r.part);m.rotation.y=Math.PI;}}}catch(e){}
+  const B=U.m&&U.m.userData.B,two=!!m&&d.len>.42;if(B){B.Shoulder_R.rotation.set(0,m?1.2:0,m?0:1.25);B.Shoulder_L.rotation.set(0,two?-1.05:0,two?0:-1.25);}
+  if(m){m.position.set(-.16,1.36,.5+d.len*.3);m.traverse(o=>{o.raycast=()=>{};});g.add(m);U.gm=m;}}
 function avDown(g,on){const m=g.userData.m;if(m){m.rotation.x=on?-Math.PI/2:0;m.position.y=on?.18:0;}}
 // compañero caído al alcance (2,2 m y misma altura): se ofrece como si fuera un puesto, sin coste
 function downNear(){if(!net.on||P.dead)return null;let b=null,bd=2.2;const L=net.host?remotes.filter(r=>r.down).map(r=>({x:r.x,z:r.z,y:r.by||0,id:r.id,g:r.g,o:r})):Object.keys(net.others||{}).map(k=>net.others[k]).filter(o=>o.dn).map(o=>({x:o.x,z:o.z,y:o.y||0,id:o.id,g:o.g,o}));
@@ -1650,7 +1661,7 @@ function joinGame(){if(net.peer)return;const code=$('code').value.trim().toUpper
     c.on('close',()=>{if(net.mq)return;if(state!='dead'){msg('Conexión perdida');gameOver();}});});}
 $('mkHost').onclick=hostGame;$('mkJoin').onclick=joinGame;
 function hostMsg(r,d){
-  if(d.t=='me'){r.down=d.dn|0;if(d.st)r.st=d.st;r.lv=d.lv|0;r.by=d.y||0;if(d.lk){const q=JSON.stringify(d.lk);if(q!=r.lkS){r.lkS=q;r.lk=okLook(d.lk);r.ch=r.lk[0];avSet(r.g,r.lk);msg(pName(r.g)+' entra en la partida');}}r.x=d.x;r.z=d.z;r.yaw=d.yaw;r.hp=d.hp;r.dead=!!d.dead;r.afkc=!!d.afk;r.last=time;}
+  if(d.t=='me'){r.wk=d.w;r.down=d.dn|0;if(d.st)r.st=d.st;r.lv=d.lv|0;r.by=d.y||0;if(d.lk){const q=JSON.stringify(d.lk);if(q!=r.lkS){r.lkS=q;r.lk=okLook(d.lk);r.ch=r.lk[0];avSet(r.g,r.lk);msg(pName(r.g)+' entra en la partida');}}r.x=d.x;r.z=d.z;r.yaw=d.yaw;r.hp=d.hp;r.dead=!!d.dead;r.afkc=!!d.afk;r.last=time;}
   else if(d.t=='hit'){const z=zombies.find(z=>z.id==d.id);if(z){credit=r;if(d.stun)z.stun=.6;if(d.burn)z.burn=2.5;hurtZ(z,d.d,!!d.head,!!d.pts,d.part);credit=null;}}
   else if(d.t=='rap')rapGo();
   else if(d.t=='horde')hordeGo(d.x,d.z);else if(d.t=='rev'){if(d.id==0)revMe();else{const q=remotes.find(o=>o.id==d.id);if(q){q.down=0;if(q.conn.open)q.conn.send({t:'revme'});}}}else if(d.t=='boom'){credit=r;explode(new V3(d.p[0],d.p[1],d.p[2]),d.rad,d.dmg,false,r);credit=null;}
@@ -1665,7 +1676,7 @@ function hostMsg(r,d){
 }
 function snap(){bc({t:'s',zn:zi,za:zArr,r:round,i:insta,dd:dbl,d:doorOpen?1:0,b:ENTRIES.map(e=>e.boards),g:GATES.map(g=>g.open?1:0),
   zs:zombies.map(z=>[z.id,Math.round(z.pos.x*50),Math.round(z.pos.z*50),Math.round(z.g.position.y*50),Math.round(z.g.rotation.y*50),z.bn?z.bn+1:z.pl?1:0,z.lm]),
-  pls:[[0,P.x,P.z,P.yaw,P.dead?1:0,voice.on?1:0,P.afk?1:0,+(P.by||0).toFixed(2),myCh,P.down>0?1:0,[P.kills,P.pts,P.downs||0,P.revs||0],LOOK]].concat(remotes.map(r=>[r.id,r.x,r.z,r.yaw,r.dead?1:0,r.talk?1:0,r.afk?1:0,r.by||0,r.ch==null?1:r.ch,r.down?1:0,r.st||[r.kills||0,0,0,0],r.lk||null])),
+  pls:[[0,P.x,P.z,P.yaw,P.dead?1:0,voice.on?1:0,P.afk?1:0,+(P.by||0).toFixed(2),myCh,P.down>0?1:0,[P.kills,P.pts,P.downs||0,P.revs||0],LOOK,(cur()||{}).k]].concat(remotes.map(r=>[r.id,r.x,r.z,r.yaw,r.dead?1:0,r.talk?1:0,r.afk?1:0,r.by||0,r.ch==null?1:r.ch,r.down?1:0,r.st||[r.kills||0,0,0,0],r.lk||null,r.wk||null])),
   tr:traps.map(t=>[t.id,t.k,t.x,t.z]),pw:powers.map(p=>[p.id,p.k,p.o.position.x,p.o.position.z])});}
 function sync(arr,list,mk,rm){const ids={};for(const a of list){ids[a[0]]=1;if(!arr.some(o=>o.id==a[0]))arr.push(mk(a));}
   for(let i=arr.length-1;i>=0;i--)if(!ids[arr[i].id]){rm(arr[i]);arr.splice(i,1);}}
@@ -1682,7 +1693,7 @@ function applySnap(d){if(d.zn!=null&&d.zn!=zi)goZone(d.zn,d.za&&d.za[0],d.za&&d.
   const ps={};
   voice.talk={};
   for(const a of d.pls){if(a[0]==net.id)continue;if(a[5])voice.talk[a[0]]=1;ps[a[0]]=1;let o=net.others[a[0]];if(!o){o=net.others[a[0]]={g:avatar(a[0])};o.g.position.set(a[1],0,a[2]);}
-    o.id=a[0];o.dn=a[9]|0;o.st=a[10];if(a[11]){const q=JSON.stringify(a[11]);if(q!=o.lkS){o.lkS=q;avSet(o.g,a[11]);}}o.x=a[1];o.z=a[2];o.y=a[7]||0;o.yaw=a[3];o.g.visible=!a[4]||!!a[9];avDown(o.g,!!a[9]);o.g.userData.tk.visible=!!a[5];o.g.scale.y=a[6]?.6:1;}
+    o.id=a[0];o.dn=a[9]|0;o.st=a[10];if(a[11]){const q=JSON.stringify(a[11]);if(q!=o.lkS){o.lkS=q;avSet(o.g,a[11]);}}o.x=a[1];o.z=a[2];o.y=a[7]||0;o.yaw=a[3];o.g.visible=!a[4]||!!a[9];avDown(o.g,!!a[9]);avGun(o.g,a[9]?null:a[12]);o.g.userData.tk.visible=!!a[5];o.g.scale.y=a[6]?.6:1;}
   micHud();
   for(const id in net.others)if(!ps[id]){scene.remove(net.others[id].g);delete net.others[id];}
 }
@@ -1705,7 +1716,7 @@ function clientMsg(d){
 }
 function netTick(dt){if(!net.on)return;net.t-=dt;const k=Math.min(1,dt*12);
   if(net.host){
-    for(const r of remotes){const p=r.g.position,ox=p.x,oz=p.z;p.x+=(r.x-p.x)*k;p.z+=(r.z-p.z)*k;p.y+=((r.by||0)-p.y)*k;avAnim(r.g,Math.hypot(p.x-ox,p.z-oz));r.g.rotation.y=r.yaw+Math.PI;r.g.visible=!r.dead||!!r.down;avDown(r.g,!!r.down);r.g.userData.tk.visible=!!r.talk;r.g.scale.y=r.afk?.6:1;}
+    for(const r of remotes){const p=r.g.position,ox=p.x,oz=p.z;p.x+=(r.x-p.x)*k;p.z+=(r.z-p.z)*k;p.y+=((r.by||0)-p.y)*k;avAnim(r.g,Math.hypot(p.x-ox,p.z-oz));r.g.rotation.y=r.yaw+Math.PI;r.g.visible=!r.dead||!!r.down;avDown(r.g,!!r.down);avGun(r.g,r.down?null:r.wk);r.g.userData.tk.visible=!!r.talk;r.g.scale.y=r.afk?.6:1;}
     if(net.t<=0){net.t=.1;snap();}
     if(!AL.length)gameOver();}
   else{
@@ -1713,7 +1724,7 @@ function netTick(dt){if(!net.on)return;net.t-=dt;const k=Math.min(1,dt*12);
       const mv=Math.hypot(z.pos.x-ox,z.pos.z-oz);if(mv>.002){z.ph+=mv*4;z.legs[0].rotation.x=Math.sin(z.ph)*.6;z.legs[1].rotation.x=-Math.sin(z.ph)*.6;z.stepD+=mv;if(z.stepD>.85){z.stepD=0;sStep(z);}}zPose(z,mv>.002,false);}
     for(const p of powers)p.o.rotation.y+=dt*3;
     for(const id in net.others){const o=net.others[id],p=o.g.position,ox=p.x,oz=p.z;p.x+=(o.x-p.x)*k;p.z+=(o.z-p.z)*k;p.y+=((o.y||0)-p.y)*k;avAnim(o.g,Math.hypot(p.x-ox,p.z-oz));o.g.rotation.y=o.yaw+Math.PI;}
-    if(net.t<=0){net.t=.066;toHost({t:'me',x:P.x,z:P.z,yaw:P.yaw,hp:P.hp,dead:P.dead?1:0,afk:P.afk?1:0,lk:LOOK,lv:P.lv|0,y:+(P.by||0).toFixed(2),ch:myCh,dn:P.down>0?1:0,st:[P.kills,P.pts,P.downs||0,P.revs||0]});}}
+    if(net.t<=0){net.t=.066;toHost({t:'me',x:P.x,z:P.z,yaw:P.yaw,hp:P.hp,dead:P.dead?1:0,afk:P.afk?1:0,lk:LOOK,lv:P.lv|0,y:+(P.by||0).toFixed(2),ch:myCh,w:(cur()||{}).k,dn:P.down>0?1:0,st:[P.kills,P.pts,P.downs||0,P.revs||0]});}}
 }
 
 // ---------- chat de voz (cada jugador llama a los que ya estaban en la partida) ----------
@@ -1869,7 +1880,7 @@ function update(dt){
     stepD+=sp*dt;if(stepD>2.3&&P.y==0){stepD=0;nz(.07,'lowpass',380+R()*120,.3);}bobT+=sp*dt*1.7;}
   bobA+=((f||s?1:0)-bobA)*Math.min(1,dt*8);
   P.vy-=16*dt;P.y+=P.vy*dt;if(P.y<=0){P.y=0;P.vy=0;}
-  P.by=P.zip?P.zy:lvUpd(P,P);camera.position.set(P.x,EYE+P.y+P.by-(P.dead?1.25:0),P.z);camera.rotation.set(P.pitch,P.yaw,0);camera.updateMatrixWorld();
+  P.by=P.zip?P.zy:lvUpd(P,P);camera.position.set(P.x,EYE+P.y+P.by-(P.dead?1.25:0),P.z);camera.rotation.set(P.pitch,P.yaw,0);specName=specCam();camera.updateMatrixWorld();
   if(time-P.lastHit>4&&P.hp<P.max&&!P.dead)P.hp=Math.min(P.max,P.hp+30*dt);
   // arma
   fireCd-=dt;knifeCd-=dt;
@@ -1947,7 +1958,7 @@ function update(dt){
   $('hp').style.width=Math.max(0,P.hp/P.max*100)+'%';$('dmg').style.opacity=Math.max(0,1-P.hp/P.max)*.8;
   set('pow',(insta>0?'MUERTE INSTANTÁNEA '+Math.ceil(insta)+'s   ':'')+(dbl>0?'PUNTOS x2 '+Math.ceil(dbl)+'s':''));
   const st=nearStation();
-  set('prompt',editMode?'MODO AJUSTE · F2 para salir':!touchOn&&document.pointerLockElement!=renderer.domElement?'Haz clic para capturar el ratón':P.dead?(P.down>0?'Has caído · te pueden levantar durante '+Math.ceil(P.down)+' s':'Has caído · vuelves en la siguiente ronda'):P.afk?'Estás inactivo: los zombis te ignoran. Muévete para volver.':buildMode?'':st?'E — '+st.text()+(st.cost()?' ('+st.cost()+')':''):ne?'Mantén F para reparar la barricada':w.mag==0&&w.res==0?'Sin munición':'');
+  set('prompt',editMode?'MODO AJUSTE · F2 para salir':!touchOn&&document.pointerLockElement!=renderer.domElement?'Haz clic para capturar el ratón':P.dead?(P.down>0?'Has caído · te pueden levantar durante '+Math.ceil(P.down)+' s':(specName?'Viendo a '+specName+' · clic para cambiar de jugador · vuelves en la siguiente ronda':'Has caído · vuelves en la siguiente ronda')):P.afk?'Estás inactivo: los zombis te ignoran. Muévete para volver.':buildMode?'':st?'E — '+st.text()+(st.cost()?' ('+st.cost()+')':''):ne?'Mantén F para reparar la barricada':w.mag==0&&w.res==0?'Sin munición':'');
 }
 // ---------- modo ajuste de agarres (tecla F2): mover a mano las manos y la mira de cada arma y copiar los valores ----------
 // Los cambios se guardan en este navegador. SWGV se sube cuando los valores pasan al archivo, para descartar los guardados viejos.
