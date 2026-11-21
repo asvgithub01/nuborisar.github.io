@@ -789,7 +789,7 @@ function howlTick(z,dt,move){if(net.client)return move;
   if(z.howl>0){z.howl-=dt;if(z.howl<1.3&&!z.hd){z.hd=1;const y=z.g.position.y;
       for(let i=0;i<3;i++){const a=i*2.094+R(),o=mkZ(false,0);let x=z.pos.x+Math.cos(a)*1.4,zz=z.pos.z+Math.sin(a)*1.4;if(blocked(x,zz,.3)){x=z.pos.x;zz=z.pos.z;}
         o.pos.set(x,0,zz);o.g.position.set(x,y,zz);o.lv=z.lv|0;o.stun=.8;o.g.scale.setScalar(.05);RISE.push({z:o,t:0});howlFx(x,zz,y);}
-      if(net.host)bc({t:'howl',x:z.pos.x,z:z.pos.z});}
+      if(net.host)bc({t:'howl',x:z.pos.x,z:z.pos.z});if(typeof corpRaise=='function')corpRaise(z.pos.x,z.pos.z);}
     return false;}
   if(move)z.wd=(z.wd||0)+z.speed*dt;
   if(z.wd>14&&z.state=='chase'&&zombies.length<70){z.wd=0;z.howl=2.4;z.hd=0;sHowl(z.pos.x,z.pos.z);}
