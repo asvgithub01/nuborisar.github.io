@@ -1778,7 +1778,8 @@ addEventListener('mousedown',e=>{if(state!='play'||editMode)return;P.act=time;if
 addEventListener('mouseup',e=>{if(e.button==0)firing=false;if(e.button==2)aim=false;});
 addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(state=='play'&&slots.length>1)switchTo((ci+(e.deltaY>0?1:slots.length-1))%slots.length);});
-document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&state=='play'&&!editMode){if(performance.now()-goT<1500){setTimeout(grab,120);return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
+let hadLock=false;document.addEventListener('pointerlockerror',()=>{if(state=='play')msg('El navegador aún no deja capturar el ratón: espera un segundo y haz clic en el juego');});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement){hadLock=true;return;}if(!hadLock)return;hadLock=false;if(!document.pointerLockElement&&state=='play'&&!editMode){if(performance.now()-goT<1500){setTimeout(grab,120);return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
   $('ovc').style.display='none';$('ovt').textContent='PAUSA';$('ovs').textContent=net.on?'La partida sigue en marcha. Haz clic para volver.':'Haz clic para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}});
 let goT=0;
 function grab(){if(touchOn||document.pointerLockElement==renderer.domElement)return;try{const p=renderer.domElement.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
@@ -1789,7 +1790,7 @@ $('go').onclick=()=>{
   if(!AC){try{initAudio();}catch(e){AC=null;}}else AC.resume();voiceStart();
   $('lobbyBtns').style.display='none';
   // pantalla completa (y en móvil, bloqueo en horizontal donde el navegador lo permite)
-  try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;if(fs&&!(document.fullscreenElement||document.webkitFullscreenElement)){
+  try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;if(fs&&$('go').textContent!='CONTINUAR'&&!(document.fullscreenElement||document.webkitFullscreenElement)){
     const pr=fs.call(el,{navigationUI:'hide'}),lk=()=>{try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');if(o&&o.catch)o.catch(()=>{});}catch(e){}};
     if(pr&&pr.then)pr.then(lk,()=>{});else lk();}}catch(e){}
   if(state=='menu'){TEST=$('edm').checked;MAXZ=+$('maxz').value||24;try{localStorage.ub_maxz=MAXZ;localStorage.ub_edm=TEST?'1':'0';}catch(e){}give('pistol');if(TEST){for(const k in WEAPONS)if(!has(k)){const d=WEAPONS[k];slots.push({k,d,mag:d.mag,res:d.res});}for(const g of GATES)g.openIt();msg('MODO EDICIÓN: inmortal, todas las armas (rueda del ratón) · F2 ajusta manos y mira · J ver colisión · K marcar sitio · M editor de mapa');}if(!net.client)startRound();}
