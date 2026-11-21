@@ -788,16 +788,22 @@ function sRaptor(x,z){if(!AC)return;try{const o=at(x,z,2),t=AC.currentTime,d=1.1
 let rapQ=0;
 function rapGo(){const n=5+(round/3|0);rapQ+=n;toSpawn+=n;spawnT=Math.min(spawnT,1.5);const m='Algo se acerca entre la niebla…';msg(m);if(net.host)bc({t:'msg',s:m});sRaptor(null,null);}
 function zModa(D,r){const m={};let b=0,k='0,0,0';for(let t=r.a;t<r.b;t++){const c=D.col,q=c[t*9]+','+c[t*9+1]+','+c[t*9+2];m[q]=(m[q]||0)+1;if(m[q]>b){b=m[q];k=q;}}return k.split(',').map(Number);}
-function zGeo(ti){if(zGC[ti])return zGC[ti];const[body,head,zt]=ZTYPES[ti],dd=k=>zSD[k]||(zSD[k]=swDec(SKZ[k])),A=dd(body),bd=SKZ[body].bones,parts=[];let tint=null;
+function zGeo(ti){if(zGC[ti])return zGC[ti];const[body,head,zt]=ZTYPES[ti],dd=k=>zSD[k]||(zSD[k]=swDec(SKZ[k])),A=dd(body),bd=SKZ[body].bones.concat([['Jaw',6,0,1.572,.025]]),parts=[];let tint=null;
   if(head){const B=dd(head),hb=SKZ[head].bones[6],ha=bd[6],moda=(D,r)=>{const m={};let b=0,k='0,0,0';for(let t=r.a;t<r.b;t++){const c=D.col,q=c[t*9]+','+c[t*9+1]+','+c[t*9+2];m[q]=(m[q]||0)+1;if(m[q]>b){b=m[q];k=q;}}return k.split(',').map(Number);};
     tint=[moda(A,A.rg[1]),moda(B,B.rg[1])];parts.push({D:A,a:A.rg[0].a,b:A.rg[0].b,o:[0,0,0]},{D:B,a:B.rg[1].a,b:B.nt,o:[ha[2]-hb[2],ha[3]-hb[3],ha[4]-hb[4]]});}
   else{parts.push({D:A,a:0,b:A.nt,o:[0,0,0]});if(zt&&zt!==1)tint=[zModa(A,A.rg[1]),zModa(dd(zt),dd(zt).rg[1])];}
-  const nt=parts.reduce((s,p)=>s+p.b-p.a,0),pos=new Float32Array(nt*9),col=new Float32Array(nt*9),si=new Uint16Array(nt*12),sw=new Float32Array(nt*12),ep=[],ei=[],ew=[];let t=0;
+  const nt0=parts.reduce((s,p)=>s+p.b-p.a,0),nt=nt0+24,pos=new Float32Array(nt*9),col=new Float32Array(nt*9),si=new Uint16Array(nt*12),sw=new Float32Array(nt*12),ep=[],ei=[],ew=[];let t=0;
   for(const p of parts){const er=p.D.rg.find(r=>r.n=='ojos');for(let i=p.a;i<p.b;i++,t++){const eye=er&&i>=er.a&&i<er.b;for(let j=0;j<3;j++){const s=i*9+j*3,d=t*9+j*3,k=(t*3+j)*4;
     if(eye){ep.push(p.D.pos[s]+p.o[0],p.D.pos[s+1]+p.o[1],p.D.pos[s+2]+p.o[2]+.002);ei.push(p.D.sk[s],p.D.sk[s+1],0,0);ew.push(p.D.sk[s+2]/255,1-p.D.sk[s+2]/255,0,0);continue;}
     pos[d]=p.D.pos[s]+p.o[0];pos[d+1]=p.D.pos[s+1]+p.o[1];pos[d+2]=p.D.pos[s+2]+p.o[2];col[d]=p.D.col[s];col[d+1]=p.D.col[s+1];col[d+2]=p.D.col[s+2];
     if(tint&&p.D==A){const a=tint[0],b=tint[1];if(Math.abs(col[d]-a[0])+Math.abs(col[d+1]-a[1])+Math.abs(col[d+2]-a[2])<.3){const q=(col[d]+col[d+1]+col[d+2])/(a[0]+a[1]+a[2]);col[d]=b[0]*q;col[d+1]=b[1]*q;col[d+2]=b[2]*q;}}
     si[k]=p.D.sk[s];si[k+1]=p.D.sk[s+1];sw[k]=p.D.sk[s+2]/255;sw[k+1]=1-sw[k];}}}
+  // mandíbula: lo que queda por debajo de la boca en la parte delantera de la cabeza se mueve con el hueso Jaw (el último)
+  {const J=bd.length-1;for(let v=0;v<nt0*3;v++){const x=pos[v*3],y=pos[v*3+1],zz=pos[v*3+2];if((si[v*4]==6||si[v*4+1]==6)&&y>1.44&&y<1.558&&zz>.015&&Math.abs(x)<.11){si[v*4]=J;si[v*4+1]=J;sw[v*4]=1;sw[v*4+1]=0;}}
+    // cavidad de la boca y dientes de arriba, escondidos tras la cara y pegados a la cabeza (el esqueleto no lleva)
+    if(body!='G11'){let w=nt0;const F=[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]],bx=(x0,y0,z0,x1,y1,z1,c)=>{const Q=[];for(let i=0;i<8;i++)Q.push([i&4?x1:x0,i&2?y1:y0,i&1?z1:z0]);
+        for(const f of F)for(const tr of[[0,1,2],[0,2,3]]){for(let j=0;j<3;j++){const q=Q[f[tr[j]]],d=w*9+j*3,k=(w*3+j)*4;pos[d]=q[0];pos[d+1]=q[1];pos[d+2]=q[2];col[d]=c[0];col[d+1]=c[1];col[d+2]=c[2];si[k]=6;si[k+1]=6;sw[k]=1;}w++;}};
+      bx(-.05,1.495,.02,.05,1.566,.088,[.13,.015,.02]);bx(-.04,1.55,.07,.04,1.566,.098,[.86,.84,.74]);}}
   const g=swGeo(pos,col);if(zt)g.setAttribute('zb',new THREE.BufferAttribute(new Float32Array(nt*3).fill(ti+1),1));g.setAttribute('skinIndex',new THREE.BufferAttribute(si,4));g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4));
   const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.BufferAttribute(new Float32Array(ep),3));g2.setAttribute('skinIndex',new THREE.BufferAttribute(new Uint16Array(ei),4));g2.setAttribute('skinWeight',new THREE.BufferAttribute(new Float32Array(ew),4));
   return zGC[ti]={g,g2,bd};}
@@ -817,11 +823,11 @@ function zPose(z,mv,atk){if(z.rp){rapPose(z,mv,atk);return;}const S=z.sk;if(!S)r
   for(let i=0;i<4;i++)if(z.lm>>i&1)B[ZLB[i]].scale.setScalar(.001);
   const t=time+S.k,s=Math.sin(z.ph),a=mv?1:0,run=z.speed>3.3,aL=(run?.75:.45)*a,aR=(run?.75:.26)*a;
   B.Hips.position.y+=Math.abs(s)*.02*a-.03;B.Hips.rotation.z=s*.08*a;B.Spine_01.rotation.x=run?.42:.26;B.Spine_03.rotation.z=Math.sin(z.ph*.5)*.08;B.Spine_02.rotation.y=s*.12*a;
-  B.Head.rotation.set(-.12+Math.sin(t*.9)*.08,Math.sin(t*.6)*.2,.24+Math.sin(t*1.3)*.08);
+  B.Head.rotation.set(-.12+Math.sin(t*.9)*.08+(atk?.2*Math.max(0,Math.sin(t*15)):0),Math.sin(t*.6)*.2,.24+Math.sin(t*1.3)*.08);
   B.UpperLeg_L.rotation.x=-s*aL;B.LowerLeg_L.rotation.x=Math.max(0,Math.cos(z.ph))*aL*1.3;B.UpperLeg_R.rotation.x=s*aR;B.LowerLeg_R.rotation.x=Math.max(0,-Math.cos(z.ph))*aR*1.3;
   const fl=atk?Math.sin(t*12)*.5:0;
   B.Shoulder_L.rotation.set(fl,-1.3+Math.sin(t*2)*.08,(run?-.5:-.12)+s*.1);B.Shoulder_R.rotation.set(-fl,1.12+Math.sin(t*1.7)*.1,(run?.5:.3)-s*.1);B.Elbow_L.rotation.y=-.35;B.Elbow_R.rotation.y=.55;
-  B.Fingers_L.rotation.z=-.7-Math.sin(t*3)*.2;B.Fingers_R.rotation.z=.6;}
+  B.Fingers_L.rotation.z=-.7-Math.sin(t*3)*.2;B.Fingers_R.rotation.z=.6;if(B.Jaw)B.Jaw.rotation.x=atk?.34+.3*Math.sin(t*15):.07+.11*Math.max(0,Math.sin(t*1.7+S.k));}
 let spRound=false;const RISE=[];
 // talla de cada zombi: altura 1,50–2 m y anchura de flaco a gordo (pocos muy gordos); el esqueleto y el fontanero conservan su tamaño extra
 function zFit(z){const h=n=>{const x=Math.sin(z.id*12.9898+n*78.233)*43758.5453;return x-Math.floor(x);},k=z.bn==1?1.15:z.pl?1.12:1,hh=z.bn==2?1.173:(.84+h(1)*.28)*k,f=z.bn?1:.86+h(2)*h(2)*.5;
@@ -840,7 +846,19 @@ function howlTick(z,dt,move){if(net.client)return move;
   return move;}
 function riseTick(dt){for(let i=RISE.length-1;i>=0;i--){const r=RISE[i];r.t+=dt/.7;const k=Math.min(1,r.t);if(r.z.sc)r.z.g.scale.set(r.z.sc.x,r.z.sc.y*Math.max(.05,k),r.z.sc.z);if(k>=1||r.z.dead)RISE.splice(i,1);}}
 function howlPose(z){const B=z.sk&&z.sk.B;if(!B)return;const w=Math.sin(time*14)*.08;B.Shoulder_L.rotation.set(0,0,1.25+w);B.Shoulder_R.rotation.set(0,0,-1.25-w);B.Elbow_L.rotation.set(0,0,0);B.Elbow_R.rotation.set(0,0,0);
-  B.Head.rotation.set(-.55,0,0);B.Spine_01.rotation.x=-.18;}
+  B.Head.rotation.set(-.55,0,0);B.Spine_01.rotation.x=-.18;if(B.Jaw)B.Jaw.rotation.x=.6;}
+// ---------- caja sorpresa: ruleta de armas y recogida ----------
+const BOXES=[];
+function boxO(){const o={text:()=>o.rd?'Coger '+WEAPONS[o.rd].n:o.roll?null:'Caja sorpresa (arma aleatoria)',cost:()=>o.rd?0:950,buy:()=>{if(o.rd){give(o.rd);boxEnd(o);}else boxRoll(o);}};BOXES.push(o);return o;}
+function boxRoll(o){const ok=k=>!WEAPONS[k].melee&&(SW[k]||GM[k]),all=Object.keys(WEAPONS).filter(ok),ks=all.filter(k=>!has(k));if(!ks.length){P.pts+=950;msg('Ya tienes todas las armas');return;}o.roll={t:0,nx:0,all,fin:ks[R()*ks.length|0]};}
+function boxShow(o,k){if(o.dm)o.g.remove(o.dm);let m=null;try{if(SW[k]){const r=swStatic(SW[k]);r.g.scale.setScalar(Math.min(1,1.15/r.len));m=r.g;}else if(GM[k]){const r=gmMesh(k,Math.max(.5,Math.min(1.15,WEAPONS[k].len*1.7)));m=new THREE.Group();m.add(r.body);if(r.part)m.add(r.part);}}catch(e){}
+  o.dm=m;if(m){m.position.set(0,1.8,0);o.g.add(m);}}
+function boxEnd(o){if(o.dm){o.g.remove(o.dm);o.dm=null;}o.rd=null;o.roll=null;}
+function boxTick(dt){for(const o of BOXES){const q=o.roll;
+    if(q){q.t+=dt;if(q.t>=q.nx){q.nx=q.t+.07+q.t*.06;boxShow(o,q.all[R()*q.all.length|0]);tone(600+R()*700,500,.04,'square',.04);}
+      if(q.t>3.1){boxShow(o,q.fin);o.rd=q.fin;o.rdT=10;o.roll=null;msg('La caja ofrece: '+WEAPONS[q.fin].n+' (E para cogerla)');try{osc('triangle',660,660,.12,.12);osc('triangle',990,990,.2,.12,null,AC.currentTime+.12);}catch(e){}}}
+    else if(o.rd&&(o.rdT-=dt)<=0)boxEnd(o);
+    if(o.dm){o.dm.rotation.y+=dt*(q?7:1.8);o.dm.position.y=1.8+Math.sin(time*3)*.05;o.dm.visible=!(o.rd&&o.rdT<3&&Math.sin(time*16)<0);}}}
 function mkZ(pl,bn){
   const g=new THREE.Group();g.rotation.order='YXZ';const cm=pl?plumbM:clothM[R()*4|0],z={g,id:zid++,e:null,state:'chase',max:zHP(round)*(pl?2.5:1),atk:.4,bt:0,ph:R()*6,slow:1,burn:0,stun:0,dead:false,pl,stepD:R(),dmg:pl?50:34,pos:new V3(),lm:0};
   z.hp=z.max;z.speed=(1.3+Math.min(round*.13,1.9)+R()*.5)*(pl?.85:round>=5&&R()<Math.min(.5,round*.04)?1.5:1);
@@ -1018,7 +1036,7 @@ station(29.7,13.5,0x22aa55,'Manos rápidas\n3000',{text:()=>P.quick?null:'Manos 
 const upSt=(x,z)=>{const o=station(x,z,0x101018,'Sobrecarga\n5000',{text:()=>{const w=cur(),l=w.d.up||0;return w.d.flare?null:l>=3?null:'Sobrecargar '+WEAPONS[w.k].n+' (nivel '+(l+1)+': daño ×'+Math.pow(2.5,l+1).toFixed(1).replace('.',',')+')';},
   cost:()=>UPC[cur().d.up||0]||0,buy:upgrade});o.b.material=upMat(2,o.b.material);o.b.scale.set(1.5,2.2,1.5);return o;};
 upSt(67.5,-2.5);
-const boxSt=(x,z)=>station(x,z,0x6a4acc,'Caja sorpresa\n950',{text:()=>'Caja sorpresa (arma aleatoria)',cost:()=>950,buy:()=>{const ks=Object.keys(WEAPONS).filter(k=>!has(k)&&!WEAPONS[k].melee);give(ks[R()*ks.length|0]);}});boxSt(23,8.5);
+const boxSt=(x,z)=>station(x,z,0x6a4acc,'Caja sorpresa\n950',boxO());boxSt(23,8.5);
 const doorSt=station(14.6,9,0x4a3018,'Puerta\n750',{text:()=>doorOpen?null:'Abrir puerta',cost:()=>750,buy:()=>{if(net.client)toHost({t:'door'});else openDoor();}});
 function openDoor(){if(doorOpen)return;doorOpen=true;line(15,8,15,9,0);scene.remove(doorMesh);occ.splice(occ.indexOf(doorMesh),1);msg('Puerta abierta: hay más ventanas que defender');}
 // puertas del pueblo
@@ -1305,7 +1323,7 @@ function update(dt){
   if(chg>0){const cd=cur().d;if(!cd.charge||reloading>0||P.dead)chg=0;else{chg-=dt;kick=.02*(1-chg/cd.charge);if(chg<=0){chgGo=1;fireCd=0;fire();chgGo=0;}}}
   if(firing&&!P.dead&&!buildMode&&(cur().d.auto||pressed)){fire();}
   pressed=false;
-  flareTick(dt);upU.value=time;riseTick(dt);
+  flareTick(dt);upU.value=time;riseTick(dt);boxTick(dt);
   kick*=Math.pow(.0005,dt);
   const w0=cur().d,canAim=aim&&!buildMode&&!w0.melee&&reloading<=0;ads+=((canAim?1:0)-ads)*Math.min(1,dt*14);
   const fov=75-(75-(w0.zoom||(w0.len>.45?46:58)))*ads;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix();}
