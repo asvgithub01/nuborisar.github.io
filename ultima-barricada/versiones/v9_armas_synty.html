@@ -627,7 +627,7 @@ const UPC=[5000,10000,20000],UPT=[0xff50ff,0xffd040,0xff4040];
 function upgrade(){const w=cur(),b=WEAPONS[w.k],l=(w.d.up||0)+1,k=Math.pow(2.5,l);
   w.d=Object.assign({},b,{up:l,n:b.n+' '+'★'.repeat(l),dmg:b.dmg*k,mag:b.melee?b.mag:Math.round(b.mag*(1+.5*l)),res:Math.round(b.res*(1+.5*l)),rl:b.rl*(1-.1*l)});
   if(!b.bolt&&!b.rail&&!b.coil)w.d.tracer=UPT[l-1];if(b.boom)w.d.boom=b.boom*(1+.2*l);
-  w.mag=w.d.mag;w.res=w.d.res;gunModel();msg(b.n+' sobrecargada: nivel '+l);try{osc('sawtooth',120,1400,.7,.12);osc('sine',1400,2800,.5,.1,null,AC.currentTime+.5);}catch(e){}}
+  w.mag=w.d.mag;w.res=w.d.res;gunModel();msg(b.n+' sobrecargada: nivel '+l);if(net.client)toHost({t:'rap'});else rapGo();try{osc('sawtooth',120,1400,.7,.12);osc('sine',1400,2800,.5,.1,null,AC.currentTime+.5);}catch(e){}}
 function gunModel(){gunModel0();upSkin();}
 function gunModel0(){
   while(gun.children.length)gun.remove(gun.children[0]);
@@ -779,10 +779,14 @@ function rapPose(z,mv,atk){const r=z.rp,t=time+r.k,a=mv?1:0,ph=z.ph;r.root.posit
   r.t1.rotation.set(Math.sin(ph*2)*.05*a+.04,Math.sin(ph)*.16*a+Math.sin(t*1.3)*.1,0);r.t2.rotation.set(.05,Math.sin(ph-.9)*.25*a+Math.sin(t*1.7)*.16,0);
   r.neck.rotation.x=Math.sin(ph*2+.6)*.06*a+(atk?.25:0);r.head.rotation.set(atk?.1:Math.sin(t*.7)*.08,a?0:Math.sin(t*.9)*.3,0);r.jaw.rotation.x=atk?.45+.3*Math.sin(t*16):.1+.12*Math.max(0,Math.sin(t*2.1));
   r.arms.forEach((m,i)=>{m.rotation.x=Math.sin(ph+i*Math.PI+1)*.3*a-(atk?.7:.1);});}
-function sRaptor(x,z){if(!AC)return;try{const o=at(x,z,1.2),t=AC.currentTime,os=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),f=AC.createBiquadFilter(),g=AC.createGain(),d=.45+R()*.25;
-  os.type='sawtooth';os.frequency.setValueAtTime(700+R()*200,t);os.frequency.linearRampToValueAtTime(1500+R()*400,t+d*.35);os.frequency.linearRampToValueAtTime(600,t+d);l.frequency.value=38+R()*14;lg.gain.value=220;l.connect(lg);lg.connect(os.frequency);
-  f.type='bandpass';f.frequency.value=1900;f.Q.value=1.5;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.7,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+d);os.connect(f);f.connect(g);g.connect(o);os.start(t);l.start(t);os.stop(t+d+.05);l.stop(t+d+.05);
-  nz(d,'highpass',2600,.35,o,t);}catch(e){}}
+// rugido: voz grave y áspera que sube y cae, con dos formantes y un fondo de ruido
+function sRaptor(x,z){if(!AC)return;try{const o=at(x,z,2),t=AC.currentTime,d=1.1+R()*.5,f0=85+R()*30,env=AC.createGain(),l=AC.createOscillator(),lg=AC.createGain();
+  l.frequency.value=26+R()*10;lg.gain.value=f0*.55;l.connect(lg);env.gain.setValueAtTime(.001,t);env.gain.linearRampToValueAtTime(1.3,t+.09);env.gain.setValueAtTime(1.3,t+d*.55);env.gain.exponentialRampToValueAtTime(.001,t+d);
+  for(const m of[1,1.5,2.02]){const os=AC.createOscillator();os.type='sawtooth';os.frequency.setValueAtTime(f0*m*.8,t);os.frequency.linearRampToValueAtTime(f0*m*1.7,t+d*.22);os.frequency.linearRampToValueAtTime(f0*m*.75,t+d);lg.connect(os.frequency);
+    for(const fr of[340,820,1500]){const bf=AC.createBiquadFilter();bf.type='bandpass';bf.frequency.value=fr;bf.Q.value=3;os.connect(bf);bf.connect(env);}os.start(t);os.stop(t+d+.05);}
+  env.connect(o);l.start(t);l.stop(t+d+.05);nz(d,'lowpass',900,.7,o,t);nz(d*.5,'bandpass',2200,.2,o,t,1);}catch(e){}}
+let rapQ=0;
+function rapGo(){const n=5+(round/3|0);rapQ+=n;toSpawn+=n;spawnT=Math.min(spawnT,1.5);const m='Algo se acerca entre la niebla…';msg(m);if(net.host)bc({t:'msg',s:m});sRaptor(null,null);}
 function zModa(D,r){const m={};let b=0,k='0,0,0';for(let t=r.a;t<r.b;t++){const c=D.col,q=c[t*9]+','+c[t*9+1]+','+c[t*9+2];m[q]=(m[q]||0)+1;if(m[q]>b){b=m[q];k=q;}}return k.split(',').map(Number);}
 function zGeo(ti){if(zGC[ti])return zGC[ti];const[body,head,zt]=ZTYPES[ti],dd=k=>zSD[k]||(zSD[k]=swDec(SKZ[k])),A=dd(body),bd=SKZ[body].bones,parts=[];let tint=null;
   if(head){const B=dd(head),hb=SKZ[head].bones[6],ha=bd[6],moda=(D,r)=>{const m={};let b=0,k='0,0,0';for(let t=r.a;t<r.b;t++){const c=D.col,q=c[t*9]+','+c[t*9+1]+','+c[t*9+2];m[q]=(m[q]||0)+1;if(m[q]>b){b=m[q];k=q;}}return k.split(',').map(Number);};
@@ -820,7 +824,7 @@ function zPose(z,mv,atk){if(z.rp){rapPose(z,mv,atk);return;}const S=z.sk;if(!S)r
   B.Fingers_L.rotation.z=-.7-Math.sin(t*3)*.2;B.Fingers_R.rotation.z=.6;}
 let spRound=false;const RISE=[];
 // talla de cada zombi: altura 1,50–2 m y anchura de flaco a gordo (pocos muy gordos); el esqueleto y el fontanero conservan su tamaño extra
-function zFit(z){const h=n=>{const x=Math.sin(z.id*12.9898+n*78.233)*43758.5453;return x-Math.floor(x);},k=z.bn==1?1.15:z.pl?1.12:1,hh=(.84+h(1)*.28)*k,f=z.bn==1||z.bn==3?1:.86+h(2)*h(2)*.5;
+function zFit(z){const h=n=>{const x=Math.sin(z.id*12.9898+n*78.233)*43758.5453;return x-Math.floor(x);},k=z.bn==1?1.15:z.pl?1.12:1,hh=z.bn==2?1.173:(.84+h(1)*.28)*k,f=z.bn?1:.86+h(2)*h(2)*.5;
   z.sc=new V3(hh*f,hh,hh*f);z.g.scale.copy(z.sc);}
 // aullador: cuenta lo que anda; al llegar a 14 m se para 2,4 s, aúlla con los brazos en alto y a mitad del aullido salen 3 zombis del suelo a su alrededor
 function sHowl(x,z){if(!AC)return;try{const o=at(x,z,1.6),t=AC.currentTime;osc('sawtooth',160,540,.9,.5,o,t);osc('sawtooth',540,200,1.2,.5,o,t+.85);osc('sine',320,1080,.9,.3,o,t);osc('sine',1080,400,1.2,.3,o,t+.85);nz(2,'bandpass',900,.25,o,t,2);}catch(e){}}
@@ -857,7 +861,7 @@ function spawnZombie(){
     if(ct(sx,sz)!=0||blocked(sx,sz,.3))continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
     if(i<30&&!pin&&los(B.x,B.z,sx,sz))continue;ok=true;}
   if(!ok)return false;
-  const bn=spRound?3:round>=4&&R()<.08&&zombies.filter(o=>o.bn==1).length<2+round/8?1:round>=5&&R()<.06&&zombies.filter(o=>o.bn==2).length<1+round/10?2:0,z=mkZ(!bn&&round>=3&&R()<.14,bn);z.pos.set(sx,0,sz);z.g.position.copy(z.pos);return true;
+  const bn=rapQ>0?(rapQ--,3):spRound?1:round>=4&&R()<.08&&zombies.filter(o=>o.bn==1).length<2+round/8?1:round>=5&&R()<.06&&zombies.filter(o=>o.bn==2).length<1+round/10?2:0,z=mkZ(!bn&&round>=3&&R()<.14,bn);z.pos.set(sx,0,sz);z.g.position.copy(z.pos);return true;
 }
 // pierde una extremidad: brazos = menos daño, piernas = más lento (sin las dos, se arrastra)
 function limbOff(z,i){if(z.lm>>i&1)return;z.lm|=1<<i;const o=z.limbs[i],wp=o.getWorldPosition(new V3());z.g.remove(o);if(i==1&&z.zp)z.g.remove(z.zp);
@@ -1112,6 +1116,7 @@ $('mkHost').onclick=hostGame;$('mkJoin').onclick=joinGame;
 function hostMsg(r,d){
   if(d.t=='me'){r.x=d.x;r.z=d.z;r.yaw=d.yaw;r.hp=d.hp;r.dead=!!d.dead;r.afkc=!!d.afk;r.last=time;}
   else if(d.t=='hit'){const z=zombies.find(z=>z.id==d.id);if(z){credit=r;if(d.stun)z.stun=.6;if(d.burn)z.burn=2.5;hurtZ(z,d.d,!!d.head,!!d.pts,d.part);credit=null;}}
+  else if(d.t=='rap')rapGo();
   else if(d.t=='boom'){credit=r;explode(new V3(d.p[0],d.p[1],d.p[2]),d.rad,d.dmg,false,r);credit=null;}
   else if(d.t=='rep'){const e=ENTRIES[d.i];if(e&&e.boards<6){e.boards++;showBoards(e);}}
   else if(d.t=='gate'){if(GATES[d.i])GATES[d.i].openIt();}
