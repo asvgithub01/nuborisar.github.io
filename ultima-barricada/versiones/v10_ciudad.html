@@ -107,13 +107,14 @@ line(-OX,-OZ,GW-OX-1,-OZ,6);line(-OX,GH-OZ-1,GW-OX-1,GH-OZ-1,6);line(-OX,-OZ,-OX
 // ciudad: la rejilla de cada zona sale de su geometría (1 muro, 5 obstáculo bajo); de momento sin ventanas ni puertas de pago
 // ---------- edificio de prueba con plantas ----------
 const GN=GW*GH,LH=3.2,NLV=4,gup=new Uint8Array(GN*(NLV-1)).fill(1),wflag=new Uint8Array(GN*NLV),twin=new Map(),STAIRS=[];let cl=0,bldDirty=false,bldOn=false,bldM=null;
-const BLD={zona:0,x:50,z:78,w:11,d:10};
+// sustituye al bloque de pisos del sur de la zona 0: sus piezas se quitan del mapa en cityBuild (todo lo que nace dentro de «cut» y levanta del suelo)
+const BLD={zona:0,x:54,z:114,w:12,d:8,doors:[[5,7]],cut:[53.5,113.9,67.2,123.6],clr:[54,122,65,123]};
 function gset(l,x,z,v,f){const i=gi(x,z);if(l)gup[(l-1)*GN+i]=v;else grid[i]=v;wflag[l*GN+i]=f||0;}   // f: 1 ventana, 2 barandilla
 function bldGrid(zn){gup.fill(1);twin.clear();STAIRS.length=0;wflag.fill(0);bldOn=zn==BLD.zona;bldDirty=true;if(!bldOn)return;
-  const{x:X,z:Z,w:W,d:D}=BLD;
+  const{x:X,z:Z,w:W,d:D}=BLD;line(BLD.clr[0],BLD.clr[1],BLD.clr[2],BLD.clr[3],0);
   for(let l=0;l<NLV;l++)for(let v=0;v<D;v++)for(let u=0;u<W;u++){const eu=u==0||u==W-1,ev=v==0||v==D-1,edge=eu||ev;
     gset(l,X+u,Z+v,edge?1:0,!edge?0:l==NLV-1?2:l>0&&(u+v)%3==1&&!(eu&&ev)?1:0);}
-  gset(0,X+5,Z+D-1,0);gset(0,X,Z+5,0);   // puertas
+  for(const[u,v]of BLD.doors)gset(0,X+u,Z+v,0);
   // escalera de la planta k a la k+1: fila v, primera casilla de rampa ua, sentido s, fila del muro interior
   const st=(k,v,ua,s,side)=>{for(let i=0;i<6;i++){const u=ua+s*i,c=gi(X+u,Z+v);gset(k,X+u,Z+v,0);gset(k+1,X+u,Z+v,0);twin.set(k*GN+c,(k+1)*GN+c);twin.set((k+1)*GN+c,k*GN+c);
       gset(k,X+u,Z+side,1);if(i<5)gset(k+1,X+u,Z+side,1,2);}
@@ -128,14 +129,14 @@ function bldShow(){bldDirty=false;if(bldM){scene.remove(bldM);const k=occ.indexO
   const pos=[],col=[],c=new THREE.Color(),F=[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]];
   const bx=(x0,y0,z0,x1,y1,z1,hex)=>{c.set(hex);const P=[];for(let i=0;i<8;i++)P.push([i&4?x1:x0,i&2?y1:y0,i&1?z1:z0]);
     for(const f of F)for(const i of[0,1,2,0,2,3]){pos.push(...P[f[i]]);col.push(c.r,c.g,c.b);}};
-  const{x:X,z:Z,w:W,d:D}=BLD,WALL=0x8d8274,WIN=0x6f665a;
+  const{x:X,z:Z,w:W,d:D}=BLD,WALL=0x8b8983,WIN=0x5a4031;
   for(let l=0;l<NLV;l++)for(let v=0;v<D;v++)for(let u=0;u<W;u++){const x=X+u,z=Z+v,i=gi(x,z),g=l?gup[(l-1)*GN+i]:grid[i],f=wflag[l*GN+i],y=l*LH,edge=u==0||v==0||u==W-1||v==D-1;
     if(g==1){if(f==2){bx(x+.38,y,z+.38,x+.62,y+1.05,z+.62,0x2e3036);bx(x,y+.95,z,x+1,y+1.05,z+1,0x3c3f46);if(edge)bx(x,y-.2,z,x+1,y,z+1,0x55585c);}
       else if(f==1){bx(x,y-(l?.2:0),z,x+1,y+.9,z+1,WIN);bx(x,y+2.3,z,x+1,y+LH-.2,z+1,WIN);}
-      else bx(x,y-(l?.2:0),z,x+1,y+LH-.2,z+1,edge?WALL:0x7a7166);}
+      else bx(x,y-(l?.2:0),z,x+1,y+LH-.2,z+1,edge?WALL:0x836d4a);}
     else{let hole=false;for(const S of STAIRS)if(S.k==l-1&&x>=S.x0&&x<S.x1&&z==S.z0&&(S.s>0?x<S.x1-1:x>S.x0))hole=true;
       if(l==0){bx(x,0,z,x+1,.04,z+1,0x4a4038);if(edge)bx(x,2.4,z,x+1,LH-.2,z+1,WALL);}
-      else if(!hole)bx(x,y-.2,z,x+1,y,z+1,l==NLV-1?0x55585c:0x5c4a38);}}
+      else if(!hole)bx(x,y-.2,z,x+1,y,z+1,l==NLV-1?0x5a5d5a:0x523c31);}}
   for(const S of STAIRS)for(let j=0;j<20;j++){const xa=S.a+S.s*j*.25,xb=xa+S.s*.25;bx(Math.min(xa,xb),S.k*LH+Math.max(0,(j-3))*LH/20,S.z0+.03,Math.max(xa,xb),S.k*LH+(j+1)*LH/20,S.z1-.03,j%2?0x6a6a70:0x77777d);}
   const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));ge.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));ge.computeVertexNormals();
   bldM=new THREE.Mesh(ge,cityM);scene.add(bldM);occ.push(bldM);}
@@ -221,6 +222,7 @@ function cityBuild(D){const by=d=>{const b=atob(d),u=new Uint8Array(b.length);fo
   for(const m of D.models){const u=by(m.d),q=new Int16Array(u.buffer,0,m.nv*3),cc=new Uint16Array(u.buffer,m.nv*6,m.nt),o=m.nv*6+m.nt*2,ix=m.w?new Uint32Array(u.buffer.slice(o),0,m.nt*3):new Uint16Array(u.buffer.slice(o),0,m.nt*3);
     const k=m.s/32767,f=new Float32Array(by(m.i).buffer),nn=m.nt-(m.r||0);
     for(let i=0;i<m.k;i++){const a=i*12,m0=f[a],m1=f[a+1],m2=f[a+2],m3=f[a+3]+ox,m4=f[a+4],m5=f[a+5],m6=f[a+6],m7=f[a+7]+oy,m8=f[a+8],m9=f[a+9],m10=f[a+10],m11=f[a+11]+oz;
+      if(zi==BLD.zona&&m3>BLD.cut[0]&&m3<BLD.cut[2]&&m11>BLD.cut[1]&&m11<BLD.cut[3]){if(m.hy===undefined){let h=0;for(let j=1;j<q.length;j+=3)if(q[j]>h)h=q[j];m.hy=h*k;}if(m.hy>.3)continue;}
       const flip=m0*(m5*m10-m6*m9)-m1*(m4*m10-m6*m8)+m2*(m4*m9-m5*m8)<0;
       for(let t=0;t<m.nt;t++){let v=ix[t*3]*3,x=q[v]*k,y=q[v+1]*k,z=q[v+2]*k;const ax=m0*x+m1*y+m2*z+m3,ay=m4*x+m5*y+m6*z+m7,az=m8*x+m9*y+m10*z+m11;
         v=ix[t*3+(flip?2:1)]*3;x=q[v]*k;y=q[v+1]*k;z=q[v+2]*k;const bx=m0*x+m1*y+m2*z+m3,by_=m4*x+m5*y+m6*z+m7,bz=m8*x+m9*y+m10*z+m11;
@@ -559,7 +561,8 @@ for(const k in SW)if(!WEAPONS[k].melee)WEAPONS[k].len=swInfo(SW[k]).mz.z;
 // ajustes de agarre por arma (ejes del arma): r = palma derecha, l = palma izquierda
 // az = cuánto se acerca el arma a la cara al apuntar; s = mira (ver swGun); ga/ry = inclinación y giro de la palma derecha; rc/lc = cierre de dedos
 const GL=[1.6,1.4,.5,null,[0,.8,.45,.4]]; // cierre de la izquierda cuando agarra un asa
-const SWG={lmg:{s:[0,0.1925,0.3,0.1946,0.5],r:VV(0.005,-0.036,0.017),ro:VV(0,0,0),ga:0.25,ry:0.3,rmix:0.3,rc:[1.7,1.5,0.5,[1.35,1.3,0.4],[0,0.8,0.45,0.4]],l:VV(-0.032,-0.021,0.263),lc:[1,1,0.5,null,[0,0.3,0.2,0.2]],ln:VV(-0.286,0.9582,0),h:[0,-0.144,0],rpo:VV(-0.5141,-0.8577,-0.35),lp:VV(0.8573,-0.5148,-0.25)},
+const SWG={coil:{s:[0,0.139,0.3,0.139,0.5],r:VV(0.005,-0.055,0.017),ro:VV(0,0,0),ga:0.25,ry:0.3,rmix:0.3,rc:[1.7,1.5,0.5,[1.35,1.3,0.4],[0,0.8,0.45,0.4]],l:VV(0,0.0527,0.22),lc:[1,1,0.5,null,[0,0.3,0.2,0.2]],ln:VV(-0.286,0.9582,0),h:[0,-0.11,-0.016],rpo:VV(-0.5141,-0.8577,-0.35),lp:VV(0.8573,-0.5148,-0.25)},
+  lmg:{s:[0,0.1925,0.3,0.1946,0.5],r:VV(0.005,-0.036,0.017),ro:VV(0,0,0),ga:0.25,ry:0.3,rmix:0.3,rc:[1.7,1.5,0.5,[1.35,1.3,0.4],[0,0.8,0.45,0.4]],l:VV(-0.032,-0.021,0.263),lc:[1,1,0.5,null,[0,0.3,0.2,0.2]],ln:VV(-0.286,0.9582,0),h:[0,-0.144,0],rpo:VV(-0.5141,-0.8577,-0.35),lp:VV(0.8573,-0.5148,-0.25)},
   ak:{s:[0,0.1465,0.3,0.15,0.25],r:VV(0.005,-0.055,0.017),ro:VV(0,0,0),ga:0.25,ry:0.3,rmix:0.3,rc:[1.7,1.5,0.5,[1.35,1.3,0.4],[0,0.8,0.45,0.4]],l:VV(-0.1,0.011,0.566),lc:[1,1,0.5,null,[0,0.3,0.2,0.2]],ln:VV(-0.286,0.9582,0),h:[-0.092,-0.056,-0.132],rpo:VV(-0.5141,-0.8577,-0.35),lp:VV(0.8573,-0.5148,-0.25)},
   akh:{s:[0,0.155,0.3,0.155,0.5],r:VV(0.005,-0.055,0.017),ro:VV(0,0,0),ga:0.25,ry:0.3,rmix:0.3,rc:[1.7,1.5,0.5,[1.35,1.3,0.4],[0,0.8,0.45,0.4]],l:VV(-0.1,-0.2,0.109),lc:[1.96,1.94,0.5,null,[0,0.3,0.2,0.2]],ln:VV(-0.9996,-0.0292,0),h:[0,-0.15,-0.04],rpo:VV(-0.5141,-0.8577,-0.35),lp:VV(-0.5646,-0.8253,-0.25)},
   ar2:{s:[0,0.1376,0.3,0.1376,0.5],r:VV(0.005,-0.055,0.017),ro:VV(0,0,0),ga:0.25,ry:0.3,rmix:0.3,rc:[1.7,1.5,0.5,[1.35,1.3,0.4],[0,0.8,0.45,0.4]],l:VV(0,0.0526,0.22),lc:[1,1,0.5,null,[0,0.3,0.2,0.2]],ln:VV(-0.286,0.9582,0),h:[0,-0.09,0],rpo:VV(-0.5141,-0.8577,-0.35),lp:VV(0.8573,-0.5148,-0.25)},
