@@ -28,7 +28,8 @@
   #scope{inset:0;display:none;background:radial-gradient(circle at 50% 50%,transparent 0,transparent 34vh,#000 34.5vh)}
   #scope:before,#scope:after{content:'';position:absolute;background:#000}
   #scope:before{left:50%;top:0;bottom:0;width:1px}#scope:after{top:50%;left:0;right:0;height:1px}
-  #ov{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;text-align:center;z-index:5}
+  #ov{position:fixed;inset:0;background:#000c;display:flex;align-items:flex-start;justify-content:center;text-align:center;z-index:5;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #ov>div{margin:auto;max-height:none!important;overflow:visible!important}
   #ov h1{font-size:54px;margin:0 0 6px;color:#b3140f;letter-spacing:3px}
   #ov p{margin:6px 0;opacity:.9}
   #ov table{margin:14px auto;text-align:left;font-size:15px;border-spacing:14px 3px}
@@ -83,6 +84,9 @@
   </table>
   <p style="margin:6px 0 12px;font-size:15px">Sensibilidad del ratón: <input id="sens" type="range" min="0.2" max="3" step="0.05" value="1" style="width:220px;vertical-align:middle"> <b id="sensv">1.00</b></p>
   <p style="margin:6px 0 12px;font-size:15px">Zombis a la vez: <input id="maxz" type="range" min="12" max="100" step="1" value="24" style="width:220px;vertical-align:middle"> <b id="maxzv">24</b></p>
+  <p style="margin:6px 0 4px;font-size:15px">Volumen del juego: <input id="volg" type="range" min="0" max="150" step="5" value="100" style="width:200px;vertical-align:middle"> <b id="volgv">100%</b></p>
+  <p style="margin:4px 0;font-size:15px">Voces de los demás: <input id="volv" type="range" min="0" max="100" step="5" value="100" style="width:200px;vertical-align:middle"> <b id="volvv">100%</b></p>
+  <p style="margin:4px 0 12px;font-size:15px">Mi micrófono: <input id="volm" type="range" min="0" max="400" step="10" value="100" style="width:200px;vertical-align:middle"> <b id="volmv">100%</b></p>
   <p style="margin:6px 0 12px;font-size:15px"><label><input id="edm" type="checkbox"> Modo edición: inmortal, todas las armas y rondas llenas de zombis</label></p>
   <button id="go">JUGAR</button>
   <div style="margin-top:16px;font-size:15px"><span id="lobbyBtns"><button id="mkHost" class="nb">CREAR PARTIDA</button> &nbsp;
@@ -347,7 +351,7 @@ function label(text,col){
 let AC=null,sfx,musicBus,NB,band=null;
 function initAudio(){
   AC=new(window.AudioContext||window.webkitAudioContext)();
-  const comp=AC.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=6;comp.connect(AC.destination);
+  const comp=AC.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=6;master=AC.createGain();master.gain.value=VOL.g/100;comp.connect(master);master.connect(AC.destination);
   sfx=AC.createGain();sfx.gain.value=.9;sfx.connect(comp);
   musicBus=AC.createGain();musicBus.gain.value=.5;musicBus.connect(comp);
   NB=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1;
@@ -543,7 +547,7 @@ function brlTick(dt){
   if(boomT>0){boomT-=dt;fireL.position.set(boomP.x,boomP.y+1.2,boomP.z);fireL.intensity=7*Math.max(0,boomT)/.35;}}   // fogonazo de cualquier explosión
 // ---------- ambiente 2 ----------
 const hemiL=scene.children.find(o=>o.isHemisphereLight),AMB={rain:0,rainTo:0,wT:25+R()*35,ltT:20+R()*25,fl:0,fl2:0,sp:0,sirT:45+R()*60,moanT:14,cawT:20,snd:null},
-  fogC0=new THREE.Color(0x06080d),fogRed=new THREE.Color(0x3a0507),fogPur=new THREE.Color(0x2c0a40),mistPur=new THREE.Color(0x8a4ac0),fogFl=new THREE.Color(0x9fb0d8),tmpC=new THREE.Color(),mistC0=new THREE.Color(0x7d8aa6),mistRed=new THREE.Color(0xa03a3a);
+  fogC0=new THREE.Color(0x06080d),fogRed=new THREE.Color(0x3a0507),fogFlR=new THREE.Color(0xff5a40),fogPur=new THREE.Color(0x2c0a40),mistPur=new THREE.Color(0x8a4ac0),fogFl=new THREE.Color(0x9fb0d8),tmpC=new THREE.Color(),mistC0=new THREE.Color(0x7d8aa6),mistRed=new THREE.Color(0xa03a3a);
 // lluvia: rayas que caen en una caja alrededor de la cámara
 const RN=650,rainP=new Float32Array(RN*3),rainA=new Float32Array(RN*6),rainG=new THREE.BufferGeometry();rainG.setAttribute('position',new THREE.BufferAttribute(rainA,3));
 for(let i=0;i<RN;i++){rainP[i*3]=(R()-.5)*24;rainP[i*3+1]=R()*14;rainP[i*3+2]=(R()-.5)*24;}
@@ -556,7 +560,7 @@ const embM=new THREE.Points(embG,new THREE.PointsMaterial({color:0xff7a30,size:.
 const moonTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');let r=g.createRadialGradient(64,64,30,64,64,64);r.addColorStop(0,'rgba(190,205,235,.55)');r.addColorStop(1,'rgba(190,205,235,0)');g.fillStyle=r;g.fillRect(0,0,128,128);
     g.fillStyle='#dfe6f2';g.beginPath();g.arc(64,64,30,0,6.3);g.fill();g.fillStyle='rgba(150,160,185,.55)';for(const[x,y,q]of[[52,54,7],[72,70,9],[60,78,4],[78,50,5],[48,70,3]]){g.beginPath();g.arc(x,y,q,0,6.3);g.fill();}return new THREE.CanvasTexture(c);})(),
   moonS=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTex,transparent:true,depthWrite:false,fog:false})),moonDir=new V3(-.5,.4,-.76).normalize(),CLOUDS=[];moonS.scale.set(22,22,1);scene.add(moonS);
-for(let i=0;i<8;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0x1b2233,transparent:true,opacity:.75,depthWrite:false,fog:false}));const w=38+R()*30;sp.scale.set(w,w*.28,1);scene.add(sp);CLOUDS.push({s:sp,az:R()*6.283,el:.22+R()*.35,v:.006+R()*.01});}
+for(let i=0;i<18;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0x1b2233,transparent:true,opacity:.75,depthWrite:false,fog:false}));const w=38+R()*30;sp.scale.set(w,w*.28,1);scene.add(sp);CLOUDS.push({s:sp,az:R()*6.283,el:.22+R()*.35,v:.006+R()*.01});}
 const boltM=new THREE.LineBasicMaterial({color:0xe6eeff,fog:false});
 function bolt(){const a=R()*6.283,d=45+R()*25,ps=[];let x=P.x+Math.cos(a)*d,z=P.z+Math.sin(a)*d;for(let i=0;i<=11;i++){ps.push(new V3(x,62*(1-i/11),z));x+=(R()-.5)*7;z+=(R()-.5)*7;}
   const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(ps),boltM);l.frustumCulled=false;scene.add(l);fx.push({t:.16,d:.16,o:l,line:1});}
@@ -578,7 +582,7 @@ function carScan(m,q,k,f,ox,oz){if(m.car===undefined){let a=[1e9,1e9,1e9],b=[-1e
     if(CARS.some(c=>Math.hypot(c.x-x,c.z-z)<9))continue;let ux=f[o+m.car.ax],uz=f[o+8+m.car.ax];const n=Math.hypot(ux,uz)||1;ux/=n;uz/=n;const h=m.car.L*n/2-.15,ls=[];
     for(const sg of[-1,1]){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0xff8a18,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(1.5,1.5,1);sp.position.set(x+ux*h*sg,.8,z+uz*h*sg);scene.add(sp);ls.push(sp);}
     CARS.push({x,z,ls,al:0,hz:CARS.length%3==0,bp:0});}}
-function carHit(p){if(p.y>2.4)return;for(const c of CARS)if(c.al<=0&&Math.hypot(c.x-p.x,c.z-p.z)<2.7){c.al=12;c.bp=0;c.fr=false;if(!net.client){if(!flare){flare={x:c.x,z:c.z,t:12};flareL.position.set(c.x,1.6,c.z);flowT=0;}if(time>alarmCd){alarmCd=time+40;toSpawn+=20;spawnT=Math.min(spawnT,.5);msg('La alarma atrae a una horda');darkHit();}}return;}}
+function carHit(p){if(p.y>2.4)return;for(const c of CARS)if(c.al<=0&&Math.hypot(c.x-p.x,c.z-p.z)<2.7){c.al=12;c.bp=0;c.fr=false;if(!net.client){if(!flare){flare={x:c.x,z:c.z,t:12};flareL.position.set(c.x,1.6,c.z);flowT=0;}if(time>alarmCd&&round>=hordeRd){alarmCd=time+40;hordeRd=round+5;toSpawn+=Math.min(20,8+round);spawnT=Math.min(spawnT,.5);msg('La alarma atrae a una horda');darkHit();}}return;}}
 // cuervos: bandadas posadas en la calle; si te acercas echan a volar graznando y vuelven pasado un rato
 const FLOCKS=[],crowM=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),crowGeo=(()=>{const pos=[],col=[],F=[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]];
     const bx=(x0,y0,z0,x1,y1,z1,r,g,b)=>{const Q=[];for(let i=0;i<8;i++)Q.push([i&4?x1:x0,i&2?y1:y0,i&1?z1:z0]);for(const f of F)for(const i of[0,1,2,0,2,3]){pos.push(...Q[f[i]]);col.push(r,g,b);}};
@@ -598,7 +602,7 @@ function crowPlace(){for(const f of FLOCKS){scene.remove(f.g);f.g.traverse(o=>{i
       zSkin(o,ti);o.g.rotation.order='YXZ';o.g.rotation.set(-Math.PI/2,ry,0);o.g.position.set(cx,.14,cz);g.add(o.g);corp.push({o,ti,x:cx,z:cz,ry});}
     scene.add(g);FLOCKS.push({x:x+.5,z:z+.5,g,cs,corp,st:0,t:0});}}
 // espantar a los cuervos despierta a una horda: grito desgarrador, los cadáveres se levantan y del charco salen más hasta sumar 24, todos corredores (una cada 45 s como mucho)
-let hordeCd=0;const HQ=[],GETUP=[],corpPoolM=new THREE.MeshBasicMaterial({color:0x2e0406,transparent:true,opacity:.8,depthWrite:false});
+let hordeCd=0,hordeRd=0;const HQ=[],GETUP=[],corpPoolM=new THREE.MeshBasicMaterial({color:0x2e0406,transparent:true,opacity:.8,depthWrite:false});
 function sScream(x,z){if(!AC)return;try{const o=at(x,z,2.6),t=AC.currentTime,d=2.1,os=AC.createOscillator(),os2=AC.createOscillator(),l1=AC.createOscillator(),l2=AC.createOscillator(),g1=AC.createGain(),g2=AC.createGain(),env=AC.createGain();
   os.type='sawtooth';os2.type='sawtooth';for(const[q,m]of[[os,1],[os2,1.007]]){q.frequency.setValueAtTime(430*m,t);q.frequency.exponentialRampToValueAtTime(1020*m,t+.16);q.frequency.linearRampToValueAtTime(1120*m,t+.9);q.frequency.linearRampToValueAtTime(880*m,t+1.5);q.frequency.exponentialRampToValueAtTime(520*m,t+d);}
   l1.frequency.value=6.5;g1.gain.setValueAtTime(8,t);g1.gain.linearRampToValueAtTime(45,t+d);l2.frequency.value=47;g2.gain.value=38;l1.connect(g1);l2.connect(g2);for(const q of[os,os2]){g1.connect(q.frequency);g2.connect(q.frequency);}
@@ -607,7 +611,8 @@ function sScream(x,z){if(!AC)return;try{const o=at(x,z,2.6),t=AC.currentTime,d=2
   env.connect(o);for(const q of[os,os2,l1,l2]){q.start(t);q.stop(t+d+.05);}nz(d*.8,'bandpass',2600,.35,o,t,1.5);}catch(e){}}
 function hordeFx(x,z){sScream(x,z);darkHit();msg('Los cuervos han despertado a una horda');for(const f of FLOCKS)if(Math.hypot(f.x-x,f.z-z)<1)for(const c of f.corp)c.o.g.visible=false;}
 const runner=z=>{z.speed=z.speed0=3.5+R()*.9;};
-function hordeGo(x,z){if(time<hordeCd)return;hordeCd=time+45;const f=FLOCKS.find(f=>Math.hypot(f.x-x,f.z-z)<1);let n=24;
+function hordeGo(x,z){if(time<hordeCd||round<hordeRd)return;hordeCd=time+45;hordeRd=round+5;   // una horda (de cuervos o de alarma) como mucho cada 5 rondas
+  const f=FLOCKS.find(f=>Math.hypot(f.x-x,f.z-z)<1);let n=24;
   if(f)for(const c of f.corp){if(!c.o.g.visible)continue;const o=mkZ(false,0);for(const m of o.g.children.slice())if(m.isSkinnedMesh){o.g.remove(m);m.skeleton.dispose();}
     zSkin(o,c.ti);zPose(o,false,false);o.pos.set(c.x,0,c.z);o.g.position.copy(o.pos);o.g.rotation.set(-Math.PI/2,c.ry,0);o.stun=1.2;runner(o);GETUP.push({z:o,t:0});n--;}
   HQ.push({x,z,n,t:.6});hordeFx(x,z);if(net.host)bc({t:'hordefx',x,z});}
@@ -628,7 +633,7 @@ function darkBar(b,t,q,tn){const o=DM.bus,i=b%8;
 // golpe de aviso al despertar una horda o saltar una alarma: trueno grave y acorde disonante, y la música pasa de golpe a su ritmo más rápido
 function darkHit(){return;const t=AC.currentTime+.02,o=DM.bus;DM.tn=1;DM.t=t+.6;const b=AC.createOscillator(),bg=AC.createGain();b.frequency.setValueAtTime(85,t);b.frequency.exponentialRampToValueAtTime(24,t+1.8);bg.gain.setValueAtTime(1,t);bg.gain.exponentialRampToValueAtTime(.0001,t+2.2);b.connect(bg);bg.connect(o);b.start(t);b.stop(t+2.3);
   for(const n of[50,51,56,62]){const os=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();os.type='sawtooth';os.frequency.value=dmF(n);f.type='lowpass';f.frequency.value=1100;g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+2.6);os.connect(f);f.connect(g);g.connect(o);os.start(t);os.stop(t+2.7);}}
-function darkTick(){if(!AC)return;if(!DM.bus){DM.bus=AC.createGain();DM.bus.gain.value=.5;DM.bus.connect(AC.destination);
+function darkTick(){if(!AC)return;if(!DM.bus){DM.bus=AC.createGain();DM.bus.gain.value=.5;DM.bus.connect(master||AC.destination);
     const f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.frequency.value=170;g.gain.value=0;for(const fr of[36.7,36.95,73.5]){const os=AC.createOscillator();os.type='sawtooth';os.frequency.value=fr;os.connect(f);os.start();}f.connect(g);g.connect(DM.bus);DM.dr={g,f};}
   // solo una frase tranquila de 4 compases cuando se acaba una ronda (al quedarse el mapa sin zombis), como mucho cada 25 s
   DM.dr.g.gain.value=0;const n=zombies.length;if(!n&&DM.had&&!music.on&&state=='play'&&time>(DM.next||0)){DM.next=time+25;const t=AC.currentTime+.4;for(let k=0;k<4;k++)try{darkBar(DM.bar+k,t+k*4,1,0);}catch(e){}DM.bar+=4;}DM.had=n>0;}
@@ -651,12 +656,13 @@ function crowTick(dt){for(const f of FLOCKS){const d=Math.hypot(f.x-P.x,f.z-P.z)
 function amb2Tick(dt){const A=AMB,cp=camera.position;
   // tiempo: la lluvia va y viene; con lluvia hay más relámpagos
   if((A.wT-=dt)<=0){A.rainTo=A.rainTo>0?0:.5+R()*.5;A.wT=70+R()*110;}A.rain+=Math.sign(A.rainTo-A.rain)*Math.min(Math.abs(A.rainTo-A.rain),dt*.06);
-  if((A.ltT-=dt*(.25+A.rain))<=0){A.ltT=9+R()*22;A.fl=1;A.fl2=R()<.7?.14+R()*.2:0;bolt();thunder();}
+  // en las rondas rojas la tormenta es eléctrica y roja: rayos seguidos, a pares, y el destello tiñe de rojo
+  if((A.ltT-=dt*(.25+A.rain+3*A.sp))<=0){A.ltT=9+R()*22;A.fl=1;A.fl2=R()<.7?.14+R()*.2:0;boltM.color.setHex(A.sp>.5?0xff2a18:0xe6eeff);bolt();if(A.sp>.5&&R()<.6)bolt();thunder();}
   if(A.fl2>0&&(A.fl2-=dt)<=0)A.fl=.8;A.fl=Math.max(0,A.fl-dt*4.5);
   A.sp+=Math.sign((round>0&&round%5==0?1:0)-A.sp)*Math.min(1,dt*.4);A.sp=Math.max(0,Math.min(1,A.sp));
   A.pu=Math.max(0,Math.min(1,(A.pu||0)+((typeof rapQ!='undefined'&&rapQ>0)||zombies.some(z=>z.bn==3)?1:-1)*dt*.5));
-  const fl=A.fl,sp=A.sp,pu=A.pu;tmpC.copy(fogC0).lerp(fogRed,sp).lerp(fogPur,pu).lerp(fogFl,fl*.5);scene.fog.color.copy(tmpC);if(scene.background&&scene.background.isColor)scene.background.copy(tmpC);scene.fog.density=.03+.013*sp+.013*pu+.006*A.rain;
-  if(hemiL)hemiL.intensity=.38+fl*2.4;moon.intensity=.3+fl*1.5;
+  const fl=A.fl,sp=A.sp,pu=A.pu;tmpC.copy(fogC0).lerp(fogRed,sp).lerp(fogPur,pu).lerp(sp>.5?fogFlR:fogFl,fl*.5);scene.fog.color.copy(tmpC);if(scene.background&&scene.background.isColor)scene.background.copy(tmpC);scene.fog.density=.03+.013*sp+.013*pu+.006*A.rain;
+  if(hemiL)hemiL.intensity=.38+fl*2.4*(1-.45*sp);moon.intensity=.3+fl*1.5;
   tmpC.copy(mistC0).lerp(mistRed,sp).lerp(mistPur,pu);for(const m of MIST)m.s.material.color.copy(tmpC);
   // lluvia (no llueve dentro de los edificios con plantas)
   let roof=false;for(const B of BZ)if(P.x>B.x&&P.x<B.x+B.w&&P.z>B.z&&P.z<B.z+B.d&&(P.lv|0)<B.n-1)roof=true;
@@ -668,7 +674,7 @@ function amb2Tick(dt){const A=AMB,cp=camera.position;
       a[k]=cp.x+embP[k]+Math.sin(time*.7+i)*.4;a[k+1]=cp.y-2+y;a[k+2]=cp.z+embP[k+2]+Math.cos(time*.5+i*1.3)*.4;}embG.attributes.position.needsUpdate=true;embM.material.opacity=.8*(1-.75*A.rain);}
   // luna y nubes
   moonS.position.copy(cp).addScaledVector(moonDir,82);moonS.material.color.setRGB(1,1-.6*sp,1-.7*sp);moonS.material.opacity=1-.55*A.rain;
-  for(const c of CLOUDS){c.az+=c.v*dt;const ce=Math.cos(c.el);c.s.position.set(cp.x+Math.cos(c.az)*ce*74,cp.y+Math.sin(c.el)*74,cp.z+Math.sin(c.az)*ce*74);c.s.material.color.setRGB(.105+.5*fl+.1*sp,.133+.52*fl,.2+.6*fl);c.s.material.opacity=.6+.3*A.rain;}
+  for(const c of CLOUDS){c.az+=c.v*dt;const ce=Math.cos(c.el);c.s.position.set(cp.x+Math.cos(c.az)*ce*74,cp.y+Math.sin(c.el)*74,cp.z+Math.sin(c.az)*ce*74);c.s.material.color.setRGB(.105+.5*fl+.3*sp,(.133+.52*fl)*(1-.65*sp),(.2+.6*fl)*(1-.75*sp));c.s.material.opacity=Math.min(.95,.6+.3*A.rain+.3*sp);}
   // farolas: una parpadea siempre y todas flaquean si tienen un zombi cerca
   zLamps.forEach(([l],i)=>{const b=l.userData.b||(l.userData.b=l.intensity);let k=1;if(i==1&&Math.sin(time*23)+Math.sin(time*37.7)>1.15)k=.2;
     for(const z of zombies)if(Math.hypot(z.pos.x-l.position.x,z.pos.z-l.position.z)<6){k*=Math.sin(time*31+i*2)>.2?.75:.25;break;}l.intensity=b*k;});
@@ -1608,11 +1614,11 @@ function voiceStart(){if(voice.started||!net.on)return;voice.started=true;
   const done=st=>{voice.stream=st;voice.ready=true;voice.pending.splice(0).forEach(voiceAnswer);voice.peers.forEach(voiceCall);micHud();};
   const silent=()=>{voice.nomic=true;let st;try{st=AC.createMediaStreamDestination().stream;}catch(e){st=new MediaStream();}done(st);};
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
-    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(st=>{voice.track=st.getAudioTracks()[0];voice.track.enabled=false;done(st);},silent);
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(st=>{voice.track=st.getAudioTracks()[0];voice.track.enabled=false;let out=st;try{if(AC){const src=AC.createMediaStreamSource(st),dst=AC.createMediaStreamDestination();micGain=AC.createGain();micGain.gain.value=VOL.m/100;src.connect(micGain);micGain.connect(dst);out=dst.stream;}}catch(e){}done(out);},silent);
   else silent();}
 function voicePlay(call){
   call.on('stream',rs=>{let a=voice.els[call.peer];if(!a){a=voice.els[call.peer]=document.createElement('audio');a.autoplay=true;document.body.appendChild(a);}
-    a.srcObject=rs;const p=a.play();if(p&&p.catch)p.catch(()=>{});});
+    a.srcObject=rs;a.volume=Math.min(1,VOL.v/100);const p=a.play();if(p&&p.catch)p.catch(()=>{});});
   call.on('close',()=>{const a=voice.els[call.peer];if(a){a.remove();delete voice.els[call.peer];}});}
 function voiceAnswer(call){call.answer(voice.stream);voicePlay(call);}
 function voiceIn(call){if(voice.ready)voiceAnswer(call);else voice.pending.push(call);}
@@ -1626,6 +1632,13 @@ function micHud(){if(!net.on||!voice.started)return;
 // ---------- entrada ----------
 let sens=1;try{sens=+localStorage.getItem('ub_sens')||1;}catch(e){}
 $('sens').value=sens;$('sensv').textContent=sens.toFixed(2);
+const VOL={g:100,v:100,m:100};let master=null,micGain=null;try{Object.assign(VOL,JSON.parse(localStorage.getItem('ub_vol')||'{}'));}catch(e){}
+function volApply(){if(master)master.gain.value=VOL.g/100;if(micGain)micGain.gain.value=VOL.m/100;for(const k in voice.els)voice.els[k].volume=Math.min(1,VOL.v/100);
+  for(const k of['g','v','m']){$('vol'+k).value=VOL[k];$('vol'+k+'v').textContent=VOL[k]+'%';}}
+for(const k of['g','v','m'])$('vol'+k).oninput=e=>{VOL[k]=+e.target.value;volApply();try{localStorage.setItem('ub_vol',JSON.stringify(VOL));}catch(_){}};
+volApply();
+// pausa: pulsar en el fondo (fuera de botones y deslizadores) también continúa
+$('ov').addEventListener('click',e=>{if($('go').textContent=='CONTINUAR'&&!(e.target.closest&&e.target.closest('input,button,label,table,a,b')))$('go').onclick();});
 $('sens').oninput=e=>{sens=+e.target.value;$('sensv').textContent=sens.toFixed(2);try{localStorage.setItem('ub_sens',sens);}catch(_){}};
 addEventListener('keydown',e=>{
   keys[e.code]=true;P.act=time;
@@ -1647,7 +1660,7 @@ addEventListener('mouseup',e=>{if(e.button==0)firing=false;if(e.button==2)aim=fa
 addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(state=='play'&&slots.length>1)switchTo((ci+(e.deltaY>0?1:slots.length-1))%slots.length);});
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&state=='play'&&!editMode){if(performance.now()-goT<1500){setTimeout(grab,120);return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
-  $('ovt').textContent='PAUSA';$('ovs').textContent=net.on?'La partida sigue en marcha. Haz clic para volver.':'Haz clic para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}});
+  $('ovc').style.display='none';$('ovt').textContent='PAUSA';$('ovs').textContent=net.on?'La partida sigue en marcha. Haz clic para volver.':'Haz clic para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}});
 let goT=0;
 function grab(){if(touchOn||document.pointerLockElement==renderer.domElement)return;try{const p=renderer.domElement.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
 // al entrar en pantalla completa el navegador puede soltar el ratón: se vuelve a capturar
