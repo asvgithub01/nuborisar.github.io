@@ -726,7 +726,26 @@ const sleeveM=M(0x3a4630),handM=M(0xd9ad85);
 function arm(par,x,y,z){const U=gun.userData,p=VV(-x,y+.02,-z);if(z>-.2)U.rg=p;else{U.lg=p;U.lgPump=par!=gun;}}
 const flash=new THREE.Mesh(new THREE.SphereGeometry(.06,6,5),MB(0xffe07a));flash.visible=false;
 const flashL=new THREE.PointLight(0xffc060,0,12);camera.add(flashL);
-function gunModel(){
+// ---------- sobrecarga: mejora de armas ----------
+// material de arma mejorada: color apagado + bandas de arcoíris que recorren el arma, a facetas (se calcula por triángulo con las derivadas)
+const upU={value:0},upMats={};
+function upMat(l,src){const vc=!!src.vertexColors,key=l+'/'+vc+'/'+(vc?'':src.color.getHex());if(upMats[key])return upMats[key];
+  const m=new THREE.MeshLambertMaterial({vertexColors:vc,color:vc?0xffffff:src.color.getHex(),side:THREE.DoubleSide});
+  m.onBeforeCompile=sh=>{sh.uniforms.uT=upU;
+    sh.vertexShader='varying vec3 vOP;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvOP=position;');
+    sh.fragmentShader='varying vec3 vOP;uniform float uT;\n'+sh.fragmentShader
+      .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=.3;')
+      .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n{vec3 fn=normalize(cross(dFdx(vOP),dFdy(vOP)));float h=vOP.z*1.6+dot(fn,vec3(.31,.47,.23))+uT*.35+'+(l*.31).toFixed(2)+';'
+        +'vec3 rc=.5+.5*cos(6.2832*(h+vec3(0.,.33,.67)));float bd=.5+.5*sin(vOP.z*38.+vOP.y*22.-uT*'+(3+l*2)+'.);totalEmissiveRadiance+=rc*(.28+.72*bd*bd*bd)*'+(.75+l*.25).toFixed(2)+';}');};
+  m.extensions={derivatives:true};m.customProgramCacheKey=()=>'up'+l;return upMats[key]=m;}
+function upSkin(){const w=cur(),l=w&&w.d.up;if(!l)return;gun.traverse(o=>{if(o.isMesh&&o!==flash&&o.material&&o.material.isMeshLambertMaterial)o.material=upMat(l,o.material);});}
+const UPC=[5000,10000,20000],UPT=[0xff50ff,0xffd040,0xff4040];
+function upgrade(){const w=cur(),b=WEAPONS[w.k],l=(w.d.up||0)+1,k=Math.pow(2.5,l);
+  w.d=Object.assign({},b,{up:l,n:b.n+' '+'★'.repeat(l),dmg:b.dmg*k,mag:b.melee?b.mag:Math.round(b.mag*(1+.5*l)),res:Math.round(b.res*(1+.5*l)),rl:b.rl*(1-.1*l)});
+  if(!b.bolt&&!b.rail&&!b.coil)w.d.tracer=UPT[l-1];if(b.boom)w.d.boom=b.boom*(1+.2*l);
+  w.mag=w.d.mag;w.res=w.d.res;gunModel();msg(b.n+' sobrecargada: nivel '+l);try{osc('sawtooth',120,1400,.7,.12);osc('sine',1400,2800,.5,.1,null,AC.currentTime+.5);}catch(e){}}
+function gunModel(){gunModel0();upSkin();}
+function gunModel0(){
   while(gun.children.length)gun.remove(gun.children[0]);
   const w=cur(),d=w.d,m=M(d.col),dk=M(0x111111);gun.userData.sy=0;gun.userData.oy=d.len<.35?.065:.025;gun.userData.oz=d.len<.35?-.1:0;
   {const U=gun.userData,gf=new THREE.Group();gf.rotation.y=Math.PI;gun.add(gf);U.gf=gf;U.sw=null;U.rg=VV(0,-.05,0);U.lg=null;U.lgPump=false;U.az=0;U.sr=null;U.sp=0;U.se=.5;U.ga=.25;U.ry=.3;U.ro=VV(.005,0,.017);U.rmix=.3;U.rc=RC;U.lc=LC;U.ln=null;U.lv=null;U.lp=null;U.rpo=null;U.h=null;U.rl=U.tick=U.lgR=U.rq=null;U.rx=0;U.rlOn=false;}
@@ -1052,6 +1071,9 @@ wStation('ar',...spot());wStation('rep',...spot());wStation('ak',...spot());wSta
 const grenSt=(x,z)=>station(x,z,0x2f3b22,'Granadas x4\n250',{text:()=>'Comprar granadas x4',cost:()=>250,buy:()=>P.gren=Math.min(8,P.gren+4)});grenSt(...spot());
 station(...spot(),0xaa2222,'Tónico vital\n2500',{text:()=>P.max>100?null:'Tónico vital (más vida)',cost:()=>2500,buy:()=>{P.max=250;P.hp=250;msg('Vida aumentada');}});
 station(...spot(),0x22aa55,'Manos rápidas\n3000',{text:()=>P.quick?null:'Manos rápidas (recarga x2)',cost:()=>3000,buy:()=>{P.quick=true;msg('Recarga más rápida');}});
+const upSt=(x,z)=>{const o=station(x,z,0x101018,'Sobrecarga\n5000',{text:()=>{const w=cur(),l=w.d.up||0;return w.d.flare?null:l>=3?null:'Sobrecargar '+WEAPONS[w.k].n+' (nivel '+(l+1)+': daño ×'+Math.pow(2.5,l+1).toFixed(1).replace('.',',')+')';},
+  cost:()=>UPC[cur().d.up||0]||0,buy:upgrade});o.b.material=upMat(2,o.b.material);o.b.scale.set(1.5,2.2,1.5);return o;};
+upSt(67.5,-2.5);
 const boxSt=(x,z)=>station(x,z,0x6a4acc,'Caja sorpresa\n950',{text:()=>'Caja sorpresa (arma aleatoria)',cost:()=>950,buy:()=>{const ks=Object.keys(WEAPONS).filter(k=>!has(k)&&!WEAPONS[k].melee);give(ks[R()*ks.length|0]);}});boxSt(...spot());
 const doorSt=station(-60,-60,0x4a3018,'Puerta\n750',{text:()=>doorOpen?null:'Abrir puerta',cost:()=>750,buy:()=>{if(net.client)toHost({t:'door'});else openDoor();}});
 function openDoor(){if(doorOpen)return;doorOpen=true;line(15,8,15,9,0);scene.remove(doorMesh);occ.splice(occ.indexOf(doorMesh),1);msg('Puerta abierta: hay más ventanas que defender');}
@@ -1340,7 +1362,7 @@ function update(dt){
   if(chg>0){const cd=cur().d;if(!cd.charge||reloading>0||P.dead)chg=0;else{chg-=dt;kick=.02*(1-chg/cd.charge);if(chg<=0){chgGo=1;fireCd=0;fire();chgGo=0;}}}
   if(firing&&!P.dead&&!buildMode&&(cur().d.auto||pressed)){fire();}
   pressed=false;
-  flareTick(dt);
+  flareTick(dt);upU.value=time;
   kick*=Math.pow(.0005,dt);
   const w0=cur().d,canAim=aim&&!buildMode&&!w0.melee&&reloading<=0;ads+=((canAim?1:0)-ads)*Math.min(1,dt*14);
   const fov=75-(75-(w0.zoom||(w0.len>.45?46:58)))*ads;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix();}
