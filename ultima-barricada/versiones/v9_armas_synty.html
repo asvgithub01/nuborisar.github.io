@@ -743,6 +743,46 @@ zSkinM.onBeforeCompile=sh=>{sh.vertexShader='attribute float zb;varying float vZ
     +'w=max(w,(1.-smoothstep(.03,.1,length((p-vec3(.015*sin(s),1.515,.1))*vec3(1.,.8,.7))))*step(.02,p.z));'
     +'w=max(w,.8*(1.-smoothstep(.06,.2,length(p-vec3(.06*sin(s*1.7),1.36,.1)))));w=max(w,.85*smoothstep(.5,.85,abs(p.x)));if(p.y>1.57)w=min(w,.04);'
     +'if(n>mix(.8,.36,w))diffuseColor.rgb=mix(vec3(.26,.01,.02),vec3(.5,.03,.03),zn(p*60.+s));}');};
+// ---------- velocirraptor ----------
+const rapM=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}),RAPG=(()=>{let sd=7;const rnd=()=>{sd=sd*16807%2147483647;return sd/2147483647;},G={},
+    BR=[.47,.38,.26],DK=[.34,.27,.19],RD=[.5,.13,.1],OR=[.85,.42,.1],YL=[.95,.72,.2],WH=[.9,.88,.8],EY=[1,.5,.05];
+  const tri=(g,a,b,c,ca,cb,cc)=>{g.p.push(...a,...b,...c);g.c.push(...ca,...cb,...cc);};
+  // tronco entre dos secciones rectangulares (ancho en x, alto perpendicular al eje dentro del plano yz), con cada cara de un tono algo distinto
+  const seg=(g,p0,p1,w0,h0,w1,h1,col)=>{const dy=p1[1]-p0[1],dz=p1[2]-p0[2],l=Math.hypot(dy,dz)||1,U=[dz/l,-dy/l],
+      R4=(q,w,h)=>[[-1,-1],[1,-1],[1,1],[-1,1]].map(([sx,sy])=>[q[0]+sx*w/2,q[1]+U[0]*sy*h/2,q[2]+U[1]*sy*h/2]),A=R4(p0,w0,h0),B=R4(p1,w1,h1),
+      q=(a,b,c,d)=>{for(const T of[[a,b,c],[a,c,d]]){const k=.84+rnd()*.3,cc=col.map(v=>v*k);tri(g,T[0],T[1],T[2],cc,cc,cc);}};
+    for(let i=0;i<4;i++)q(A[i],A[(i+1)%4],B[(i+1)%4],B[i]);q(A[3],A[2],A[1],A[0]);q(B[0],B[1],B[2],B[3]);};
+  // púa o pluma: pirámide de base c0 y punta c1
+  const spk=(g,b,q,w,c0,c1)=>{const k=.85+rnd()*.3,a=[b[0]-w/2,b[1],b[2]],e=[b[0]+w/2,b[1],b[2]],c=[b[0],b[1]+w*.4,b[2]+w*.4],C0=c0.map(v=>v*k),C1=c1.map(v=>v*k);tri(g,a,e,q,C0,C0,C1);tri(g,e,c,q,C0,C0,C1);tri(g,c,a,q,C0,C0,C1);};
+  const part=(n,f)=>{const g={p:[],c:[]};f(g);const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.BufferAttribute(new Float32Array(g.p),3));o.setAttribute('color',new THREE.BufferAttribute(new Float32Array(g.c),3));o.computeVertexNormals();G[n]=o;};
+  part('torso',g=>{seg(g,[0,0,-.3],[0,.1,.8],.36,.44,.3,.36,BR);for(let i=0;i<6;i++){const z=-.12+i*.17;spk(g,[0,.2+i*.014,z],[0,.37+i*.014,z-.16],.11,RD,OR);}});
+  part('neck',g=>{seg(g,[0,0,0],[0,.42,.32],.2,.26,.15,.18,BR);for(let i=0;i<3;i++)spk(g,[0,.1+i*.12,-.04+i*.1],[0,.2+i*.12,-.24+i*.1],.11,RD,OR);});
+  part('head',g=>{seg(g,[0,0,-.08],[0,-.03,.2],.2,.2,.16,.16,BR);seg(g,[0,-.01,.2],[0,-.05,.46],.15,.13,.08,.08,BR);seg(g,[0,-.085,.18],[0,-.105,.44],.11,.025,.06,.02,WH);
+    for(const sx of[-1,1])seg(g,[sx*.095,.03,.09],[sx*.095,.03,.15],.03,.05,.03,.05,EY);for(let i=0;i<4;i++)spk(g,[0,.09,.12-i*.07],[0,.25-i*.012,-.03-i*.09],.1,RD,YL);});
+  part('jaw',g=>{seg(g,[0,0,0],[0,-.02,.4],.15,.05,.06,.03,DK);seg(g,[0,.03,.14],[0,.02,.38],.09,.02,.05,.02,WH);});
+  part('t1',g=>{seg(g,[0,0,0],[0,.04,-.75],.28,.32,.16,.18,BR);});
+  part('t2',g=>{seg(g,[0,0,0],[0,.06,-.8],.16,.18,.05,.06,DK);for(let i=0;i<5;i++){const x=(i-2)*.07;spk(g,[x*.4,.05,-.6],[x*1.6,.05+rnd()*.1,-1.08-rnd()*.1],.09,i%2?RD:OR,YL);}});
+  part('thigh',g=>{seg(g,[0,0,0],[0,-.42,.14],.15,.24,.11,.14,BR);});
+  part('shin',g=>{seg(g,[0,0,0],[0,-.38,-.2],.09,.11,.07,.08,BR);});
+  part('foot',g=>{seg(g,[0,0,0],[0,-.15,.08],.07,.07,.07,.06,DK);seg(g,[0,-.14,.04],[0,-.15,.3],.14,.05,.1,.03,DK);spk(g,[0,-.1,.12],[0,.05,.22],.04,DK,WH);});
+  part('arm',g=>{seg(g,[0,0,0],[0,-.24,.06],.08,.1,.07,.08,BR);seg(g,[0,-.24,.06],[0,-.34,.3],.07,.07,.05,.05,BR);for(const x of[-.03,.03])spk(g,[x,-.34,.3],[x,-.43,.4],.03,DK,WH);
+    for(let i=0;i<6;i++){const t=i/5,b=[.03,-.24-.1*t,.06+.24*t];spk(g,b,[.1,b[1]-.36-rnd()*.12,b[2]-.14],.11,RD,i%2?OR:YL);}});
+  return G;})();
+function rapSkin(z){for(const o of z.g.children){if(o!=z.zp)o.visible=false;if(o.userData.head)o.position.set(0,1.74,.5);}const c0=z.g.children[0];if(c0){c0.position.set(0,1.02,-.5);c0.scale.set(1,.7,3.4);}
+  const M_=(n,par,x,y,zz)=>{const m=new THREE.Mesh(RAPG[n],rapM);m.position.set(x,y,zz);m.raycast=noRay;par.add(m);return m;},root=new THREE.Group();root.scale.setScalar(1.2);root.position.set(0,1.164,-.9);z.g.add(root);
+  const torso=M_('torso',root,0,0,0),neck=M_('neck',root,0,.1,.8),head=M_('head',neck,0,.42,.32),jaw=M_('jaw',head,0,-.1,0),t1=M_('t1',root,0,.02,-.3),t2=M_('t2',t1,0,.04,-.75),legs=[],arms=[];
+  for(const sx of[-1,1]){const th=M_('thigh',root,sx*.19,-.02,.05),sh=M_('shin',th,0,-.42,.14),ft=M_('foot',sh,0,-.38,-.2);legs.push({th,sh,ft});const a=M_('arm',root,sx*.18,-.08,.68);a.scale.x=sx;arms.push(a);}
+  z.sk=null;z.rp={root,neck,head,jaw,t1,t2,legs,arms,k:R()*9};}
+// zancada de ave: muslo adelante y atrás, tibia que se recoge al pasar; cuerpo que cabecea, cola que compensa y mandíbula que se abre al morder
+function rapPose(z,mv,atk){const r=z.rp,t=time+r.k,a=mv?1:0,ph=z.ph;r.root.position.y=1.164+Math.abs(Math.sin(ph))*.06*a;r.root.rotation.x=-.04+Math.sin(ph*2)*.03*a+(atk?.12:0);
+  r.legs.forEach((L,i)=>{const q=ph+i*Math.PI,s=Math.sin(q),c=Math.max(0,Math.cos(q));L.th.rotation.x=s*.75*a;L.sh.rotation.x=-c*.9*a;L.ft.rotation.x=c*.8*a-s*.25*a;});
+  r.t1.rotation.set(Math.sin(ph*2)*.05*a+.04,Math.sin(ph)*.16*a+Math.sin(t*1.3)*.1,0);r.t2.rotation.set(.05,Math.sin(ph-.9)*.25*a+Math.sin(t*1.7)*.16,0);
+  r.neck.rotation.x=Math.sin(ph*2+.6)*.06*a+(atk?.25:0);r.head.rotation.set(atk?.1:Math.sin(t*.7)*.08,a?0:Math.sin(t*.9)*.3,0);r.jaw.rotation.x=atk?.45+.3*Math.sin(t*16):.1+.12*Math.max(0,Math.sin(t*2.1));
+  r.arms.forEach((m,i)=>{m.rotation.x=Math.sin(ph+i*Math.PI+1)*.3*a-(atk?.7:.1);});}
+function sRaptor(x,z){if(!AC)return;try{const o=at(x,z,1.2),t=AC.currentTime,os=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),f=AC.createBiquadFilter(),g=AC.createGain(),d=.45+R()*.25;
+  os.type='sawtooth';os.frequency.setValueAtTime(700+R()*200,t);os.frequency.linearRampToValueAtTime(1500+R()*400,t+d*.35);os.frequency.linearRampToValueAtTime(600,t+d);l.frequency.value=38+R()*14;lg.gain.value=220;l.connect(lg);lg.connect(os.frequency);
+  f.type='bandpass';f.frequency.value=1900;f.Q.value=1.5;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.7,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+d);os.connect(f);f.connect(g);g.connect(o);os.start(t);l.start(t);os.stop(t+d+.05);l.stop(t+d+.05);
+  nz(d,'highpass',2600,.35,o,t);}catch(e){}}
 function zModa(D,r){const m={};let b=0,k='0,0,0';for(let t=r.a;t<r.b;t++){const c=D.col,q=c[t*9]+','+c[t*9+1]+','+c[t*9+2];m[q]=(m[q]||0)+1;if(m[q]>b){b=m[q];k=q;}}return k.split(',').map(Number);}
 function zGeo(ti){if(zGC[ti])return zGC[ti];const[body,head,zt]=ZTYPES[ti],dd=k=>zSD[k]||(zSD[k]=swDec(SKZ[k])),A=dd(body),bd=SKZ[body].bones,parts=[];let tint=null;
   if(head){const B=dd(head),hb=SKZ[head].bones[6],ha=bd[6],moda=(D,r)=>{const m={};let b=0,k='0,0,0';for(let t=r.a;t<r.b;t++){const c=D.col,q=c[t*9]+','+c[t*9+1]+','+c[t*9+2];m[q]=(m[q]||0)+1;if(m[q]>b){b=m[q];k=q;}}return k.split(',').map(Number);};
@@ -769,7 +809,7 @@ function zLimb(ti,i){const key=ti+'_'+i;if(zLC[key])return zLC[key];const G0=zGe
   for(let t=0;t<pa.length/9;t++){if(!ok[sa[t*12]])continue;for(let j=0;j<9;j++){ps.push(pa[t*9+j]-pv[2+j%3]);cs.push(ca[t*9+j]);}}
   return zLC[key]=swGeo(new Float32Array(ps),new Float32Array(cs));}
 // pose de cada fotograma: andar arrastrando una pierna, brazos al frente, cabeza ladeada; mv = si avanza, atk = si está golpeando
-function zPose(z,mv,atk){const S=z.sk;if(!S)return;const B=S.B;for(const b of S.bones){b.quaternion.set(0,0,0,1);b.position.copy(S.rest[b.name]);}
+function zPose(z,mv,atk){if(z.rp){rapPose(z,mv,atk);return;}const S=z.sk;if(!S)return;const B=S.B;for(const b of S.bones){b.quaternion.set(0,0,0,1);b.position.copy(S.rest[b.name]);}
   for(let i=0;i<4;i++)if(z.lm>>i&1)B[ZLB[i]].scale.setScalar(.001);
   const t=time+S.k,s=Math.sin(z.ph),a=mv?1:0,run=z.speed>3.3,aL=(run?.75:.45)*a,aR=(run?.75:.26)*a;
   B.Hips.position.y+=Math.abs(s)*.02*a-.03;B.Hips.rotation.z=s*.08*a;B.Spine_01.rotation.x=run?.42:.26;B.Spine_03.rotation.z=Math.sin(z.ph*.5)*.08;B.Spine_02.rotation.y=s*.12*a;
@@ -780,7 +820,7 @@ function zPose(z,mv,atk){const S=z.sk;if(!S)return;const B=S.B;for(const b of S.
   B.Fingers_L.rotation.z=-.7-Math.sin(t*3)*.2;B.Fingers_R.rotation.z=.6;}
 let spRound=false;const RISE=[];
 // talla de cada zombi: altura 1,50–2 m y anchura de flaco a gordo (pocos muy gordos); el esqueleto y el fontanero conservan su tamaño extra
-function zFit(z){const h=n=>{const x=Math.sin(z.id*12.9898+n*78.233)*43758.5453;return x-Math.floor(x);},k=z.bn==1?1.15:z.pl?1.12:1,hh=(.84+h(1)*.28)*k,f=z.bn==1?1:.86+h(2)*h(2)*.5;
+function zFit(z){const h=n=>{const x=Math.sin(z.id*12.9898+n*78.233)*43758.5453;return x-Math.floor(x);},k=z.bn==1?1.15:z.pl?1.12:1,hh=(.84+h(1)*.28)*k,f=z.bn==1||z.bn==3?1:.86+h(2)*h(2)*.5;
   z.sc=new V3(hh*f,hh,hh*f);z.g.scale.copy(z.sc);}
 // aullador: cuenta lo que anda; al llegar a 14 m se para 2,4 s, aúlla con los brazos en alto y a mitad del aullido salen 3 zombis del suelo a su alrededor
 function sHowl(x,z){if(!AC)return;try{const o=at(x,z,1.6),t=AC.currentTime;osc('sawtooth',160,540,.9,.5,o,t);osc('sawtooth',540,200,1.2,.5,o,t+.85);osc('sine',320,1080,.9,.3,o,t);osc('sine',1080,400,1.2,.3,o,t+.85);nz(2,'bandpass',900,.25,o,t,2);}catch(e){}}
@@ -805,10 +845,10 @@ function mkZ(pl,bn){
   add(ZG.eye,eyeM,-.08,1.67,.165,true);add(ZG.eye,eyeM,.08,1.67,.165,true);
   z.legs=[add(ZG.leg,cm,-.13,.75,0),add(ZG.leg,cm,.13,.75,0)];
   z.limbs=[add(ZG.arm,skinM,-.3,1.3,.3),add(ZG.arm,skinM,.3,1.25,.3),z.legs[0],z.legs[1]];z.limbs.forEach((o,i)=>o.userData.part=i);
-  if(bn==2){z.bn=2;z.max*=2.5;z.hp=z.max;z.speed*=.85;z.wd=6;}else if(bn){z.bn=1;z.max*=4;z.hp=z.max;z.dmg=48;z.speed*=.9;g.scale.setScalar(1.15);z.thr=3+R()*3;}   // esqueleto: aguanta cuatro veces más
-  z.lhp=[.3,.3,.4,.4].map(k=>z.max*k);z.speed0=z.speed;z.dmg0=z.dmg;
+  if(bn==3){z.bn=3;z.max*=3;z.hp=z.max;z.dmg=42;z.speed=4.3+R()*.7;}else if(bn==2){z.bn=2;z.max*=2.5;z.hp=z.max;z.speed*=.85;z.wd=6;}else if(bn){z.bn=1;z.max*=4;z.hp=z.max;z.dmg=48;z.speed*=.9;g.scale.setScalar(1.15);z.thr=3+R()*3;}   // esqueleto: aguanta cuatro veces más
+  z.lhp=[.3,.3,.4,.4].map(k=>z.max*k*(z.bn==3?1e6:1));z.speed0=z.speed;z.dmg0=z.dmg;
   if(pl){add(ZG.cap,capM,0,1.84,0,true);add(ZG.vis,capM,0,1.8,.24,true);add(ZG.bib,cm,0,1.05,.16);z.zp=add(ZG.zpipe,pipeM,.3,1.28,.7);g.scale.setScalar(1.12);}
-  zSkin(z,bn?ZTYPES.length-bn:pl?1:R()*(ZTYPES.length-2)|0);zPose(z,false,false);
+  if(bn==3)rapSkin(z);else zSkin(z,bn?ZTYPES.length-bn:pl?1:R()*(ZTYPES.length-2)|0);zPose(z,false,false);
   zFit(z);scene.add(g);zombies.push(z);return z;
 }
 function spawnZombie(){
@@ -817,7 +857,7 @@ function spawnZombie(){
     if(ct(sx,sz)!=0||blocked(sx,sz,.3))continue;const id=gi(Math.floor(sx),Math.floor(sz));if(indoor[id]||dist[id]<0)continue;
     if(i<30&&!pin&&los(B.x,B.z,sx,sz))continue;ok=true;}
   if(!ok)return false;
-  const bn=spRound?1:round>=4&&R()<.08&&zombies.filter(o=>o.bn==1).length<2+round/8?1:round>=5&&R()<.06&&zombies.filter(o=>o.bn==2).length<1+round/10?2:0,z=mkZ(!bn&&round>=3&&R()<.14,bn);z.pos.set(sx,0,sz);z.g.position.copy(z.pos);return true;
+  const bn=spRound?3:round>=4&&R()<.08&&zombies.filter(o=>o.bn==1).length<2+round/8?1:round>=5&&R()<.06&&zombies.filter(o=>o.bn==2).length<1+round/10?2:0,z=mkZ(!bn&&round>=3&&R()<.14,bn);z.pos.set(sx,0,sz);z.g.position.copy(z.pos);return true;
 }
 // pierde una extremidad: brazos = menos daño, piernas = más lento (sin las dos, se arrastra)
 function limbOff(z,i){if(z.lm>>i&1)return;z.lm|=1<<i;const o=z.limbs[i],wp=o.getWorldPosition(new V3());z.g.remove(o);if(i==1&&z.zp)z.g.remove(z.zp);
@@ -1314,7 +1354,7 @@ function update(dt){
     flowT-=dt;if(flowT<=0){flowT=.2;flow();}
     updZombies(dt);updTraps(dt);updPowers(dt);}
   updDying(dt);updFx(dt);netTick(dt);if(state!='play')return;
-  if(zombies.length&&R()<dt*.7){const gz=zombies[R()*zombies.length|0];if(gz.bn==1)sRattle(gz.pos.x,gz.pos.z);else sGroan(gz.pos.x,gz.pos.z);}
+  if(zombies.length&&R()<dt*.7){const gz=zombies[R()*zombies.length|0];if(gz.bn==3)sRaptor(gz.pos.x,gz.pos.z);else if(gz.bn==1)sRattle(gz.pos.x,gz.pos.z);else sGroan(gz.pos.x,gz.pos.z);}
   musicTick();jukeM.color.setHSL(music.on?(time*.6)%1:.08,1,music.on?.5+.2*Math.sin(time*14):.25);
   insta-=dt;dbl-=dt;
   // trampa fantasma
