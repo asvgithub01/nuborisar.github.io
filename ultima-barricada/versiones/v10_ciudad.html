@@ -577,7 +577,7 @@ function carScan(m,q,k,f,ox,oz){if(m.car===undefined){let a=[1e9,1e9,1e9],b=[-1e
     if(CARS.some(c=>Math.hypot(c.x-x,c.z-z)<9))continue;let ux=f[o+m.car.ax],uz=f[o+8+m.car.ax];const n=Math.hypot(ux,uz)||1;ux/=n;uz/=n;const h=m.car.L*n/2-.15,ls=[];
     for(const sg of[-1,1]){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0xff8a18,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(1.5,1.5,1);sp.position.set(x+ux*h*sg,.8,z+uz*h*sg);scene.add(sp);ls.push(sp);}
     CARS.push({x,z,ls,al:0,hz:CARS.length%3==0,bp:0});}}
-function carHit(p){if(p.y>2.4)return;for(const c of CARS)if(c.al<=0&&Math.hypot(c.x-p.x,c.z-p.z)<2.7){c.al=12;c.bp=0;c.fr=R()<.5;if(!net.client){if(c.fr){frenzyT=12;msg('La alarma ha enloquecido a los zombis');}else if(!flare){flare={x:c.x,z:c.z,t:12};flareL.position.set(c.x,1.6,c.z);flowT=0;}}return;}}
+function carHit(p){if(p.y>2.4)return;for(const c of CARS)if(c.al<=0&&Math.hypot(c.x-p.x,c.z-p.z)<2.7){c.al=12;c.bp=0;c.fr=false;if(!net.client){if(!flare){flare={x:c.x,z:c.z,t:12};flareL.position.set(c.x,1.6,c.z);flowT=0;}if(time>alarmCd){alarmCd=time+40;toSpawn+=20;spawnT=Math.min(spawnT,.5);msg('La alarma atrae a una horda');darkHit();}}return;}}
 // cuervos: bandadas posadas en la calle; si te acercas echan a volar graznando y vuelven pasado un rato
 const FLOCKS=[],crowM=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),crowGeo=(()=>{const pos=[],col=[],F=[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]];
     const bx=(x0,y0,z0,x1,y1,z1,r,g,b)=>{const Q=[];for(let i=0;i<8;i++)Q.push([i&4?x1:x0,i&2?y1:y0,i&1?z1:z0]);for(const f of F)for(const i of[0,1,2,0,2,3]){pos.push(...Q[f[i]]);col.push(r,g,b);}};
@@ -604,13 +604,13 @@ function sScream(x,z){if(!AC)return;try{const o=at(x,z,2.6),t=AC.currentTime,d=2
   env.gain.setValueAtTime(.001,t);env.gain.linearRampToValueAtTime(1,t+.07);env.gain.setValueAtTime(1,t+1.3);env.gain.exponentialRampToValueAtTime(.001,t+d);
   for(const[fr,qq,v]of[[1150,3,1],[2900,5,.8],[3700,6,.5]]){const bf=AC.createBiquadFilter();bf.type='bandpass';bf.frequency.value=fr;bf.Q.value=qq;const bg=AC.createGain();bg.gain.value=v;os.connect(bf);os2.connect(bf);bf.connect(bg);bg.connect(env);}
   env.connect(o);for(const q of[os,os2,l1,l2]){q.start(t);q.stop(t+d+.05);}nz(d*.8,'bandpass',2600,.35,o,t,1.5);}catch(e){}}
-function hordeFx(x,z){sScream(x,z);msg('Los cuervos han despertado a una horda');for(const f of FLOCKS)if(Math.hypot(f.x-x,f.z-z)<1)for(const c of f.corp)c.o.g.visible=false;}
+function hordeFx(x,z){sScream(x,z);darkHit();msg('Los cuervos han despertado a una horda');for(const f of FLOCKS)if(Math.hypot(f.x-x,f.z-z)<1)for(const c of f.corp)c.o.g.visible=false;}
 const runner=z=>{z.speed=z.speed0=3.5+R()*.9;};
 function hordeGo(x,z){if(time<hordeCd)return;hordeCd=time+45;const f=FLOCKS.find(f=>Math.hypot(f.x-x,f.z-z)<1);let n=24;
   if(f)for(const c of f.corp){if(!c.o.g.visible)continue;const o=mkZ(false,0);for(const m of o.g.children.slice())if(m.isSkinnedMesh){o.g.remove(m);m.skeleton.dispose();}
     zSkin(o,c.ti);zPose(o,false,false);o.pos.set(c.x,0,c.z);o.g.position.copy(o.pos);o.g.rotation.set(-Math.PI/2,c.ry,0);o.stun=1.2;runner(o);GETUP.push({z:o,t:0});n--;}
   HQ.push({x,z,n,t:.6});hordeFx(x,z);if(net.host)bc({t:'hordefx',x,z});}
-let frenzyT=0;
+let frenzyT=0,alarmCd=0;
 const DM={t:0,bar:0,bus:null,dr:null},dmF=n=>440*Math.pow(2,(n-69)/12),
   DMC=[[38,45,53,57],[34,41,50,53],[43,50,55,58],[33,45,52,61],[38,45,53,57],[39,46,51,55],[43,50,55,58],[33,45,52,61]],
   DMB=[[[74,0],[77,1.5],[76,3]],[[74,.5],[70,2.5]],[[79,0],[77,1],[74,2.5]],[[73,1],[76,2.5],[69,3.5]],[[81,0],[77,2]],[[75,.5],[79,2],[70,3.5]],[[74,0],[70,1.5],[67,3]],[[68,1],[69,2.5],[61,3.5]]];
@@ -621,13 +621,18 @@ function darkBar(b,t,q,tn){const o=DM.bus,i=b%8;
       g.gain.setValueAtTime(.0001,tt);g.gain.linearRampToValueAtTime(v*k,tt+.012);g.gain.exponentialRampToValueAtTime(.0001,tt+len);os.connect(g);g.connect(o);os.start(tt);os.stop(tt+len+.05);}}}
   if(i%2==0){const os=AC.createOscillator(),g=AC.createGain();os.frequency.setValueAtTime(58,t);os.frequency.exponentialRampToValueAtTime(29,t+1.1);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);os.connect(g);g.connect(o);os.start(t);os.stop(t+1.7);}
   // con tensión (horda o muchos zombis) entra un pulso grave de ocho golpes por compás
-  if(tn>.3)for(let j=0;j<8;j++){const tt=t+j*.5*q,os=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();os.type='sawtooth';os.frequency.value=dmF(DMC[i][0]-(j%4==3?0:12)+12);f.type='lowpass';f.frequency.value=260+240*tn;g.gain.setValueAtTime(.0001,tt);g.gain.linearRampToValueAtTime(.16*tn,tt+.012);g.gain.exponentialRampToValueAtTime(.0001,tt+.22);os.connect(f);f.connect(g);g.connect(o);os.start(tt);os.stop(tt+.25);}}
+  if(tn>.2)for(let j=0;j<8;j++){const tt=t+j*.5*q,os=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();os.type='square';os.frequency.value=dmF(DMC[i][0]+12+(j%4==3?7:0));f.type='lowpass';f.frequency.value=500+900*tn;g.gain.setValueAtTime(.0001,tt);g.gain.linearRampToValueAtTime(.2*tn,tt+.012);g.gain.exponentialRampToValueAtTime(.0001,tt+.22);os.connect(f);f.connect(g);g.connect(o);os.start(tt);os.stop(tt+.25);
+    nz(.04,'highpass',6000,.16*tn,o,tt);if(tn>.65)nz(.03,'highpass',7000,.1*tn,o,tt+.25*q);
+    if(j%2==0){const k=AC.createOscillator(),kg=AC.createGain();k.frequency.setValueAtTime(130,tt);k.frequency.exponentialRampToValueAtTime(42,tt+.14);kg.gain.setValueAtTime(.7*tn,tt);kg.gain.exponentialRampToValueAtTime(.0001,tt+.2);k.connect(kg);kg.connect(o);k.start(tt);k.stop(tt+.22);}}}
+// golpe de aviso al despertar una horda o saltar una alarma: trueno grave y acorde disonante, y la música pasa de golpe a su ritmo más rápido
+function darkHit(){if(!AC||!DM.bus)return;const t=AC.currentTime+.02,o=DM.bus;DM.tn=1;DM.t=t+.6;const b=AC.createOscillator(),bg=AC.createGain();b.frequency.setValueAtTime(85,t);b.frequency.exponentialRampToValueAtTime(24,t+1.8);bg.gain.setValueAtTime(1,t);bg.gain.exponentialRampToValueAtTime(.0001,t+2.2);b.connect(bg);bg.connect(o);b.start(t);b.stop(t+2.3);
+  for(const n of[50,51,56,62]){const os=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();os.type='sawtooth';os.frequency.value=dmF(n);f.type='lowpass';f.frequency.value=1100;g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+2.6);os.connect(f);f.connect(g);g.connect(o);os.start(t);os.stop(t+2.7);}}
 function darkTick(){if(!AC)return;if(!DM.bus){DM.bus=AC.createGain();DM.bus.gain.value=.5;DM.bus.connect(AC.destination);
     const f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.frequency.value=170;g.gain.value=0;for(const fr of[36.7,36.95,73.5]){const os=AC.createOscillator();os.type='sawtooth';os.frequency.value=fr;os.connect(f);os.start();}f.connect(g);g.connect(DM.bus);DM.dr={g,f};}
   const on=!music.on;DM.dr.g.gain.value=0;DM.dr.f.frequency.value=170+60*Math.sin(time*.11);
   if(!on){DM.t=0;return;}if(!DM.t||DM.t<AC.currentTime-1)DM.t=AC.currentTime+.4;
   // tensión de 0 a 1: horda recién despertada o más de 8 zombis vivos (tope con 32); el compás pasa de 4 s a 2 s
-  while(DM.t<AC.currentTime+.7){const tn=Math.min(1,Math.max(HQ.length||time<hordeCd-25?1:0,(zombies.length-8)/24));DM.tn=(DM.tn||0)+(tn-(DM.tn||0))*.6;const q=1/(1+DM.tn);try{darkBar(DM.bar,DM.t,q,DM.tn);}catch(e){}DM.t+=4*q;DM.bar++;}}
+  while(DM.t<AC.currentTime+.7){const tn=Math.min(1,Math.max(HQ.length||time<hordeCd-25?1:0,(zombies.length-5)/13));DM.tn=(DM.tn||0)+(tn-(DM.tn||0))*.6;const q=1/(1+DM.tn);try{darkBar(DM.bar,DM.t,q,DM.tn);}catch(e){}DM.t+=4*q;DM.bar++;}}
 function frenzyTick(dt){if(net.client||frenzyT<=0)return;frenzyT-=dt;const on=frenzyT>0;for(const z of zombies){if(z.bn)continue;if(on&&!z.fz){const k=Math.max(1,(3.6+R()*.8)/(z.speed0||z.speed));z.fz=k;z.speed*=k;z.speed0*=k;}else if(!on&&z.fz){z.speed/=z.fz;z.speed0/=z.fz;z.fz=0;}}}
 function corpRaise(x,z){for(const f of FLOCKS){if(Math.hypot(f.x-x,f.z-z)>16||!f.corp.some(c=>c.o.g.visible))continue;
     for(const c of f.corp){if(!c.o.g.visible)continue;c.o.g.visible=false;const o=mkZ(false,0);for(const m of o.g.children.slice())if(m.isSkinnedMesh){o.g.remove(m);m.skeleton.dispose();}
