@@ -1208,12 +1208,12 @@ function touchInit(){if(touchOn)return;touchOn=true;document.body.classList.add(
   $('ovs').textContent='Izquierda: moverte (empuja a tope para correr) · Derecha: mirar · Botones: disparar, mira, recargar, usar…';
   const S=(r,b,z)=>'right:'+r+'px;bottom:'+b+'px;width:'+z+'px;height:'+z+'px';
   // el botón de disparo también sirve para mirar mientras se mantiene
-  tBtn('FUEGO',S(22,56,82),t=>{firing=true;pressed=true;if(look.id==null){look.id=t.identifier;look.x=t.clientX;look.y=t.clientY;}},t=>{firing=false;if(look.id==t.identifier)look.id=null;});
+  tBtn('FUEGO',S(183,81,72),t=>{firing=true;pressed=true;if(look.id==null){look.id=t.identifier;look.x=t.clientX;look.y=t.clientY;}},t=>{firing=false;if(look.id==t.identifier)look.id=null;});
   const ab=tBtn('MIRA',S(118,22,58),(t,b)=>{aim=!aim;b.classList.toggle('on',aim);});ab.dataset.hold=1;
   tBtn('RECARGA',S(118,96,58),()=>reload());
   tBtn('SALTO',S(26,152,56),()=>{if(P.y==0)P.vy=5.5;});
   tBtn('ARMA',S(192,22,54),()=>{if(slots.length>1)switchTo((ci+1)%slots.length);});
-  tBtn('USAR',S(192,90,54),()=>interact());
+  tBtn('USAR',S(24,58,64),()=>interact());
   tBtn('REPARA',S(262,22,54),()=>{keys.KeyF=true;},()=>{keys.KeyF=false;});
   tBtn('GRANADA',S(100,170,50),()=>throwG());
   tBtn('CUCHILLO',S(164,160,50),()=>knife());
