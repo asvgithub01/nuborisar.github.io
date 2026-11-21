@@ -1905,7 +1905,7 @@ const ADJ=(()=>{let E={},box=null,lastGf=null,out=null,tab='vis';try{tab=localSt
 addEventListener('keydown',e=>{if(e.code=='F2'&&(state=='play'||editMode)){e.preventDefault();ADJ.toggle();}});
 // ---------- mejoras visuales (v11): se activan y desactivan en el panel F2, pestaña «Gráficos». Se guardan en este navegador ----------
 const VFX=(()=>{
-  const DEF={luz:1,somL:1,somM:0,ao:1,bloom:1,grade:1,niebla:1,cielo:1,vin:1,grano:1,cont:0,fxaa:1,latido:1,aberr:1,polvo:1,ondas:1,hojas:1,aoK:1,bloomK:1,gradeK:1};
+  const DEF={luz:1,somL:1,somM:0,ao:1,bloom:1,grade:1,niebla:1,cielo:1,vin:1,grano:1,cont:0,fxaa:1,latido:1,aberr:1,polvo:1,ondas:1,hojas:1,aoK:.2,bloomK:1,gradeK:.55};
   const O=Object.assign({},DEF);try{Object.assign(O,JSON.parse(localStorage.getItem('ub_vis')||'{}'));}catch(e){}
   const save=()=>{try{localStorage.setItem('ub_vis',JSON.stringify(O));}catch(e){}};
   const C=c=>new THREE.Color(c);
