@@ -2290,7 +2290,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
     const g=document.createElement('span');g.style.flex='1';top.appendChild(g);
     B(colOn?'Colisión: SÍ':'Colisión: NO',()=>{colOn=!colOn;colM.visible=colOn;colK='';bar();},colOn);
     B(fogOn?'Niebla: SÍ':'Niebla: NO',()=>{fogOn=!fogOn;scene.fog.density=fogOn?fd0:.003;bar();},fogOn);
-    B('Volver al inicio de la zona',overSpawn);B('▶ Probar esta zona',()=>window.open('v12_graficos.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
+    B('Volver al inicio de la zona',overSpawn);B('▶ Probar esta zona',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
     B('Ayuda (H)',()=>{help.style.display=help.style.display=='none'?'':'none';});}
   const help=document.createElement('div');help.style.cssText='position:fixed;right:10px;bottom:10px;z-index:30;max-width:380px;background:rgba(10,12,18,.9);color:#dde;font:12px/1.5 sans-serif;padding:10px 12px;border:1px solid #456;border-radius:8px';
   help.innerHTML='<b>Moverse</b>: WASD · Q/E bajar/subir · Mayús rápido · rueda acercar · botón derecho (o central) arrastrando para mirar<br><b>Modelos</b>: clic para elegir · arrastra para moverlo por el suelo (Mayús: pasos de 5 cm) · Alt+arrastrar sube/baja · flechas, RePág/AvPág, coma/punto, Fin al suelo, Supr ocultar, Ctrl+Z deshacer<br><b>Añadir / Suelo</b>: elige en el panel y haz clic en el suelo (en Suelo puedes arrastrar para pintar)<br><b>C</b> colisión · <b>H</b> esta ayuda · <b>▶ Probar</b> abre el juego en esta zona con tus cambios (modo edición)<br>Los cambios se guardan solos en este navegador; para dejarlos fijos: «Copiar arreglos (JSON)» y pásaselos a Claude.';
