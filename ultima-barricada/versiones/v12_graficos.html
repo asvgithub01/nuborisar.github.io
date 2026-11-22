@@ -89,9 +89,9 @@
   <p style="margin:4px 0 12px;font-size:15px">Mi micrófono: <input id="volm" type="range" min="0" max="400" step="10" value="100" style="width:200px;vertical-align:middle"> <b id="volmv">100%</b></p>
   <p style="margin:6px 0 12px;font-size:15px"><label><input id="edm" type="checkbox"> Modo edición: inmortal, todas las armas y rondas llenas de zombis</label></p>
   <button id="go">JUGAR</button>
-  <div style="margin-top:16px;font-size:15px"><span id="lobbyBtns"><button id="mkHost" class="nb">CREAR PARTIDA</button> &nbsp;
+  <div style="margin-top:16px;font-size:15px"><span id="lobbyBtns"><button id="mkFind" class="nb">BUSCAR PARTIDA</button> &nbsp;<button id="mkHost" class="nb">CREAR PARTIDA</button> &nbsp;
     <input id="code" maxlength="4" placeholder="CÓDIGO" style="width:90px;font-size:17px;text-align:center;text-transform:uppercase"> <button id="mkJoin" class="nb">UNIRSE</button></span>
-    <p id="netinfo" style="color:#ffd75a;font-weight:700"></p></div>
+    <p id="netinfo" style="color:#ffd75a;font-weight:700"></p><div id="lobbyList" style="display:none;margin:0 auto;max-width:520px;text-align:left"></div></div>
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -689,8 +689,8 @@ function amb2Tick(dt){const A=AMB,cp=camera.position;
   if(AC){ambSnd();if(A.snd){A.snd.rain.g.gain.value=.05*A.rain*(roof?.4:1);A.snd.wind.g.gain.value=Math.max(0,.1+.06*Math.sin(time*.23)+.04*Math.sin(time*.61)+.08*A.rain);A.snd.wind.b.frequency.value=320+140*Math.sin(time*.17);}
     if((A.sirT-=dt)<=0){A.sirT=55+R()*90;try{const a=R()*6.283,o=at(P.x+Math.cos(a)*60,P.z+Math.sin(a)*60,3),t=AC.currentTime;for(let i=0;i<5;i++){osc('sine',640,960,.55,.5,o,t+i*1.1);osc('sine',960,640,.55,.5,o,t+i*1.1+.55);}}catch(e){}}
     if((A.moanT-=dt)<=0){A.moanT=16+R()*26;try{const a=R()*6.283;sGroanV(P.x+Math.cos(a)*32,P.z+Math.sin(a)*32);}catch(e){}}}}
-let mapIds=false,zFreeze=0;const MAPFIX={"z0":{"c":{},"m":{"183:1":[0,-5,-10,0,0],"186:0":[0,-5,-10,0,1],"173:0":[-3.4,-5,-4.5,0,0]},"a":[]}};
-const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,cat='suelo',page=0,amod=null,thR=null,thS=null;const undo=[],INFO={},THM={},TRI_EXTRA=150000;try{L=JSON.parse(localStorage.getItem('ub_map')||'{}')||{};}catch(e){}
+let mapIds=false,zFreeze=0;const ZQ=Math.max(0,Math.min(ZONAS.length-1,parseInt(new URLSearchParams(location.search).get('zona'))||0)),MAPFIX={"z0":{"c":{},"m":{"183:1":[0,-5,-10,0,0],"186:0":[0,-5,-10,0,1],"173:0":[-3.4,-5,-4.5,0,0]},"a":[]}};
+const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,cat='suelo',page=0,amod=null,thR=null,thS=null;let mxy=null;const undo=[],INFO={},THM={},TRI_EXTRA=150000;try{L=JSON.parse(localStorage.getItem('ub_map')||'{}')||{};}catch(e){}
   const Z=()=>{const z=L['z'+zi]||(L['z'+zi]={c:{},m:{}});if(!z.a)z.a=[];if(!z.c)z.c={};if(!z.m)z.m={};return z;},save=()=>{try{localStorage.setItem('ub_map',JSON.stringify(L));}catch(e){}};
   const cellsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).c,(L['z'+i]||{}).c),modsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).m,(L['z'+i]||{}).m),addsOf=i=>((MAPFIX['z'+i]||{}).a||[]).concat((L['z'+i]||{}).a||[]);
   const dec=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);return u;};
@@ -709,7 +709,9 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tope de cada zona: lo que ya traía más 150.000 triángulos de margen para añadidos
   const triMax=()=>{let n=tris();if(window.ZD&&window.ZD[zi]){const A=info();for(const e of addsOf(zi))if(A[e[0]])n-=A[e[0]].nt;}return n+TRI_EXTRA;};
   function origin(mi,i){const D=window.ZD[zi],f=new Float32Array(dec(D.models[mi].i).buffer),a=i*12,v=modsOf(zi)[mi+':'+i]||[0,0,0,0,0];return[f[a+3]-D.rect[0]+v[0],f[a+7]-.06-ZONAS[zi].y0+v[1],f[a+11]-D.rect[1]+v[2]];}
-  function pick(){if(!mapIds||!cityG.children.some(m=>m.userData.ids))recity();const d=new V3();camera.getWorldDirection(d);ray.set(camera.position,d);let best=null;
+  // dirección de la mirada: el centro de la pantalla o, en el editor aparte, el puntero del ratón (mxy en coordenadas -1..1)
+  const aimDir=()=>{const d=new V3();if(mxy)d.set(mxy[0],mxy[1],.5).unproject(camera).sub(camera.position).normalize();else camera.getWorldDirection(d);return d;};
+  function pick(){if(!mapIds||!cityG.children.some(m=>m.userData.ids))recity();const d=aimDir();ray.set(camera.position,d);let best=null;
     for(const me of cityG.children){if(!me.userData.ids)continue;const h=[];THREE.Mesh.prototype.raycast.call(me,ray,h);for(const x of h)if(!best||x.distance<best.distance){best=x;best.me=me;}}
     return best?best.me.userData.ids[best.faceIndex]:null;}
   function select(id){unsel();if(id==null)return;const mi=Math.floor(id/65536),i=id%65536,key=mi+':'+i,parts=[],n0=window.ZD[zi].models[mi].k;let add=null;
@@ -744,7 +746,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     if(c=='ArrowUp')d=[fx*s,0,fz*s,0];else if(c=='ArrowDown')d=[-fx*s,0,-fz*s,0];else if(c=='ArrowLeft')d=[fz*s,0,-fx*s,0];else if(c=='ArrowRight')d=[-fz*s,0,fx*s,0];
     else if(c=='PageUp')d=[0,.1*f,0,0];else if(c=='PageDown')d=[0,-.1*f,0,0];else if(c=='Comma')d=[0,0,0,Math.PI/12*f];else if(c=='Period')d=[0,0,0,-Math.PI/12*f];
     if(!d)return false;if(!e.repeat||!mu.length)snap();for(let j=0;j<4;j++)sel.v[j]=+(sel.v[j]+d[j]).toFixed(4);apply();draw();return true;}
-  function ground(){const d=new V3();camera.getWorldDirection(d);if(d.y>-.03)return null;const cp=camera.position,t=(cp.y-(P.by||0))/-d.y;return t>45?null:[cp.x+d.x*t,P.by||0,cp.z+d.z*t];}
+  function ground(){const d=aimDir();if(d.y>-.01)return null;const cp=camera.position,t=(cp.y-(P.by||0))/-d.y;return t>(mxy?600:45)?null:[cp.x+d.x*t,P.by||0,cp.z+d.z*t];}
   function paintAt(){if(tab=='add'){placeAt();return;}if(tab=='mod'){if(sel&&sel.zone!=zi)unsel();const id=pick();if(id!=null){select(id);draw();}else msg('Ahí no hay ningún modelo');return;}if(P.lv|0){msg('El suelo solo se pinta en la planta baja');return;}const g=ground();if(!g)return;
     const x=Math.floor(g[0]),z=Math.floor(g[2]),k=x+','+z,C=Z().c;undo.push([zi,k,k in C?C[k]:null]);if(ptype<0)delete C[k];else C[k]=ptype;save();regrid();draw();}
   // catálogo: medidas y triángulos de cada modelo de la zona, y a qué grupo va
@@ -809,7 +811,8 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tecla M: con el ratón capturado elige el modelo al que apuntas; sin capturar, abre o cierra el panel
   function key(){const locked=document.pointerLockElement==renderer.domElement;if(!locked&&pan){close();return;}if(sel&&sel.zone!=zi)unsel();
     if(locked&&tab=='mod'){const id=pick();if(id!=null)select(id);else msg('Ahí no hay ningún modelo');}open();}
-  return{cells,mods,adds,key,paintAt,nudge,get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+  return{cells,mods,adds,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+if(ZQ)setTimeout(()=>goZone(ZQ),0);
 MAPED.cells(zi);rebuildWalls();   // la zona inicial se cargó antes de existir el editor
 function boomFx(p,rad){brlFx(p,rad);fxBoom(p,rad);spray(p,0xffc040,14,9,6,.5,1.6);sBoom(p.x,p.z);}
 function explode(p,rad,dmg,hurt,from){
@@ -1655,7 +1658,7 @@ function addRemote(c){const r={conn:c,id:pid++,x:P.x,z:P.z,yaw:0,hp:100,dead:tru
 // --- vía alternativa por servidor (cuando la conexión directa entre navegadores no se abre) ---
 const RELAY='wss://broker.emqx.io:8084/mqtt',RT='ubarricada/v10/';
 function loadMq(cb){if(window.mqtt)return cb();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';s.onload=()=>cb();s.onerror=()=>cb(1);document.head.appendChild(s);}
-function relayHost(code){loadMq(err=>{if(err)return;const m=net.mq=mqtt.connect(RELAY,{reconnectPeriod:3000}),cl={};
+function relayHost(code){loadMq(err=>{if(err)return;const m=net.mq=mqtt.connect(RELAY,{reconnectPeriod:3000,will:{topic:RT+'lobby/'+code,payload:'',retain:true,qos:0}}),cl={};lobbyAnn(m,code);
   m.on('connect',()=>m.subscribe(RT+code+'/h'));
   m.on('message',(t,p)=>{let d;try{d=JSON.parse(p.toString());}catch(e){return;}if(!d||!d.f||!d.d)return;let c=cl[d.f];
     if(!c){if(d.d.t!='hello')return;c=cl[d.f]={open:true,peer:null,send(x){m.publish(RT+code+'/c/'+d.f,JSON.stringify(x));}};c.r=addRemote(c);c.last=performance.now();c.r.open();return;}
@@ -1682,6 +1685,24 @@ function joinGame(){if(net.peer)return;const code=$('code').value.trim().toUpper
     c.on('data',clientMsg);
     c.on('close',()=>{if(net.mq)return;if(state!='dead'){msg('Conexión perdida');gameOver();}});});}
 $('mkHost').onclick=hostGame;$('mkJoin').onclick=joinGame;
+// --- buscar partida: anuncios de los anfitriones en el relé ---
+function lobbyAnn(m,code){const T=RT+'lobby/'+code,pub=()=>{if(!m.connected)return;m.publish(T,JSON.stringify({c:code,n:remotes.length+1,z:zi,r:round,s:state=='play'?1:0,t:Date.now()}),{retain:true});};
+  m.on('connect',pub);setInterval(pub,5000);addEventListener('pagehide',()=>{try{m.publish(T,'',{retain:true});}catch(e){}});}
+let lobbyMq=null;
+function lobbyFind(){const box=$('lobbyList'),L={};box.style.display='block';box.innerHTML='';netInfo('Buscando partidas abiertas…');
+  loadMq(err=>{if(err){netInfo('No se pudo conectar: sin acceso al servidor.');return;}if(lobbyMq)try{lobbyMq.end(true);}catch(e){}
+    const m=lobbyMq=mqtt.connect(RELAY,{reconnectPeriod:3000});m.on('connect',()=>m.subscribe(RT+'lobby/+'));
+    m.on('message',(t,p)=>{const c=t.split('/').pop();let d=null;try{d=p.length?JSON.parse(p.toString()):null;}catch(e){}if(d&&d.c==c)L[c]=d;else delete L[c];draw();});
+    const t0=Date.now();
+    function draw(){if(lobbyMq!==m)return;const now=Date.now(),A=Object.values(L).filter(d=>now-d.t<25000).sort((a,b)=>b.t-a.t);box.innerHTML='';
+      if(!A.length){netInfo(now-t0<4000?'Buscando partidas abiertas…':'No hay partidas abiertas ahora mismo. Crea una con CREAR PARTIDA y tus amigos la verán aquí.');return;}
+      netInfo('Partidas abiertas: elige una para unirte');
+      for(const d of A){const b=document.createElement('button');b.className='nb';b.style.cssText='display:block;width:100%;margin:4px 0;text-align:left';
+        b.textContent='Partida '+d.c+' · '+d.n+(d.n==1?' jugador':' jugadores')+' · '+((ZONAS[d.z]||{}).n||'Zona '+d.z)+' · '+(d.s?'jugando, ronda '+d.r:'en la sala');
+        b.onclick=()=>{lobbyStop();$('code').value=d.c;joinGame();};box.appendChild(b);}}
+    const iv=setInterval(()=>{if(lobbyMq!==m){clearInterval(iv);return;}draw();},2000);});}
+function lobbyStop(){if(lobbyMq){try{lobbyMq.end(true);}catch(e){}lobbyMq=null;}const b=$('lobbyList');if(b){b.style.display='none';b.innerHTML='';}}
+$('mkFind').onclick=lobbyFind;{const h=$('mkHost').onclick;$('mkHost').onclick=()=>{lobbyStop();h();};}
 function hostMsg(r,d){
   if(d.t=='me'){r.wk=d.w;r.down=d.dn|0;if(d.st)r.st=d.st;r.lv=d.lv|0;r.by=d.y||0;if(d.lk){const q=JSON.stringify(d.lk);if(q!=r.lkS){r.lkS=q;r.lk=okLook(d.lk);r.ch=r.lk[0];avSet(r.g,r.lk);msg(pName(r.g)+' entra en la partida');}}r.x=d.x;r.z=d.z;r.yaw=d.yaw;r.hp=d.hp;r.dead=!!d.dead;r.afkc=!!d.afk;r.last=time;}
   else if(d.t=='hit'){const z=zombies.find(z=>z.id==d.id);if(z){credit=r;if(d.stun)z.stun=.6;if(d.burn)z.burn=2.5;hurtZ(z,d.d,!!d.head,!!d.pts,d.part);credit=null;}}
