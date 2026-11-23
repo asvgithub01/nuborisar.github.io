@@ -243,7 +243,7 @@ function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(
   cityG.position.set(0,0,0);const ox=-D.rect[0],oy=-.06-ZONAS[zi].y0,oz=-D.rect[1],CH=25,NX=Math.ceil(GW/CH),NZ=Math.ceil(GH/CH),bufs=[];
   const buf=(cx,cz,mt)=>{const id=((cz<0?0:cz>=NZ?NZ-1:cz)*NX+(cx<0?0:cx>=NX?NX-1:cx))*2+mt;return bufs[id]||(bufs[id]=new GBuf());};
   for(const m of D.models){const u=by(m.d),q=new Int16Array(u.buffer,0,m.nv*3),cc=new Uint16Array(u.buffer,m.nv*6,m.nt),o=m.nv*6+m.nt*2,ix=m.w?new Uint32Array(u.buffer.slice(o),0,m.nt*3):new Uint16Array(u.buffer.slice(o),0,m.nt*3);
-    const k=m.s/32767,f=new Float32Array(by(m.i).buffer),nn=m.nt-(m.r||0);carScan(m,q,k,f,ox,oz);const mi=D.models.indexOf(m);MAPED.mods(mi,f,m.k);const fx=MAPED.adds(mi,f,m.k,ox,oy,oz),nk=fx.length/12;
+    const k=m.s/32767,f=new Float32Array(by(m.i).buffer),nn=m.nt-(m.r||0);carScan(m,q,k,f,ox,oz);const mi=D.models.indexOf(m);MAPED.reg(mi,m,q,ix,k,f,ox,oy,oz);MAPED.mods(mi,f,m.k);const fx=MAPED.adds(mi,f,m.k,ox,oy,oz),nk=fx.length/12;
     for(let i=0;i<nk;i++){const a=i*12,m0=fx[a],m1=fx[a+1],m2=fx[a+2],m3=fx[a+3]+ox,m4=fx[a+4],m5=fx[a+5],m6=fx[a+6],m7=fx[a+7]+oy,m8=fx[a+8],m9=fx[a+9],m10=fx[a+10],m11=fx[a+11]+oz;
       if(BZ.some(B=>m3>B.cut[0]&&m3<B.cut[2]&&m11>B.cut[1]&&m11<B.cut[3])){if(m.hy===undefined){let h=0;for(let j=1;j<q.length;j+=3)if(q[j]>h)h=q[j];m.hy=h*k;}if(m.hy>.3)continue;}
       const flip=m0*(m5*m10-m6*m9)-m1*(m4*m10-m6*m8)+m2*(m4*m9-m5*m8)<0;
@@ -254,7 +254,7 @@ function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(
         const B=buf(Math.floor((ax+bx+cx)/3/CH),Math.floor((az+bz+cz)/3/CH),t<nn?0:1);B.need(3);let w=B.n*3;const P=B.p,Q=B.q,K=B.k,c=cc[t],r=(c>>11)*255/31,g=(c>>5&63)*255/63,bl=(c&31)*255/31;
         P[w]=ax;P[w+1]=ay;P[w+2]=az;P[w+3]=bx;P[w+4]=by_;P[w+5]=bz;P[w+6]=cx;P[w+7]=cy;P[w+8]=cz;
         for(let j=0;j<3;j++,w+=3){Q[w]=nx;Q[w+1]=ny;Q[w+2]=nz;K[w]=r;K[w+1]=g;K[w+2]=bl;}B.n+=3;if(mapIds)(B.id||(B.id=[])).push(mi*65536+i);}}}
-  bufs.forEach((B,id)=>{if(!B||!B.n)return;const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(B.p.slice(0,B.n*3),3));ge.setAttribute('normal',new THREE.BufferAttribute(B.q.slice(0,B.n*3),3,true));ge.setAttribute('color',new THREE.BufferAttribute(B.k.slice(0,B.n*3),3,true));
+  MAPED.autoCol();bufs.forEach((B,id)=>{if(!B||!B.n)return;const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(B.p.slice(0,B.n*3),3));ge.setAttribute('normal',new THREE.BufferAttribute(B.q.slice(0,B.n*3),3,true));ge.setAttribute('color',new THREE.BufferAttribute(B.k.slice(0,B.n*3),3,true));
     ge.computeBoundingSphere();const me=new THREE.Mesh(ge,id&1?roadM:cityM);me.userData.ids=B.id;me.raycast=()=>{};me.matrixAutoUpdate=false;cityG.add(me);});
   if(cityWarm)return;cityWarm=true;
   // precarga de los modelos de zombi para que no den un tirón la primera vez que aparece cada tipo
@@ -691,7 +691,7 @@ function amb2Tick(dt){const A=AMB,cp=camera.position;
   if(AC){ambSnd();if(A.snd){A.snd.rain.g.gain.value=.05*A.rain*(roof?.4:1);A.snd.wind.g.gain.value=Math.max(0,.1+.06*Math.sin(time*.23)+.04*Math.sin(time*.61)+.08*A.rain);A.snd.wind.b.frequency.value=320+140*Math.sin(time*.17);}
     if((A.sirT-=dt)<=0){A.sirT=55+R()*90;try{const a=R()*6.283,o=at(P.x+Math.cos(a)*60,P.z+Math.sin(a)*60,3),t=AC.currentTime;for(let i=0;i<5;i++){osc('sine',640,960,.55,.5,o,t+i*1.1);osc('sine',960,640,.55,.5,o,t+i*1.1+.55);}}catch(e){}}
     if((A.moanT-=dt)<=0){A.moanT=16+R()*26;try{const a=R()*6.283;sGroanV(P.x+Math.cos(a)*32,P.z+Math.sin(a)*32);}catch(e){}}}}
-let mapIds=false,zFreeze=0;const ZQ=Math.max(0,Math.min(ZONAS.length-1,parseInt(new URLSearchParams(location.search).get('zona'))||0)),MAPFIX={"z0":{"c":{},"m":{"183:1":[0,-7.86,-10,0,0],"186:0":[0,-5,-10,0,1],"173:0":[-3.4,-4.226,-4.5,0,0],"120:8":[0.01,0,-0.02,0,0],"195:0":[-12.93,-12.198,-49.31,0,0],"120:0":[0.08,0,-0.01,0,0],"88:90":[-0.02,0,0,0,0],"91:6":[0.04,0,0,0,0]},"a":[]}};
+let mapIds=false,zFreeze=0;const ZQ=Math.max(0,Math.min(ZONAS.length-1,parseInt(new URLSearchParams(location.search).get('zona'))||0)),MAPFIX={"z0":{"c":{"54,56":0,"54,55":0,"55,55":0,"53,52":0,"53,54":0,"53,53":0,"52,53":0,"52,52":0,"52,51":0,"53,51":0,"53,50":0,"52,50":0,"52,49":0,"53,49":0,"53,48":0,"52,48":0,"57,52":0,"56,53":0},"m":{"183:1":[0,-7.86,-10,0,0],"186:0":[0,-5,-10,0,1],"173:0":[-3.4,-4.226,-4.5,0,0],"120:8":[0.01,0,-0.02,0,0],"195:0":[-12.93,-12.198,-49.31,0,0],"120:0":[0.08,0,-0.01,0,0],"88:90":[-0.02,0,0,0,0],"91:6":[0.04,0,0,0,0]},"a":[]}};
 const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,cat='suelo',page=0,amod=null,thR=null,thS=null;let mxy=null;const undo=[],INFO={},THM={},TRI_EXTRA=150000;try{L=JSON.parse(localStorage.getItem('ub_map')||'{}')||{};}catch(e){}
   const Z=()=>{const z=L['z'+zi]||(L['z'+zi]={c:{},m:{}});if(!z.a)z.a=[];if(!z.c)z.c={};if(!z.m)z.m={};return z;},save=()=>{try{const t=JSON.stringify(L);localStorage.setItem('ub_map',t);
     // copia de seguridad automática: como mucho una por minuto y solo si hay cambios; se guardan las 10 últimas (ub_map_bak)
@@ -711,7 +711,33 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // piezas añadidas: van detrás de las originales del mismo modelo, como matrices nuevas
   function adds(mi,f,n,ox,oy,oz){const A=addsOf(zi).filter(e=>e[0]==mi);if(!A.length)return f;const o=new Float32Array((n+A.length)*12);o.set(f.subarray(0,n*12));
     A.forEach((e,j)=>{const a=(n+j)*12,c=Math.cos(e[4]||0),sn=Math.sin(e[4]||0),k=e[5]||1;o[a]=c*k;o[a+2]=sn*k;o[a+3]=e[1]-ox;o[a+5]=k;o[a+7]=e[2]-oy;o[a+8]=-sn*k;o[a+10]=c*k;o[a+11]=e[3]-oz;});return o;}
-  function regrid(){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();flowT=0;colK='';colOn=true;colM.visible=true;}
+  // ---- colisión automática de las piezas movidas, ocultas o añadidas ----
+  // La rejilla de cada zona se calculó una vez con la ciudad original (city_grid.py). Aquí se repite ese cálculo solo para lo retocado:
+  // se quita la huella antigua de cada pieza movida, se repone lo que ocupaban sus vecinas en esas casillas y se marca la huella nueva
+  // (muestras de sus triángulos: 3 o más entre 1,2 y 1,9 m = muro; entre 0,5 y 1,05 m = obstáculo bajo). Las casillas pintadas a mano mandan por encima.
+  let REG=[],acT=0;const fpL=new Uint16Array(GW*GH),fpH=new Uint16Array(GW*GH),keepReg=()=>TEST||state=='editor';
+  function reg(mi,m,q,ix,k,f,ox,oy,oz){if(!mi)REG=[];const pre=mi+':',has=Object.keys(modsOf(zi)).some(s=>s.startsWith(pre));REG.push({mi,m,q,ix,k,f0:has?f.slice():f,ox,oy,oz});}
+  function fprint(e,F,i){const q=e.q,ix=e.ix,k=e.k,a=i*12,m0=F[a],m1=F[a+1],m2=F[a+2],m3=F[a+3]+e.ox,m4=F[a+4],m5=F[a+5],m6=F[a+6],m7=F[a+7]+e.oy,m8=F[a+8],m9=F[a+9],m10=F[a+10],m11=F[a+11]+e.oz,T=[],out=[],p=new Float64Array(9);
+    for(let t=0;t<e.m.nt;t++){let lo=1e9,hi=-1e9;for(let c=0;c<3;c++){const v=ix[t*3+c]*3,x=q[v]*k,y=q[v+1]*k,z=q[v+2]*k,Y=m4*x+m5*y+m6*z+m7;p[c*3]=m0*x+m1*y+m2*z+m3;p[c*3+1]=Y;p[c*3+2]=m8*x+m9*y+m10*z+m11;if(Y<lo)lo=Y;if(Y>hi)hi=Y;}
+      if(hi<=.5||lo>=1.9)continue;
+      const L=Math.max(Math.hypot(p[3]-p[0],p[4]-p[1],p[5]-p[2]),Math.hypot(p[6]-p[0],p[7]-p[1],p[8]-p[2])),n=Math.max(1,Math.min(60,Math.ceil(L/.35)));
+      for(let i2=0;i2<=n;i2++)for(let j=0;i2+j<=n;j++){const u=i2/n,v=j/n,w=1-u-v,y=p[1]*w+p[4]*u+p[7]*v,isL=y>.5&&y<1.05,isH=y>=1.2&&y<1.9;if(!isL&&!isH)continue;
+        const gx=Math.floor(p[0]*w+p[3]*u+p[6]*v)+OX,gz=Math.floor(p[2]*w+p[5]*u+p[8]*v)+OZ;if(gx<0||gz<0||gx>=GW||gz>=GH)continue;const id=gz*GW+gx;if(!fpL[id]&&!fpH[id])T.push(id);if(isL){if(fpL[id]<65535)fpL[id]++;}else if(fpH[id]<65535)fpH[id]++;}}
+    for(const id of T){if(fpH[id]>=3)out.push(id,1);else if(fpL[id]>=3)out.push(id,5);fpL[id]=fpH[id]=0;}return out;}
+  function autoCol(){const keys=Object.keys(modsOf(zi)),A=addsOf(zi);if(!REG.length||(!keys.length&&!A.length)){if(!keepReg())REG=[];return false;}
+    gridLoad(zi);bldGrid(zi);const cleared=new Set(),isMod={},byMi={};for(const s of keys)isMod[s]=1;for(const e of REG)byMi[e.mi]=e;
+    for(const s of keys){const c=s.split(':'),e=byMi[+c[0]],i=+c[1];if(!e||i>=e.m.k)continue;const fp=fprint(e,e.f0,i);for(let j=0;j<fp.length;j+=2){const id=fp[j];if(grid[id]==1||grid[id]==5){grid[id]=0;cleared.add(id);}}}
+    if(cleared.size){const cs=[...cleared].map(id=>[id%GW-OX+.5,(id/GW|0)-OZ+.5]);
+      for(const e of REG){if(e.rad==null){let r=0;const q=e.q;for(let v=0;v<e.m.nv*3;v+=3){const d=Math.hypot(q[v],q[v+2]);if(d>r)r=d;}e.rad=r*e.k;}
+        for(let i=0;i<e.m.k;i++){if(isMod[e.mi+':'+i])continue;const a=i*12,F=e.f0,cx=F[a+3]+e.ox,cz=F[a+11]+e.oz,R=e.rad*Math.max(Math.hypot(F[a],F[a+8]),Math.hypot(F[a+2],F[a+10]))+1;
+          if(!cs.some(c=>Math.abs(c[0]-cx)<R&&Math.abs(c[1]-cz)<R))continue;const fp=fprint(e,F,i);for(let j=0;j<fp.length;j+=2)if(cleared.has(fp[j])&&grid[fp[j]]!=1)grid[fp[j]]=fp[j+1];}}}
+    for(const e of REG){const pre=e.mi+':',n=e.m.k,ks=keys.filter(s=>s.startsWith(pre));if(!ks.length&&!A.some(x=>x[0]==e.mi))continue;
+      let F=e.f0;if(ks.length){F=e.f0.slice();mods(e.mi,F,n);}const fx=adds(e.mi,F,n,e.ox,e.oy,e.oz),L=ks.map(s=>+s.split(':')[1]).filter(i=>i<n);for(let i=n;i<fx.length/12;i++)L.push(i);
+      for(const i of L){const fp=fprint(e,fx,i);for(let j=0;j<fp.length;j+=2){const id=fp[j],g=grid[id];if(g==0||(g==5&&fp[j+1]==1))grid[id]=fp[j+1];}}}
+    cells(zi);rebuildWalls();flowT=0;colK='';if(!keepReg())REG=[];return true;}
+  // tras mover una pieza en el sitio: se rehace la colisión al cabo de un momento (si no se guardó la geometría, se rehace la ciudad, que la vuelve a registrar)
+  function recol(){clearTimeout(acT);acT=setTimeout(()=>{if(REG.length)autoCol();else if(pan)recity();},350);}
+  function regrid(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';colOn=true;colM.visible=true;}
   function recity(){mapIds=true;if(window.ZD&&window.ZD[zi])cityBuild(window.ZD[zi]);}
   const tris=()=>{let n=0;for(const me of cityG.children)n+=me.geometry.attributes.position.count/3;return n;};
   // tope de cada zona: lo que ya traía más 150.000 triángulos de margen para añadidos
@@ -739,7 +765,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
         a[d]=c*x+sn*z+o[0]+dx;a[d+1]=p.P0[s0+1]+dy;a[d+2]=-sn*x+c*z+o[2]+dz;const nx=p.N0[s0],nz=p.N0[s0+2];b[d]=c*nx+sn*nz;b[d+2]=-sn*nx+c*nz;}});P_.needsUpdate=true;N_.needsUpdate=true;}
     if(sel.add){const e=sel.add,b=sel.base;e[1]=+(b[1]+v[0]).toFixed(3);e[2]=+(b[2]+v[1]).toFixed(3);e[3]=+(b[3]+v[2]).toFixed(3);e[4]=+((b[4]||0)+v[3]).toFixed(4);}
     else{const zero=!v[0]&&!v[1]&&!v[2]&&!v[3]&&!v[4];if(zero)delete Z().m[sel.key];else Z().m[sel.key]=v.map((x,i)=>i<3?+x.toFixed(3):i==3?+x.toFixed(4):x?1:0);}
-    save();overlay();if(pan&&pan.children[1])pan.children[1].textContent=count();}
+    save();recol();overlay();if(pan&&pan.children[1])pan.children[1].textContent=count();}
   // deshacer de modelos: se guarda el estado antes de cada cambio (teclas, deslizadores, al suelo)
   const mu=[];const snap=()=>{if(sel){mu.push([sel.id,sel.v.slice()]);if(mu.length>200)mu.shift();}};
   function mundo(){while(mu.length&&(!sel||mu[mu.length-1][0]!==sel.id))mu.pop();const u=mu.pop();if(!u){msg('Nada que deshacer');return;}sel.v=u[1];apply();draw();}
@@ -825,7 +851,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tecla M: con el ratón capturado elige el modelo al que apuntas; sin capturar, abre o cierra el panel
   function key(){const locked=document.pointerLockElement==renderer.domElement;if(!locked&&pan){close();return;}if(sel&&sel.zone!=zi)unsel();
     if(locked&&tab=='mod'){const id=pick();if(id!=null)select(id);else msg('Ahí no hay ningún modelo');}open();}
-  return{cells,mods,adds,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+  return{cells,mods,adds,reg,autoCol,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
 if(ZQ)setTimeout(()=>goZone(ZQ),0);
 MAPED.cells(zi);rebuildWalls();   // la zona inicial se cargó antes de existir el editor
 function boomFx(p,rad){brlFx(p,rad);fxBoom(p,rad);spray(p,0xffc040,14,9,6,.5,1.6);sBoom(p.x,p.z);}
