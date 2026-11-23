@@ -135,9 +135,9 @@ function bldGrid1(B){const{x:X,z:Z,w:W,d:D,n:N}=B;if(B.clr)line(B.clr[0],B.clr[1
       gset(k,X+u,Z+side,1);if(i<5)gset(k+1,X+u,Z+side,1,2);}
     gset(k,X+ua+s*6,Z+v,1);gset(k+1,X+ua-s,Z+v,1,2);
     STAIRS.push({k,x0:X+Math.min(ua,ua+s*5),x1:X+Math.max(ua,ua+s*5)+1,z0:Z+v,z1:Z+v+1,a:X+ua+(s<0?1:0),s});};
-  st(0,1,2,1,2);st(1,D-2,W-3,-1,D-3);if(N>3)st(2,1,2,1,2);
+  st(0,1,2,1,2);if(N>2)st(1,D-2,W-3,-1,D-3);if(N>3)st(2,1,2,1,2);
   // en la azotea: arranque de la tirolina y sitios para puestos, en el lado contrario a la escalera
-  B.an=N>3?[X+W-2,Z+1]:[X+1,Z+D-2];B.spots=[];for(let u=2;u<=W-3;u+=3)B.spots.push([X+u+.5,Z+(N>3?D-2:1)+.5,N-1]);if(bldFix)bldFix(B);}
+  B.an=N!=3?[X+W-2,Z+1]:[X+1,Z+D-2];B.spots=[];if(!B.nw)for(let u=2;u<=W-3;u+=3)B.spots.push([X+u+.5,Z+(N!=3?D-2:1)+.5,N-1]);if(bldFix)bldFix(B);}
 // planta y altura de alguien (e guarda .lv; p es su posición)
 function lvUpd(e,p){if(!bldOn){e.lv=0;return 0;}const l=e.lv|0;
   for(const S of STAIRS)if((l==S.k||l==S.k+1)&&p.x>=S.x0&&p.x<S.x1&&p.z>=S.z0&&p.z<S.z1){const t=Math.max(0,Math.min(1,(p.x-S.a)*S.s/5));e.lv=t>.5?S.k+1:S.k;return(S.k+t)*LH;}
@@ -700,18 +700,18 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     const n=Date.now();if(n-bakT>60000){bakT=n;let B=[];try{B=JSON.parse(localStorage.getItem('ub_map_bak')||'[]')||[];}catch(e){}if(!B.length||B[B.length-1][1]!==t){B.push([n,t]);while(B.length>10)B.shift();localStorage.setItem('ub_map_bak',JSON.stringify(B));}}}catch(e){}};
   let bakT=0;const setL=d=>{for(const k in L)delete L[k];Object.assign(L,d);};
   // si otra pestaña (el editor aparte o la partida de prueba) guarda arreglos, esta los recoge en vez de pisarlos con los suyos
-  addEventListener('storage',e=>{if(e.key!='ub_map')return;try{setL(JSON.parse(e.newValue||'{}')||{});}catch(x){return;}if(pan){unsel();recity();draw();}});
+  addEventListener('storage',e=>{if(e.key!='ub_map')return;try{setL(JSON.parse(e.newValue||'{}')||{});nsync();}catch(x){return;}if(pan){unsel();recity();draw();}});
   const sumOf=A=>Object.keys(A).map(k=>'zona '+k.slice(1)+': '+Object.keys(A[k].m||{}).length+' movidos, '+(A[k].a||[]).length+' añadidos, '+Object.keys(A[k].c||{}).length+' casillas'+(A[k].b?', '+Object.keys(A[k].b).reduce((n,q)=>n+Object.keys(A[k].b[q]).length,0)+' casillas de edificio':'')+(A[k].e?', '+Object.keys(A[k].e).length+' tablones/puertas':'')).join(' · ')||'nada';
   const cellsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).c,(L['z'+i]||{}).c),modsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).m,(L['z'+i]||{}).m),addsOf=i=>((MAPFIX['z'+i]||{}).a||[]).concat((L['z'+i]||{}).a||[]);
   const dec=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);return u;};
   // casillas corregidas: se aplican sobre la rejilla recién cargada
-  function cells(i){const C=cellsOf(i);for(const k in C){const q=k.split(','),id=gi(+q[0],+q[1]);if(id>=0&&id<grid.length)grid[id]=C[k];}efix(i);}
+  function cells(i){const C=cellsOf(i);for(const k in C){const q=k.split(','),x=+q[0],z=+q[1],id=gi(x,z);if(BZ.some(B=>B.nw&&x>=B.x&&z>=B.z&&x<B.x+B.w&&z<B.z+B.d))continue;if(id>=0&&id<grid.length)grid[id]=C[k];}efix(i);}
   // tablones y puertas de pago sueltos por el mapa (edificios del pack, como el taller): «e» de cada zona, 'x,z' → [4|5, nx, nz] o [1000+precio]; null anula uno fijo
   const eOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).e,(L['z'+i]||{}).e);
   function efix(i){const C=eOf(i),ks=Object.keys(C).filter(k=>C[k]);if(!ks.length||i!=zi)return;if(!bReady()){bLater();return;}
     for(const k of ks){const q=k.split(','),x=+q[0],z=+q[1],v=C[k];if(entryAt[gi(x,z)]||GATES.some(g=>g.x==x&&g.z==z))continue;if(v[0]>=1000)bgateAt(x,z,v[0]-1000);else bentryAt(x,z,[v[1]|0,v[2]|0],v[0]==4);}}
   function eset(x,z,v){const z0=Z();if(!z0.e)z0.e={};const k=x+','+z,fixed=((MAPFIX['z'+zi]||{}).e||{})[k];if(v)z0.e[k]=v;else if(fixed)z0.e[k]=null;else delete z0.e[k];save();bref();}
-  const allJson=()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)},b=bOf(i),e=eOf(i);for(const k in e)if(!e[k])delete e[k];if(Object.keys(b).length)o.b=b;if(Object.keys(e).length)o.e=e;if(o.b||o.e||Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});return A;};
+  const allJson=()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)},b=bOf(i),e=eOf(i),nn=nOf(i);for(const k in e)if(!e[k])delete e[k];if(nn.length)o.n=nn;if(Object.keys(b).length)o.b=b;if(Object.keys(e).length)o.e=e;if(o.b||o.e||o.n||Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});return A;};
   const copyAll=()=>{const A=allJson(),t=JSON.stringify(A);try{navigator.clipboard.writeText(t).catch(()=>{});}catch(e){}msg('Copiado TODO (fijo + tus cambios) → '+sumOf(A));return t;};
   // modelos corregidos: se retoca la matriz de cada pieza antes de fundirla en la ciudad
   function mods(mi,f,n){const M=modsOf(zi);for(const key in M){const q=key.split(':');if(+q[0]!=mi)continue;const i=+q[1],v=M[key],a=i*12;if(i>=n)continue;
@@ -733,16 +733,18 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
       for(let i2=0;i2<=n;i2++)for(let j=0;i2+j<=n;j++){const u=i2/n,v=j/n,w=1-u-v,y=p[1]*w+p[4]*u+p[7]*v,isL=y>.5&&y<1.05,isH=y>=1.2&&y<1.9;if(!isL&&!isH)continue;
         const gx=Math.floor(p[0]*w+p[3]*u+p[6]*v)+OX,gz=Math.floor(p[2]*w+p[5]*u+p[8]*v)+OZ;if(gx<0||gz<0||gx>=GW||gz>=GH)continue;const id=gz*GW+gx;if(!fpL[id]&&!fpH[id])T.push(id);if(isL){if(fpL[id]<65535)fpL[id]++;}else if(fpH[id]<65535)fpH[id]++;}}
     for(const id of T){if(fpH[id]>=3)out.push(id,1);else if(fpL[id]>=3)out.push(id,5);fpL[id]=fpH[id]=0;}return out;}
-  function autoCol(){const keys=Object.keys(modsOf(zi)),A=addsOf(zi);if(!REG.length||(!keys.length&&!A.length)){if(!keepReg())REG=[];return false;}
+  function autoCol(){const keys=Object.keys(modsOf(zi)),A=addsOf(zi);const NW=BZ.filter(B=>B.nw);if(!REG.length||(!keys.length&&!A.length&&!NW.length)){if(!keepReg())REG=[];return false;}
     gridLoad(zi);bldGrid(zi);const cleared=new Set(),isMod={},byMi={};for(const s of keys)isMod[s]=1;for(const e of REG)byMi[e.mi]=e;
-    for(const s of keys){const c=s.split(':'),e=byMi[+c[0]],i=+c[1];if(!e||i>=e.m.k)continue;const fp=fprint(e,e.f0,i);for(let j=0;j<fp.length;j+=2){const id=fp[j];if(grid[id]==1||grid[id]==5){grid[id]=0;cleared.add(id);}}}
+    for(const s of keys){const c=s.split(':'),e=byMi[+c[0]],i=+c[1];if(!e||i>=e.m.k)continue;const fp=fprint(e,e.f0,i);for(let j=0;j<fp.length;j+=2){const id=fp[j];if((grid[id]==1||grid[id]==5)&&!inB(id)){grid[id]=0;cleared.add(id);}}}
+    const cutK={};if(NW.length)for(const e of REG){if(!(e.m.hy>.3))continue;let Fm=e.f0;if(keys.some(s=>s.startsWith(e.mi+':'))){Fm=e.f0.slice();mods(e.mi,Fm,e.m.k);}for(let i=0;i<e.m.k;i++){const a=i*12,px=Fm[a+3]+e.ox,pz=Fm[a+11]+e.oz;if(!NW.some(B=>px>B.cut[0]&&px<B.cut[2]&&pz>B.cut[1]&&pz<B.cut[3]))continue;
+      isMod[e.mi+':'+i]=cutK[e.mi+':'+i]=1;const fp=fprint(e,e.f0,i);for(let j=0;j<fp.length;j+=2){const id=fp[j];if((grid[id]==1||grid[id]==5)&&!inB(id)){grid[id]=0;cleared.add(id);}}}}
     if(cleared.size){const cs=[...cleared].map(id=>[id%GW-OX+.5,(id/GW|0)-OZ+.5]);
       for(const e of REG){if(e.rad==null){let r=0;const q=e.q;for(let v=0;v<e.m.nv*3;v+=3){const d=Math.hypot(q[v],q[v+2]);if(d>r)r=d;}e.rad=r*e.k;}
         for(let i=0;i<e.m.k;i++){if(isMod[e.mi+':'+i])continue;const a=i*12,F=e.f0,cx=F[a+3]+e.ox,cz=F[a+11]+e.oz,R=e.rad*Math.max(Math.hypot(F[a],F[a+8]),Math.hypot(F[a+2],F[a+10]))+1;
           if(!cs.some(c=>Math.abs(c[0]-cx)<R&&Math.abs(c[1]-cz)<R))continue;const fp=fprint(e,F,i);for(let j=0;j<fp.length;j+=2)if(cleared.has(fp[j])&&grid[fp[j]]!=1)grid[fp[j]]=fp[j+1];}}}
     for(const e of REG){const pre=e.mi+':',n=e.m.k,ks=keys.filter(s=>s.startsWith(pre));if(!ks.length&&!A.some(x=>x[0]==e.mi))continue;
-      let F=e.f0;if(ks.length){F=e.f0.slice();mods(e.mi,F,n);}const fx=adds(e.mi,F,n,e.ox,e.oy,e.oz),L=ks.map(s=>+s.split(':')[1]).filter(i=>i<n);for(let i=n;i<fx.length/12;i++)L.push(i);
-      const AM=A.filter(x=>x[0]==e.mi);for(const i of L){const ad=i>=n?AM[i-n]:null,lv=ad?Math.max(0,Math.min(NLV-1,Math.round(ad[2]/LH))):0,fp=fprint(e,fx,i,lv*LH);for(let j=0;j<fp.length;j+=2){const id=fp[j];if(lv){if(!gup[(lv-1)*GN+id])gup[(lv-1)*GN+id]=1;continue;}const g=grid[id];if(g==0||(g==5&&fp[j+1]==1))grid[id]=fp[j+1];}}}
+      let F=e.f0;if(ks.length){F=e.f0.slice();mods(e.mi,F,n);}const fx=adds(e.mi,F,n,e.ox,e.oy,e.oz),L=ks.map(s=>+s.split(':')[1]).filter(i=>i<n&&!cutK[e.mi+':'+i]);for(let i=n;i<fx.length/12;i++)L.push(i);
+      const AM=A.filter(x=>x[0]==e.mi);for(const i of L){const ad=i>=n?AM[i-n]:null,lv=ad?Math.max(0,Math.min(NLV-1,Math.round(ad[2]/LH))):0,fp=fprint(e,fx,i,lv*LH);for(let j=0;j<fp.length;j+=2){const id=fp[j];if(lv){if(!gup[(lv-1)*GN+id])gup[(lv-1)*GN+id]=5;continue;}const g=grid[id],ib=inB(id);if(g==0||(g==5&&fp[j+1]==1&&!ib))grid[id]=ib?5:fp[j+1];}}}
     cells(zi);rebuildWalls();flowT=0;colK='';if(!keepReg())REG=[];return true;}
   // tras mover una pieza en el sitio: se rehace la colisión al cabo de un momento (si no se guardó la geometría, se rehace la ciudad, que la vuelve a registrar)
   function recol(){clearTimeout(acT);acT=setTimeout(()=>{if(REG.length)autoCol();else if(pan)recity();},350);}
@@ -768,7 +770,23 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     g.st=station(cx,cz,0x4a3018,'Puerta'+String.fromCharCode(10)+cost,{text:()=>g.open?null:'Abrir la puerta',cost:()=>g.cost,buy:()=>{if(net.client)toHost({t:'gate',i:GATES.indexOf(g)});else g.openIt();}});g.st.put=null;g.st.b.visible=false;for(const q of g.st.g.children)if(q.isSprite)q.scale.multiplyScalar(.6);
     g.openIt=()=>{if(g.open)return;g.open=true;grid[gi(g.x,g.z)]=0;if(g.m)unocc(g.m);g.m=null;const i=stations.indexOf(g.st);if(i>=0)stations.splice(i,1);scene.remove(g.st.g);flowT=0;msg('Puerta abierta');};
     GATES.push(g);if(bSt['g'+key])g.openIt();}
-  function bfix(B){if(B===BZ[0])bclear();const C=bOf(zi)[BLDS.indexOf(B)];if(!C)return;const late=[];for(const key in C){const q=key.split(','),l=+q[0],u=+q[1],v=+q[2],c=C[key];if(!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))continue;
+  // ---- edificios nuevos («n» de cada zona): [x,z,ancho,fondo,plantas,puerta u,v,dx,dz]. Se añaden a BLDS detrás de los fijos; las piezas del pack
+  // que nacen dentro se quitan (como en los fijos) y su huella de colisión que asoma fuera se limpia en autoCol. Sus casillas editadas van en b['n<x>_<z>'].
+  const NB0=BLDS.length,nOf=i=>((MAPFIX['z'+i]||{}).n||[]).concat((L['z'+i]||{}).n||[]),bid=B=>B.id||BLDS.indexOf(B);
+  const inB=id=>{const cx=id%GW-OX,cz=(id/GW|0)-OZ;return BZ.some(B=>cx>=B.x&&cz>=B.z&&cx<B.x+B.w&&cz<B.z+B.d);};
+  function nsync(){BLDS.length=NB0;ZONAS.forEach((q,i)=>nOf(i).forEach(a=>BLDS.push({zona:i,x:a[0],z:a[1],w:a[2],d:a[3],n:a[4],door:[a[5],a[6],a[7],a[8]],nw:1,id:'n'+a[0]+'_'+a[1],cut:[a[0]-.6,a[1]-.6,a[0]+a[2]+.6,a[1]+a[3]+.6]})));}
+  nsync();
+  function nredo(){nsync();gridLoad(zi);bldGrid(zi);mapIds=true;if(window.ZD&&window.ZD[zi])cityBuild(window.ZD[zi]);if(!BZ.some(B=>B.nw)||!REG.length){cells(zi);rebuildWalls();}flowT=0;colK='';}
+  function nadd(xa,za,xb,zb,n,cx,cz){let x=Math.floor(Math.min(xa,xb)),z=Math.floor(Math.min(za,zb)),w=Math.floor(Math.max(xa,xb))-x+1,d=Math.floor(Math.max(za,zb))-z+1;n=Math.max(2,Math.min(NLV,n|0));
+    if(w<10||d<7){msg('Demasiado pequeño: mínimo 10 × 7 casillas (caben las escaleras)');return false;}if(w>30||d>30){msg('Demasiado grande: máximo 30 × 30 casillas');return false;}
+    if(x+OX<1||z+OZ<1||x+w+OX>GW-1||z+d+OZ>GH-1){msg('Se sale del mapa');return false;}
+    if(BLDS.some(B=>B.zona==zi&&x<B.x+B.w+2&&B.x<x+w+2&&z<B.z+B.d+2&&B.z<z+d+2)){msg('Pisa otro edificio: deja al menos 2 casillas entre ellos');return false;}
+    // la puerta, en el lado más cercano a donde estás, lejos de las escaleras
+    const S=[[1,0,0,-1],[w-2,d-1,0,1],[0,d>>1,-1,0],[w-1,d>>1,1,0]];let door=S[0],bd=1e9;for(const s of S){const q=Math.hypot(x+s[0]+.5-cx,z+s[1]+.5-cz);if(q<bd){bd=q;door=s;}}
+    const z0=Z();if(!z0.n)z0.n=[];z0.n.push([x,z,w,d,n].concat(door));save();nredo();msg('Edificio creado ('+w+' × '+d+', '+n+' plantas): pulsa «Editar edificio» para retocarlo');return true;}
+  function ndel(bi){const B=BLDS[bi],z0=Z();if(!B||!B.nw)return false;const k=(z0.n||[]).findIndex(a=>a[0]==B.x&&a[1]==B.z);if(k<0){msg('Ese edificio ya es fijo: pídele a Claude que lo quite');return false;}
+    z0.n.splice(k,1);if(z0.b)delete z0.b[B.id];save();nredo();msg('Edificio quitado');return true;}
+  function bfix(B){if(B===BZ[0])bclear();const C=bOf(zi)[bid(B)];if(!C)return;const late=[];for(const key in C){const q=key.split(','),l=+q[0],u=+q[1],v=+q[2],c=C[key];if(!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))continue;
       if(twin.has(l*GN+gi(B.x+u,B.z+v)))continue;if(c>=4){gset(l,B.x+u,B.z+v,0,0);if(l==0)late.push([u,v,c]);}else gset(l,B.x+u,B.z+v,c?1:0,c==2?1:c==3?2:0);}
     // al arrancar la página esto corre antes de que existan los puestos y los materiales: se repite en cuanto termina de cargar el script
     if(late.length&&!bReady()){bLater();return;}
@@ -778,9 +796,9 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   function bref(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';}
   function bset(bi,l,u,v,c){const B=BLDS[bi];if(!B||!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))return false;if(twin.has(l*GN+gi(B.x+u,B.z+v))){msg('Esa casilla es de la escalera: no se puede cambiar');return false;}
     if(c>=4&&l!=0){msg('Las barricadas y las puertas de pago solo van en la planta baja');return false;}if((c==4||c==5)&&!bside(B,u,v)){msg('Las barricadas van en el muro exterior (no en las esquinas)');return false;}
-    const z=Z();if(!z.b)z.b={};const o=z.b[bi]||(z.b[bi]={}),key=l+','+u+','+v;bu.push([zi,bi,key,key in o?o[key]:null]);o[key]=c;save();bref();return true;}
+    const z=Z(),bk=bid(B);if(!z.b)z.b={};const o=z.b[bk]||(z.b[bk]={}),key=l+','+u+','+v;bu.push([zi,bk,key,key in o?o[key]:null]);o[key]=c;save();bref();return true;}
   function bundo(){const u=bu.pop();if(!u){msg('Nada que deshacer');return;}const o=((L['z'+u[0]]||{}).b||{})[u[1]];if(!o)return;if(u[3]==null)delete o[u[2]];else o[u[2]]=u[3];save();if(u[0]==zi)bref();}
-  function breset(bi){const z=Z();if(z.b)delete z.b[bi];save();bref();}
+  function breset(bi){const z=Z();if(z.b&&BLDS[bi])delete z.b[bid(BLDS[bi])];save();bref();}
   function regrid(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';colOn=true;colM.visible=true;}
   function recity(){mapIds=true;if(window.ZD&&window.ZD[zi])cityBuild(window.ZD[zi]);}
   const tris=()=>{let n=0;for(const me of cityG.children)n+=me.geometry.attributes.position.count/3;return n;};
@@ -895,7 +913,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tecla M: con el ratón capturado elige el modelo al que apuntas; sin capturar, abre o cierra el panel
   function key(){const locked=document.pointerLockElement==renderer.domElement;if(!locked&&pan){close();return;}if(sel&&sel.zone!=zi)unsel();
     if(locked&&tab=='mod'){const id=pick();if(id!=null)select(id);else msg('Ahí no hay ningún modelo');}open();}
-  return{cells,mods,adds,reg,autoCol,bset,bundo,breset,eset,copyAll,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},set floor(v){FY=v;},set floorIn(f){FIN=f;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+  return{cells,mods,adds,reg,autoCol,nadd,ndel,bset,bundo,breset,eset,copyAll,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},set floor(v){FY=v;},set floorIn(f){FIN=f;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
 bldGrid(zi);if(ZQ)setTimeout(()=>goZone(ZQ),0);
 MAPED.cells(zi);rebuildWalls();   // la zona inicial se cargó antes de existir el editor
 function boomFx(p,rad){brlFx(p,rad);fxBoom(p,rad);spray(p,0xffc040,14,9,6,.5,1.6);sBoom(p.x,p.z);}
