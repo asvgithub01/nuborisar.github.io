@@ -245,7 +245,7 @@ function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(
   for(const m of D.models){const u=by(m.d),q=new Int16Array(u.buffer,0,m.nv*3),cc=new Uint16Array(u.buffer,m.nv*6,m.nt),o=m.nv*6+m.nt*2,ix=m.w?new Uint32Array(u.buffer.slice(o),0,m.nt*3):new Uint16Array(u.buffer.slice(o),0,m.nt*3);
     const k=m.s/32767,f=new Float32Array(by(m.i).buffer),nn=m.nt-(m.r||0);carScan(m,q,k,f,ox,oz);const mi=D.models.indexOf(m);MAPED.reg(mi,m,q,ix,k,f,ox,oy,oz);MAPED.mods(mi,f,m.k);const fx=MAPED.adds(mi,f,m.k,ox,oy,oz),nk=fx.length/12;
     for(let i=0;i<nk;i++){const a=i*12,m0=fx[a],m1=fx[a+1],m2=fx[a+2],m3=fx[a+3]+ox,m4=fx[a+4],m5=fx[a+5],m6=fx[a+6],m7=fx[a+7]+oy,m8=fx[a+8],m9=fx[a+9],m10=fx[a+10],m11=fx[a+11]+oz;
-      if(BZ.some(B=>m3>B.cut[0]&&m3<B.cut[2]&&m11>B.cut[1]&&m11<B.cut[3])){if(m.hy===undefined){let h=0;for(let j=1;j<q.length;j+=3)if(q[j]>h)h=q[j];m.hy=h*k;}if(m.hy>.3)continue;}
+      if(i<m.k&&BZ.some(B=>m3>B.cut[0]&&m3<B.cut[2]&&m11>B.cut[1]&&m11<B.cut[3])){if(m.hy===undefined){let h=0;for(let j=1;j<q.length;j+=3)if(q[j]>h)h=q[j];m.hy=h*k;}if(m.hy>.3)continue;}
       const flip=m0*(m5*m10-m6*m9)-m1*(m4*m10-m6*m8)+m2*(m4*m9-m5*m8)<0;
       for(let t=0;t<m.nt;t++){let v=ix[t*3]*3,x=q[v]*k,y=q[v+1]*k,z=q[v+2]*k;const ax=m0*x+m1*y+m2*z+m3,ay=m4*x+m5*y+m6*z+m7,az=m8*x+m9*y+m10*z+m11;
         v=ix[t*3+(flip?2:1)]*3;x=q[v]*k;y=q[v+1]*k;z=q[v+2]*k;const bx=m0*x+m1*y+m2*z+m3,by_=m4*x+m5*y+m6*z+m7,bz=m8*x+m9*y+m10*z+m11;
@@ -699,11 +699,18 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   let bakT=0;const setL=d=>{for(const k in L)delete L[k];Object.assign(L,d);};
   // si otra pestaña (el editor aparte o la partida de prueba) guarda arreglos, esta los recoge en vez de pisarlos con los suyos
   addEventListener('storage',e=>{if(e.key!='ub_map')return;try{setL(JSON.parse(e.newValue||'{}')||{});}catch(x){return;}if(pan){unsel();recity();draw();}});
-  const sumOf=A=>Object.keys(A).map(k=>'zona '+k.slice(1)+': '+Object.keys(A[k].m||{}).length+' movidos, '+(A[k].a||[]).length+' añadidos, '+Object.keys(A[k].c||{}).length+' casillas'+(A[k].b?', '+Object.keys(A[k].b).reduce((n,q)=>n+Object.keys(A[k].b[q]).length,0)+' casillas de edificio':'')).join(' · ')||'nada';
+  const sumOf=A=>Object.keys(A).map(k=>'zona '+k.slice(1)+': '+Object.keys(A[k].m||{}).length+' movidos, '+(A[k].a||[]).length+' añadidos, '+Object.keys(A[k].c||{}).length+' casillas'+(A[k].b?', '+Object.keys(A[k].b).reduce((n,q)=>n+Object.keys(A[k].b[q]).length,0)+' casillas de edificio':'')+(A[k].e?', '+Object.keys(A[k].e).length+' tablones/puertas':'')).join(' · ')||'nada';
   const cellsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).c,(L['z'+i]||{}).c),modsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).m,(L['z'+i]||{}).m),addsOf=i=>((MAPFIX['z'+i]||{}).a||[]).concat((L['z'+i]||{}).a||[]);
   const dec=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);return u;};
   // casillas corregidas: se aplican sobre la rejilla recién cargada
-  function cells(i){const C=cellsOf(i);for(const k in C){const q=k.split(','),id=gi(+q[0],+q[1]);if(id>=0&&id<grid.length)grid[id]=C[k];}}
+  function cells(i){const C=cellsOf(i);for(const k in C){const q=k.split(','),id=gi(+q[0],+q[1]);if(id>=0&&id<grid.length)grid[id]=C[k];}efix(i);}
+  // tablones y puertas de pago sueltos por el mapa (edificios del pack, como el taller): «e» de cada zona, 'x,z' → [4|5, nx, nz] o [1000+precio]; null anula uno fijo
+  const eOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).e,(L['z'+i]||{}).e);
+  function efix(i){const C=eOf(i),ks=Object.keys(C).filter(k=>C[k]);if(!ks.length||i!=zi)return;if(!bReady()){bLater();return;}
+    for(const k of ks){const q=k.split(','),x=+q[0],z=+q[1],v=C[k];if(entryAt[gi(x,z)]||GATES.some(g=>g.x==x&&g.z==z))continue;if(v[0]>=1000)bgateAt(x,z,v[0]-1000);else bentryAt(x,z,[v[1]|0,v[2]|0],v[0]==4);}}
+  function eset(x,z,v){const z0=Z();if(!z0.e)z0.e={};const k=x+','+z,fixed=((MAPFIX['z'+zi]||{}).e||{})[k];if(v)z0.e[k]=v;else if(fixed)z0.e[k]=null;else delete z0.e[k];save();bref();}
+  const allJson=()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)},b=bOf(i),e=eOf(i);for(const k in e)if(!e[k])delete e[k];if(Object.keys(b).length)o.b=b;if(Object.keys(e).length)o.e=e;if(o.b||o.e||Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});return A;};
+  const copyAll=()=>{const A=allJson(),t=JSON.stringify(A);try{navigator.clipboard.writeText(t).catch(()=>{});}catch(e){}msg('Copiado TODO (fijo + tus cambios) → '+sumOf(A));return t;};
   // modelos corregidos: se retoca la matriz de cada pieza antes de fundirla en la ciudad
   function mods(mi,f,n){const M=modsOf(zi);for(const key in M){const q=key.split(':');if(+q[0]!=mi)continue;const i=+q[1],v=M[key],a=i*12;if(i>=n)continue;
       if(v[4]){for(const j of[0,1,2,4,5,6,8,9,10])f[a+j]=0;f[a+7]=-999;continue;}
@@ -746,13 +753,15 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   function bclear(){for(const e of ENTRIES){bSt['e'+e.key]=e.boards;for(const m of e.own||[])unocc(m);}ENTRIES.length=0;for(const k in entryAt)delete entryAt[k];
     for(const g of GATES){bSt['g'+g.key]=g.open?1:0;if(g.m)unocc(g.m);if(g.st){const i=stations.indexOf(g.st);if(i>=0)stations.splice(i,1);scene.remove(g.st.g);}}GATES.length=0;}
   const bside=(B,u,v)=>{const cu=u==0||u==B.w-1,cv=v==0||v==B.d-1;return cu==cv?null:u==0?[-1,0]:u==B.w-1?[1,0]:v==0?[0,-1]:[0,1];};
-  function bentry(B,u,v,win){const n=bside(B,u,v);if(!n)return;const x=B.x+u,z=B.z+v,cx=x+.5,cz=z+.5,hz=n[0]==0,key=zi+':'+x+','+z,e={x,z,hz,n,type:win?'window':'door',key,own:[],meshes:[]},id=gi(x,z),o=gi(x+n[0],z+n[1]);
+  function bentry(B,u,v,win){const n=bside(B,u,v);if(n)bentryAt(B.x+u,B.z+v,n,win);}
+  function bentryAt(x,z,n,win){const cx=x+.5,cz=z+.5,hz=n[0]==0,key=zi+':'+x+','+z,e={x,z,hz,n,type:win?'window':'door',key,own:[],meshes:[]},id=gi(x,z),o=gi(x+n[0],z+n[1]);
     grid[id]=2;wflag[id]=0;if(grid[o]==1||grid[o]==5)grid[o]=0;entryAt[id]=e;e.cells=[id,id];
     e.c=new V3(cx,0,cz);e.out=new V3(cx+n[0]*1.3,0,cz+n[1]*1.3);e.in=new V3(cx-n[0]*1.4,0,cz-n[1]*1.4);e.perp=new V3(-n[1],0,n[0]);e.boards=bSt['e'+key]==null?6:bSt['e'+key];
     if(win){const s=box(hz?1:.5,.95,hz?.5:1,frameM,cx,.475,cz);e.own.push(s);occ.push(s);}
     for(let i=0;i<6;i++){const b=box(1.12,win?.17:.26,.07,boardM,cx+n[0]*.3,win?1.1+i*.2:.35+i*.4,cz+n[1]*.3);b.rotation.y=hz?0:Math.PI/2;b.rotation.z=(R()-.5)*.22;e.own.push(b);e.meshes.push(b);}
     ENTRIES.push(e);showBoards(e);}
-  function bgate(B,u,v,cost){const x=B.x+u,z=B.z+v,cx=x+.5,cz=z+.5,key=zi+':'+x+','+z,hz=solid(ct(x-1,z))||solid(ct(x+1,z)),g={x,z,hz,cost,key,name:'Puerta',open:false},id=gi(x,z);
+  function bgate(B,u,v,cost){bgateAt(B.x+u,B.z+v,cost);}
+  function bgateAt(x,z,cost){const cx=x+.5,cz=z+.5,key=zi+':'+x+','+z,hz=solid(ct(x-1,z))||solid(ct(x+1,z)),g={x,z,hz,cost,key,name:'Puerta',open:false},id=gi(x,z);
     grid[id]=4;wflag[id]=0;g.m=box(hz?1:.25,2.5,hz?.25:1,M(0x4a3018),cx,1.25,cz);occ.push(g.m);
     g.st=station(cx,cz,0x4a3018,'Puerta'+String.fromCharCode(10)+cost,{text:()=>g.open?null:'Abrir la puerta',cost:()=>g.cost,buy:()=>{if(net.client)toHost({t:'gate',i:GATES.indexOf(g)});else g.openIt();}});g.st.put=null;g.st.b.visible=false;for(const q of g.st.g.children)if(q.isSprite)q.scale.multiplyScalar(.6);
     g.openIt=()=>{if(g.open)return;g.open=true;grid[gi(g.x,g.z)]=0;if(g.m)unocc(g.m);g.m=null;const i=stations.indexOf(g.st);if(i>=0)stations.splice(i,1);scene.remove(g.st.g);flowT=0;msg('Puerta abierta');};
@@ -760,9 +769,9 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   function bfix(B){if(B===BZ[0])bclear();const C=bOf(zi)[BLDS.indexOf(B)];if(!C)return;const late=[];for(const key in C){const q=key.split(','),l=+q[0],u=+q[1],v=+q[2],c=C[key];if(!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))continue;
       if(twin.has(l*GN+gi(B.x+u,B.z+v)))continue;if(c>=4){gset(l,B.x+u,B.z+v,0,0);if(l==0)late.push([u,v,c]);}else gset(l,B.x+u,B.z+v,c?1:0,c==2?1:c==3?2:0);}
     // al arrancar la página esto corre antes de que existan los puestos y los materiales: se repite en cuanto termina de cargar el script
-    if(late.length){let ok=true;try{stations;frameM;boardM;}catch(x){ok=false;}if(!ok){if(!bWait){bWait=true;setTimeout(()=>{bWait=false;bref();},0);}return;}}
+    if(late.length&&!bReady()){bLater();return;}
     for(const[u,v,c]of late){if(c>=1000)bgate(B,u,v,c-1000);else bentry(B,u,v,c==4);}}
-  let bWait=false;
+  let bWait=false;function bReady(){try{stations;frameM;boardM;return true;}catch(x){return false;}}function bLater(){if(!bWait){bWait=true;setTimeout(()=>{bWait=false;bref();},0);}}
   bldFix=bfix;const bu=[];
   function bref(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';}
   function bset(bi,l,u,v,c){const B=BLDS[bi];if(!B||!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))return false;if(twin.has(l*GN+gi(B.x+u,B.z+v))){msg('Esa casilla es de la escalera: no se puede cambiar');return false;}
@@ -872,7 +881,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     const show=(A,q)=>{const t=JSON.stringify(A);try{navigator.clipboard.writeText(t).catch(()=>{});}catch(e){}ta.value=t;ta.style.display='block';ta.select();msg(q+' → '+sumOf(A));};
     bt(ft,'Copiar mis cambios',()=>show(L,'Copiados tus cambios de este navegador'),'flex:1');
     // todo = lo que ya es fijo (mapa_fix.json) + lo de este navegador, de todas las zonas: es lo que hay que pasar a Claude para dejarlo definitivo
-    bt(ft,'Copiar todo',()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)},b=bOf(i);if(Object.keys(b).length)o.b=b;if(o.b||Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});show(A,'Copiado TODO (fijo + tus cambios)');},'flex:1');
+    bt(ft,'Copiar todo',()=>show(allJson(),'Copiado TODO (fijo + tus cambios)'),'flex:1');
     bt(ft,'Copias',()=>{let B=[];try{B=JSON.parse(localStorage.getItem('ub_map_bak')||'[]')||[];}catch(e){}if(!B.length){msg('Aún no hay copias de seguridad');return;}
       const n=parseInt(prompt('Copias de seguridad automáticas (una por minuto si hay cambios).\nEscribe el número de la que quieres recuperar:\n'+B.map((b,i)=>(i+1)+') '+new Date(b[0]).toLocaleString()).join('\n')));if(!n||!B[n-1])return;
       try{setL(JSON.parse(B[n-1][1]));}catch(e){return;}save();unsel();regrid();recity();draw();msg('Copia recuperada');});
@@ -884,7 +893,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tecla M: con el ratón capturado elige el modelo al que apuntas; sin capturar, abre o cierra el panel
   function key(){const locked=document.pointerLockElement==renderer.domElement;if(!locked&&pan){close();return;}if(sel&&sel.zone!=zi)unsel();
     if(locked&&tab=='mod'){const id=pick();if(id!=null)select(id);else msg('Ahí no hay ningún modelo');}open();}
-  return{cells,mods,adds,reg,autoCol,bset,bundo,breset,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+  return{cells,mods,adds,reg,autoCol,bset,bundo,breset,eset,copyAll,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
 bldGrid(zi);if(ZQ)setTimeout(()=>goZone(ZQ),0);
 MAPED.cells(zi);rebuildWalls();   // la zona inicial se cargó antes de existir el editor
 function boomFx(p,rad){brlFx(p,rad);fxBoom(p,rad);spray(p,0xffc040,14,9,6,.5,1.6);sBoom(p.x,p.z);}
@@ -1646,6 +1655,9 @@ const jukeM=MB(0x402000);
   stations.push({x,z:z-.4,text:()=>music.on?'Cambiar de tema':'Poner un tema de metal',cost:()=>100,buy:startMusic});}
 let specI=0,specOn=false,specName=null;
 let gobQ=0,gobRd=3;const GOBW=['rail','plasmar','scar','flame','rep'];
+// 11) Si la partida se abrió desde el editor («Probar»), botón para volver a él (al mapa o al edificio que se estaba editando)
+{const q=new URLSearchParams(location.search).get('volver');if(q!=null){const b=document.createElement('a');b.textContent='← Volver al editor';b.href='editor_mapas.html?'+(/^[0-9]+$/.test(q)?'edificio='+q:'zona='+ZQ)+'&r='+Date.now();
+  b.style.cssText='position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:60;background:#276;color:#fff;font:13px sans-serif;padding:6px 12px;border-radius:6px;text-decoration:none;border:1px solid #6a9';document.body.appendChild(b);}}
 // 9) Armas en el suelo: la que sustituyes al comprar o cambiar, y las del duende, se quedan girando 30 s (luego parpadean 5 s y desaparecen).
 //    Con E la coge cualquiera: si llevas 3 armas se cambia por la que tienes en la mano, que queda en el suelo. Manda el anfitrión (wdrops va en la instantánea).
 const wdrops=[];
@@ -2403,15 +2415,19 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   function overSpawn(){const Z=ZONAS[zi];C.x=Z.sp[0];C.z=Z.sp[1]+18;C.y=28;C.yaw=0;C.pitch=-.95;}overSpawn();
   const typing=()=>{const a=document.activeElement;return a&&(a.tagName=='INPUT'||a.tagName=='TEXTAREA'||a.tagName=='SELECT');};
   // ---- editor de edificio (?edificio=N): se edita por casillas apuntando; 1 muro · 2 ventana · 3 barandilla · 4 quitar ----
-  const BI=parseInt(new URLSearchParams(location.search).get('edificio')),bmode=!isNaN(BI)&&BLDS[BI]?BLDS[BI]:null,BT=[['Muro',1],['Ventana',2],['Barandilla',3],['Quitar',0],['Ventana con tablones',4],['Puerta con tablones',5],['Puerta de pago',1000]];let gcost=750;let btool=0,mpos=[0,0];
+  const BI=parseInt(new URLSearchParams(location.search).get('edificio')),bmode=!isNaN(BI)&&BLDS[BI]?BLDS[BI]:null,BT=[['Muro',1],['Ventana',2],['Barandilla',3],['Quitar',0],['Ventana con tablones',4],['Puerta con tablones',5],['Puerta de pago',1000],['Modelos y muebles',-1]];let gcost=750,etool=-1;const ET=[['Ventana con tablones',4],['Puerta con tablones',5],['Puerta de pago',1000],['Quitar',0]];let btool=0,mpos=[0,0];
   const bray=new THREE.Raycaster(),bhi=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.03,LH,1.03)),new THREE.LineBasicMaterial({color:0x2f9bff,depthTest:false}));bhi.visible=false;bhi.renderOrder=40;bhi.raycast=()=>{};scene.add(bhi);
   function baim(){if(!bmode||!bldM)return null;bray.setFromCamera(walk?{x:0,y:0}:{x:mpos[0],y:mpos[1]},camera);const h=bray.intersectObject(bldM)[0];if(!h||h.distance>(walk?12:400))return null;
     const n=h.face.normal,p=h.point,q=p.clone().addScaledVector(n,-.05),x=Math.floor(q.x),z=Math.floor(q.z),B=bmode;if(x<B.x||z<B.z||x>=B.x+B.w||z>=B.z+B.d)return null;
     const l=Math.max(0,Math.min(B.n-1,n.y>.5?Math.round(p.y/LH):Math.floor((q.y+.2)/LH)));return{l,u:x-B.x,v:z-B.z,x,z};}
-  function pickTool(i){btool=i;if(BT[i][1]==1000){if(document.pointerLockElement)document.exitPointerLock();const n=parseInt(prompt('Precio de la puerta (puntos):',gcost));if(n>0)gcost=Math.min(50000,n);}bar();}
+  // tablones y puertas en edificios del mapa: en la casilla del suelo que señalas; la cara de fuera es la contraria a donde estás (ponlos desde dentro)
+  function eclick(){const g=MAPED.ground();if(!g){msg('Señala el suelo');return;}const x=Math.floor(g[0]),z=Math.floor(g[2]),c=ET[etool][1],dx=x+.5-camera.position.x,dz=z+.5-camera.position.z,n=Math.abs(dx)>Math.abs(dz)?[Math.sign(dx),0]:[0,Math.sign(dz)];
+    MAPED.eset(x,z,c==1000?[1000+gcost]:c?[c,n[0],n[1]]:null);}
+  function pickE(i){etool=etool==i?-1:i;if(etool>=0&&ET[etool][1]==1000){const n=parseInt(prompt('Precio de la puerta (puntos):',gcost));if(n>0)gcost=Math.min(50000,n);}bar();}
+  function pickTool(i){btool=i;if(BT[i][1]<0){if(!MAPED.panel)MAPED.open();}if(BT[i][1]==1000){if(document.pointerLockElement)document.exitPointerLock();const n=parseInt(prompt('Precio de la puerta (puntos):',gcost));if(n>0)gcost=Math.min(50000,n);}bar();}
   function bclick(){const t=baim();if(!t){msg('Apunta a una casilla del edificio');return;}const c=BT[btool][1]==1000?1000+gcost:BT[btool][1];
     if(c&&walk&&t.l==(P.lv|0)&&t.x==Math.floor(P.x)&&t.z==Math.floor(P.z)){msg('Estás encima de esa casilla');return;}MAPED.bset(BI,t.l,t.u,t.v,c);}
-  addEventListener('keydown',e=>{if(typing())return;if(bmode){const k=['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7'].indexOf(e.code);if(k>=0){pickTool(k);e.preventDefault();return;}if(e.code=='KeyZ'&&(e.ctrlKey||e.metaKey)){MAPED.bundo();e.preventDefault();return;}}
+  addEventListener('keydown',e=>{if(typing())return;if(bmode){const k=['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8'].indexOf(e.code);if(k>=0){pickTool(k);e.preventDefault();return;}if(e.code=='KeyZ'&&(e.ctrlKey||e.metaKey)){MAPED.bundo();e.preventDefault();return;}}
     if(MAPED.nudge(e)){e.preventDefault();return;}K[e.code]=true;
     if(e.code=='KeyC'){colOn=!colOn;colM.visible=colOn;colK='';bar();}if(e.code=='KeyH')help.style.display=help.style.display=='none'?'':'none';if(e.code=='KeyF'&&!e.repeat)setWalk(!walk);},true);
   addEventListener('keyup',e=>{K[e.code]=false;},true);addEventListener('blur',()=>{for(const k in K)K[k]=false;});
@@ -2419,7 +2435,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('mousedown',e=>{setMouse(e);e.stopPropagation();
     if(walk&&document.pointerLockElement!==cv){cv.requestPointerLock();return;}if(e.button==1){e.preventDefault();if(!walk)pan=[e.clientX,e.clientY];return;}if(e.button==2){if(!walk)look=[e.clientX,e.clientY];return;}
-    if(e.button!=0)return;if(bmode){bclick();return;}if(!MAPED.panel)MAPED.open();
+    if(e.button!=0)return;if(bmode&&BT[btool][1]>=0){bclick();return;}if(!bmode&&etool>=0){eclick();return;}if(!MAPED.panel)MAPED.open();
     if(MAPED.tab=='mod'){const id=MAPED.pick();if(id==null){msg('Ahí no hay ningún modelo');return;}
       if(!MAPED.sel||MAPED.sel.id!==id){MAPED.select(id);if(!MAPED.sel||MAPED.sel.id!==id)return;}
       // arrastrar sobre el suelo: la pieza sigue al ratón en horizontal (Alt: en vertical)
@@ -2445,7 +2461,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
     if(!walk&&!typing()){const sp=(K.ShiftLeft||K.ShiftRight?40:14)*dt,f=(K.KeyW?1:0)-(K.KeyS?1:0),s=(K.KeyD?1:0)-(K.KeyA?1:0),u=(K.KeyE?1:0)-(K.KeyQ?1:0),sn=Math.sin(C.yaw),cs=Math.cos(C.yaw);
       C.x+=(-sn*f+cs*s)*sp;C.z+=(-cs*f-sn*s)*sp;C.y=Math.max(.5,C.y+u*sp);}
     if(bldDirty)bldShow();
-    if(bmode){const t=baim();bhi.visible=!!t;if(t)bhi.position.set(t.x+.5,t.l*LH+LH/2-.1,t.z+.5);}
+    if(bmode){const t=BT[btool][1]>=0?baim():null;bhi.visible=!!t;if(t)bhi.position.set(t.x+.5,t.l*LH+LH/2-.1,t.z+.5);}
     if(walk){if(!typing()){const sp=(K.ShiftLeft||K.ShiftRight?7.4:5.2)*dt,f=(K.KeyW?1:0)-(K.KeyS?1:0),s=(K.KeyD?1:0)-(K.KeyA?1:0),l=Math.hypot(f,s),sn=Math.sin(C.yaw),cs=Math.cos(C.yaw);
         if(l)moveCol(P,(-sn*f+cs*s)/l*sp,(-cs*f-sn*s)/l*sp,.32,P.lv);}
       P.by=lvUpd(P,P);P.yaw=C.yaw;C.x=P.x;C.z=P.z;C.y=EYE+P.by;camera.position.set(C.x,C.y,C.z);camera.rotation.set(C.pitch,C.yaw,0);camera.updateMatrixWorld();
@@ -2462,18 +2478,18 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
     if(bmode){BT.forEach((q,i)=>B((i+1)+' · '+q[0]+(q[1]==1000?' ('+gcost+')':''),()=>pickTool(i),btool==i));B('Deshacer (Ctrl+Z)',()=>MAPED.bundo());
       B('Restaurar edificio',()=>{if(confirm('¿Quitar todos los cambios de este edificio guardados en este navegador?'))MAPED.breset(BI);});
       const g=document.createElement('span');g.style.flex='1';top.appendChild(g);B(walk?'Volar (F)':'Andar (F)',()=>setWalk(!walk),walk);
-      B('Volver al mapa',()=>{location.href='editor_mapas.html?zona='+zi+'&r='+Date.now();});B('▶ Probar',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
+      B('Volver al mapa',()=>{location.href='editor_mapas.html?zona='+zi+'&r='+Date.now();});B('Copiar todo (JSON)',()=>{const t=MAPED.copyAll();if(document.pointerLockElement)document.exitPointerLock();setTimeout(()=>prompt('Copiado al portapapeles. Si no se ha copiado, cópialo de aquí y pásaselo a Claude:',t),50);});B('▶ Probar',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&volver='+BI+'&r='+Date.now(),'_blank'),true);
       B('Ayuda (H)',()=>{help.style.display=help.style.display=='none'?'':'none';});return;}
     ZONAS.forEach((Z,i)=>B(i+' · '+Z.n,()=>{if(i==zi)return;goZone(i);overSpawn();MAPED.select(null);bar();},i==zi));
     const g=document.createElement('span');g.style.flex='1';top.appendChild(g);
     B(colOn?'Colisión: SÍ':'Colisión: NO',()=>{colOn=!colOn;colM.visible=colOn;colK='';bar();},colOn);
     B(fogOn?'Niebla: SÍ':'Niebla: NO',()=>{fogOn=!fogOn;scene.fog.density=fogOn?fd0:.003;bar();},fogOn);
-    BLDS.forEach((b,i)=>{if(b.zona==zi)B('Editar edificio '+(i+1),()=>{location.href='editor_mapas.html?edificio='+i+'&r='+Date.now();});});B(walk?'Volar (F)':'Andar por el mapa (F)',()=>setWalk(!walk),walk);B('Volver al inicio de la zona',()=>{setWalk(false);overSpawn();});B('▶ Probar esta zona',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
+    BLDS.forEach((b,i)=>{if(b.zona==zi)B('Editar edificio '+(i+1),()=>{location.href='editor_mapas.html?edificio='+i+'&r='+Date.now();});});ET.forEach((q,i)=>B((i==0?'Tablones y puertas: ':'')+q[0]+(q[1]==1000?' ('+gcost+')':''),()=>pickE(i),etool==i));B(walk?'Volar (F)':'Andar por el mapa (F)',()=>setWalk(!walk),walk);B('Volver al inicio de la zona',()=>{setWalk(false);overSpawn();});B('▶ Probar esta zona',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&volver=m&r='+Date.now(),'_blank'),true);
     B('Ayuda (H)',()=>{help.style.display=help.style.display=='none'?'':'none';});}
   const help=document.createElement('div');help.style.cssText='position:fixed;right:10px;bottom:10px;z-index:30;max-width:380px;background:rgba(10,12,18,.9);color:#dde;font:12px/1.5 sans-serif;padding:10px 12px;border:1px solid #456;border-radius:8px';
-  help.innerHTML='<b>Moverse</b>: WASD · Q/E bajar/subir · Mayús rápido · rueda acercar · botón derecho arrastrando para mirar · botón central arrastrando para desplazar el mapa<br><b>Andar (F)</b>: bajas al suelo en primera persona con las colisiones y la niebla del juego; apunta con la mira y haz clic para elegir, mover (arrastrando), añadir o pintar; F o Esc para volver a volar<br><b>Modelos</b>: clic para elegir · arrastra para moverlo por el suelo (Mayús: pasos de 5 cm) · Alt+arrastrar sube/baja · flechas, RePág/AvPág, coma/punto, Fin al suelo, Supr ocultar, Ctrl+Z deshacer<br><b>Añadir / Suelo</b>: elige en el panel y haz clic en el suelo (en Suelo puedes arrastrar para pintar)<br><b>C</b> colisión · <b>H</b> esta ayuda · <b>▶ Probar</b> abre el juego en esta zona con tus cambios (modo edición)<br>Los cambios se guardan solos en este navegador; para dejarlos fijos: «Copiar todo» y pásaselo a Claude. «Copias» recupera una copia de seguridad automática.';
+  help.innerHTML='<b>Moverse</b>: WASD · Q/E bajar/subir · Mayús rápido · rueda acercar · botón derecho arrastrando para mirar · botón central arrastrando para desplazar el mapa<br><b>Andar (F)</b>: bajas al suelo en primera persona con las colisiones y la niebla del juego; apunta con la mira y haz clic para elegir, mover (arrastrando), añadir o pintar; F o Esc para volver a volar<br><b>Modelos</b>: clic para elegir · arrastra para moverlo por el suelo (Mayús: pasos de 5 cm) · Alt+arrastrar sube/baja · flechas, RePág/AvPág, coma/punto, Fin al suelo, Supr ocultar, Ctrl+Z deshacer<br><b>Añadir / Suelo</b>: elige en el panel y haz clic en el suelo (en Suelo puedes arrastrar para pintar)<br><b>Tablones y puertas</b> (para edificios del mapa, como el taller): elige uno arriba y haz clic en la casilla del hueco, mejor desde dentro del edificio (modo andar); «Quitar» lo borra; pulsa otra vez el botón para dejar la herramienta<br><b>C</b> colisión · <b>H</b> esta ayuda · <b>▶ Probar</b> abre el juego en esta zona con tus cambios (modo edición)<br>Los cambios se guardan solos en este navegador; para dejarlos fijos: «Copiar todo» y pásaselo a Claude. «Copias» recupera una copia de seguridad automática.';
   for(const ev of['mousedown','click','wheel'])help.addEventListener(ev,e=>e.stopPropagation());document.body.appendChild(help);
-  if(bmode){help.innerHTML='<b>Editor de edificio</b>: apunta a una casilla (se marca en azul) y haz clic para aplicarle la herramienta elegida arriba o con las teclas <b>1</b> muro · <b>2</b> ventana · <b>3</b> barandilla · <b>4</b> quitar · <b>5</b> ventana con tablones · <b>6</b> puerta con tablones · <b>7</b> puerta de pago. Las de tablones son entradas de zombis (solo en el muro exterior de la planta baja; el jugador no pasa por ellas y las repara con F); la puerta de pago cierra el paso a todos hasta que alguien la compra. Apuntando al suelo levantas algo en esa casilla; apuntando a un muro lo cambias o lo quitas (un hueco en el muro de fuera es una puerta).<br><b>Andar</b>: WASD, Mayús corre, las escaleras suben de planta · <b>F</b> o Esc para volar y ver el edificio por fuera (también se puede editar con el ratón) · <b>Ctrl+Z</b> deshacer<br>Las escaleras no se pueden tocar. Los cambios se guardan solos; para dejarlos fijos, vuelve al mapa, «Copiar todo» y pásaselo a Claude.';
+  if(bmode){help.innerHTML='<b>Editor de edificio</b>: apunta a una casilla (se marca en azul) y haz clic para aplicarle la herramienta elegida arriba o con las teclas <b>1</b> muro · <b>2</b> ventana · <b>3</b> barandilla · <b>4</b> quitar · <b>5</b> ventana con tablones · <b>6</b> puerta con tablones · <b>7</b> puerta de pago · <b>8</b> modelos y muebles (abre el panel: en «Añadir» eliges el modelo y con clic lo pones en el suelo de la planta en la que estás; en «Modelos» lo mueves, giras o borras; para usar el panel sal a volar con Esc y vuelve con F). Las de tablones son entradas de zombis (solo en el muro exterior de la planta baja; el jugador no pasa por ellas y las repara con F); la puerta de pago cierra el paso a todos hasta que alguien la compra. Apuntando al suelo levantas algo en esa casilla; apuntando a un muro lo cambias o lo quitas (un hueco en el muro de fuera es una puerta).<br><b>Andar</b>: WASD, Mayús corre, las escaleras suben de planta · <b>F</b> o Esc para volar y ver el edificio por fuera (también se puede editar con el ratón) · <b>Ctrl+Z</b> deshacer<br>Las escaleras no se pueden tocar. Los cambios se guardan solos; para dejarlos fijos, vuelve al mapa, «Copiar todo» y pásaselo a Claude.';
     scene.add(new THREE.AmbientLight(0xffffff,.55));   // luz de obra: dentro del edificio no se ve nada de noche
     const go=()=>{const d=bmode.door;C.x=bmode.x+d[0]+.5;C.z=bmode.z+d[1]+.5;C.yaw=Math.atan2(d[2],d[3]);setWalk(true);bar();};if(bmode.zona!=zi){goZone(bmode.zona);setTimeout(go,300);}else go();}
   else{bar();MAPED.open();}
