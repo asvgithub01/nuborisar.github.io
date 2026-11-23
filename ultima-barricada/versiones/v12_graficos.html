@@ -740,11 +740,33 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // ---- edificios con plantas: cambios por casilla (editor de edificios) ----
   // Se guardan en «b» de cada zona: b[nº de edificio en BLDS]['planta,u,v'] = 0 libre · 1 muro · 2 ventana · 3 barandilla. Se aplican al final de bldGrid1 (bldFix).
   const bOf=i=>{const o={},A=(MAPFIX['z'+i]||{}).b||{},B_=(L['z'+i]||{}).b||{};for(const k of new Set(Object.keys(A).concat(Object.keys(B_))))o[k]=Object.assign({},A[k],B_[k]);return o;};
-  function bfix(B){const C=bOf(zi)[BLDS.indexOf(B)];if(!C)return;for(const key in C){const q=key.split(','),l=+q[0],u=+q[1],v=+q[2],c=C[key];if(!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))continue;
-      if(twin.has(l*GN+gi(B.x+u,B.z+v)))continue;gset(l,B.x+u,B.z+v,c?1:0,c==2?1:c==3?2:0);}}
+  // Fase 2: 4 = ventana con tablones y 5 = puerta con tablones (entradas de zombis en el muro exterior de la planta baja; F repara), 1000+precio = puerta de pago (planta baja).
+  // Usan la mecánica de la v9 (ENTRIES, GATES, casillas 2 y 4) pero de 1 casilla y creadas al cargar cada zona; bSt conserva tablones y puertas abiertas si se rehace la rejilla.
+  const bSt={},unocc=m=>{scene.remove(m);const k=occ.indexOf(m);if(k>=0)occ.splice(k,1);};
+  function bclear(){for(const e of ENTRIES){bSt['e'+e.key]=e.boards;for(const m of e.own||[])unocc(m);}ENTRIES.length=0;for(const k in entryAt)delete entryAt[k];
+    for(const g of GATES){bSt['g'+g.key]=g.open?1:0;if(g.m)unocc(g.m);if(g.st){const i=stations.indexOf(g.st);if(i>=0)stations.splice(i,1);scene.remove(g.st.g);}}GATES.length=0;}
+  const bside=(B,u,v)=>{const cu=u==0||u==B.w-1,cv=v==0||v==B.d-1;return cu==cv?null:u==0?[-1,0]:u==B.w-1?[1,0]:v==0?[0,-1]:[0,1];};
+  function bentry(B,u,v,win){const n=bside(B,u,v);if(!n)return;const x=B.x+u,z=B.z+v,cx=x+.5,cz=z+.5,hz=n[0]==0,key=zi+':'+x+','+z,e={x,z,hz,n,type:win?'window':'door',key,own:[],meshes:[]},id=gi(x,z),o=gi(x+n[0],z+n[1]);
+    grid[id]=2;wflag[id]=0;if(grid[o]==1||grid[o]==5)grid[o]=0;entryAt[id]=e;e.cells=[id,id];
+    e.c=new V3(cx,0,cz);e.out=new V3(cx+n[0]*1.3,0,cz+n[1]*1.3);e.in=new V3(cx-n[0]*1.4,0,cz-n[1]*1.4);e.perp=new V3(-n[1],0,n[0]);e.boards=bSt['e'+key]==null?6:bSt['e'+key];
+    if(win){const s=box(hz?1:.5,.95,hz?.5:1,frameM,cx,.475,cz);e.own.push(s);occ.push(s);}
+    for(let i=0;i<6;i++){const b=box(1.12,win?.17:.26,.07,boardM,cx+n[0]*.3,win?1.1+i*.2:.35+i*.4,cz+n[1]*.3);b.rotation.y=hz?0:Math.PI/2;b.rotation.z=(R()-.5)*.22;e.own.push(b);e.meshes.push(b);}
+    ENTRIES.push(e);showBoards(e);}
+  function bgate(B,u,v,cost){const x=B.x+u,z=B.z+v,cx=x+.5,cz=z+.5,key=zi+':'+x+','+z,hz=solid(ct(x-1,z))||solid(ct(x+1,z)),g={x,z,hz,cost,key,name:'Puerta',open:false},id=gi(x,z);
+    grid[id]=4;wflag[id]=0;g.m=box(hz?1:.25,2.5,hz?.25:1,M(0x4a3018),cx,1.25,cz);occ.push(g.m);
+    g.st=station(cx,cz,0x4a3018,'Puerta'+String.fromCharCode(10)+cost,{text:()=>g.open?null:'Abrir la puerta',cost:()=>g.cost,buy:()=>{if(net.client)toHost({t:'gate',i:GATES.indexOf(g)});else g.openIt();}});g.st.put=null;g.st.b.visible=false;for(const q of g.st.g.children)if(q.isSprite)q.scale.multiplyScalar(.6);
+    g.openIt=()=>{if(g.open)return;g.open=true;grid[gi(g.x,g.z)]=0;if(g.m)unocc(g.m);g.m=null;const i=stations.indexOf(g.st);if(i>=0)stations.splice(i,1);scene.remove(g.st.g);flowT=0;msg('Puerta abierta');};
+    GATES.push(g);if(bSt['g'+key])g.openIt();}
+  function bfix(B){if(B===BZ[0])bclear();const C=bOf(zi)[BLDS.indexOf(B)];if(!C)return;const late=[];for(const key in C){const q=key.split(','),l=+q[0],u=+q[1],v=+q[2],c=C[key];if(!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))continue;
+      if(twin.has(l*GN+gi(B.x+u,B.z+v)))continue;if(c>=4){gset(l,B.x+u,B.z+v,0,0);if(l==0)late.push([u,v,c]);}else gset(l,B.x+u,B.z+v,c?1:0,c==2?1:c==3?2:0);}
+    // al arrancar la página esto corre antes de que existan los puestos y los materiales: se repite en cuanto termina de cargar el script
+    if(late.length){let ok=true;try{stations;frameM;boardM;}catch(x){ok=false;}if(!ok){if(!bWait){bWait=true;setTimeout(()=>{bWait=false;bref();},0);}return;}}
+    for(const[u,v,c]of late){if(c>=1000)bgate(B,u,v,c-1000);else bentry(B,u,v,c==4);}}
+  let bWait=false;
   bldFix=bfix;const bu=[];
   function bref(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';}
   function bset(bi,l,u,v,c){const B=BLDS[bi];if(!B||!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))return false;if(twin.has(l*GN+gi(B.x+u,B.z+v))){msg('Esa casilla es de la escalera: no se puede cambiar');return false;}
+    if(c>=4&&l!=0){msg('Las barricadas y las puertas de pago solo van en la planta baja');return false;}if((c==4||c==5)&&!bside(B,u,v)){msg('Las barricadas van en el muro exterior (no en las esquinas)');return false;}
     const z=Z();if(!z.b)z.b={};const o=z.b[bi]||(z.b[bi]={}),key=l+','+u+','+v;bu.push([zi,bi,key,key in o?o[key]:null]);o[key]=c;save();bref();return true;}
   function bundo(){const u=bu.pop();if(!u){msg('Nada que deshacer');return;}const o=((L['z'+u[0]]||{}).b||{})[u[1]];if(!o)return;if(u[3]==null)delete o[u[2]];else o[u[2]]=u[3];save();if(u[0]==zi)bref();}
   function breset(bi){const z=Z();if(z.b)delete z.b[bi];save();bref();}
@@ -1852,8 +1874,8 @@ function applySnap(d){if(d.zn!=null&&d.zn!=zi)goZone(d.zn,d.za&&d.za[0],d.za&&d.
   for(const a of d.zs){let z=zmap[a[0]];if(!z){z=mkZ(a[5]==1,a[5]>1&&a[5]<5?a[5]-1:0);z.id=a[0];if(a[5]==5)gobMake(z);zFit(z);zmap[z.id]=z;z.pos.set(a[1]/50,0,a[2]/50);}
     z.tx=a[1]/50;z.tz=a[2]/50;z.ty=a[3]/50;z.tr=a[4]/50;seen[z.id]=1;if(a[6]!=z.lm)for(let i=0;i<4;i++)if(a[6]>>i&1)limbOff(z,i);}
   for(const z of zombies.slice())if(!seen[z.id]){z.dead=true;zombies.splice(zombies.indexOf(z),1);delete zmap[z.id];dying.push({g:z.g,t:0});sGroan(z.pos.x,z.pos.z,true);poolAt(z);}
-  d.b.forEach((n,i)=>{const e=ENTRIES[i];if(n!=e.boards){if(n<e.boards&&AC)sBoard(e.c.x,e.c.z);e.boards=n;showBoards(e);}});
-  d.g.forEach((o,i)=>{if(o)GATES[i].openIt();});if(d.d)openDoor();
+  d.b.forEach((n,i)=>{const e=ENTRIES[i];if(e&&n!=e.boards){if(n<e.boards&&AC)sBoard(e.c.x,e.c.z);e.boards=n;showBoards(e);}});
+  d.g.forEach((o,i)=>{if(o&&GATES[i])GATES[i].openIt();});if(d.d)openDoor();
   sync(traps,d.tr,a=>{const g=trapMesh(a[1]);g.position.set(a[2],0,a[3]);scene.add(g);return{id:a[0],k:a[1],x:a[2],z:a[3],g};},t=>scene.remove(t.g));
   if(d.wd){sync(wdrops,d.wd,a=>{const o={id:a[0],k:a[1],up:a[2],x:a[3],z:a[4],y:a[5],t:a[6]};o.g=wMesh(o);return o;},o=>scene.remove(o.g));for(const a of d.wd){const o=wdrops.find(o=>o.id==a[0]);if(o&&Math.abs(o.t-a[6])>1.5)o.t=a[6];}}
   sync(powers,d.pw,a=>({id:a[0],k:a[1],o:box(.4,.4,.4,MB(PW[a[1]][1]),a[2],1,a[3]),t:99}),p=>scene.remove(p.o));
