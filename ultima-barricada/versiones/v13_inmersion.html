@@ -1398,7 +1398,7 @@ function hurtZ(z,d,head,pts,part){
   z.hp-=d;if(pts){addPts(10);if(!credit)hitMark();}
   if(z.hp<=0){z.dead=true;zombies.splice(zombies.indexOf(z),1);dying.push({g:z.g,t:0});if(credit){credit.conn.send({t:'kill'});credit.kills=(credit.kills||0)+1;}else P.kills++;addPts(head?100:60);
     sGroan(z.pos.x,z.pos.z,true);poolAt(z);if(z.gb)gobLoot(z);
-    if(z.pl){spray(new V3(z.pos.x,1.2,z.pos.z),0x4aa3ff,14,5);addPts(100);if(R()<.5)dropPower(z.pos,'pipe');}
+    if(z.pl){spray(new V3(z.pos.x,1.2,z.pos.z),0x4aa3ff,14,5);addPts(100);if(R()<.5)wDrop({k:'pipe',up:0,mag:1,res:0,x:z.pos.x,z:z.pos.z,y:z.hy||0});}
     if(z.state=='chase'&&R()<.045)dropPower(z.pos);else{const r=R();if(r<.06)dropPower(z.pos,'armor');else if(r<.11&&VFX.O.bateria)dropPower(z.pos,'bat');}}
 }
 // campo de flujo hacia el jugador
@@ -1607,7 +1607,7 @@ function wGrant(d){if(!WEAPONS[d.k])return;const e=has(d.k),up=d.up|0;
   reloading=0;gunModel();msg('Coges: '+w.d.n);}
 function wTake(id,who){const i=wdrops.findIndex(d=>d.id==id);if(i<0)return;const d=wdrops[i];scene.remove(d.g);wdrops.splice(i,1);
   if(who===P)wGrant(d);else try{who.conn.send({t:'wgive',k:d.k,up:d.up,mag:d.mag,res:d.res});}catch(e){}}
-function wNear(){if(P.dead)return null;let b=null,bd=1.9;for(const d of wdrops){const q=Math.hypot(d.x-P.x,d.z-P.z);if(q<bd&&d.t>0&&Math.abs(d.y-(P.by||0))<1.5){bd=q;b=d;}}return b;}
+function wNear(){if(P.dead)return null;let b=null,bd=1.9;for(const d of wdrops){const q=Math.hypot(d.x-P.x,d.z-P.z);if(q<bd&&d.t>0&&Math.abs(d.y-(P.by||0))<1.5&&!(WEAPONS[d.k].melee&&has(d.k)&&(has(d.k).d.up|0)>=d.up)){bd=q;b=d;}}return b;}
 function wSt(d){const n=upD(d.k,d.up).n,e=has(d.k);return{x:d.x,z:d.z,cost:()=>0,
   text:()=>e?((e.d.up|0)>=d.up?'Coger la munición de '+n:'Coger '+n):slots.length<(TEST?99:4)?'Coger '+n:'Cambiar '+slots[repI()].d.n+' por '+n,
   buy:()=>{if(net.client)toHost({t:'wtake',id:d.id});else wTake(d.id,P);}};}
