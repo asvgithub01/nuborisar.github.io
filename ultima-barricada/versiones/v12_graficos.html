@@ -72,7 +72,7 @@
   <table id="ovc">
     <tr><td>WASD / Shift / Espacio</td><td>Moverse / correr / saltar</td></tr>
     <tr><td>Ratón / Clic / Clic derecho</td><td>Mirar / disparar / apuntar con la mira</td></tr>
-    <tr><td>V / botón central</td><td>Cuchillazo</td></tr>
+    <tr><td>V / botón central</td><td>Cuchillazo rápido (el cuchillo también se puede equipar con la rueda)</td></tr>
     <tr><td>C</td><td>Vista en tercera persona</td></tr>
     <tr><td>R</td><td>Recargar</td></tr>
     <tr><td>F2</td><td>Panel de gráficos (mejoras visuales activables) y ajuste de manos y mira</td></tr>
@@ -693,7 +693,13 @@ function amb2Tick(dt){const A=AMB,cp=camera.position;
     if((A.moanT-=dt)<=0){A.moanT=16+R()*26;try{const a=R()*6.283;sGroanV(P.x+Math.cos(a)*32,P.z+Math.sin(a)*32);}catch(e){}}}}
 let mapIds=false,zFreeze=0;const ZQ=Math.max(0,Math.min(ZONAS.length-1,parseInt(new URLSearchParams(location.search).get('zona'))||0)),MAPFIX={"z0":{"c":{},"m":{"183:1":[0,-5,-10,0,0],"186:0":[0,-5,-10,0,1],"173:0":[-3.4,-5,-4.5,0,0]},"a":[]}};
 const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,cat='suelo',page=0,amod=null,thR=null,thS=null;let mxy=null;const undo=[],INFO={},THM={},TRI_EXTRA=150000;try{L=JSON.parse(localStorage.getItem('ub_map')||'{}')||{};}catch(e){}
-  const Z=()=>{const z=L['z'+zi]||(L['z'+zi]={c:{},m:{}});if(!z.a)z.a=[];if(!z.c)z.c={};if(!z.m)z.m={};return z;},save=()=>{try{localStorage.setItem('ub_map',JSON.stringify(L));}catch(e){}};
+  const Z=()=>{const z=L['z'+zi]||(L['z'+zi]={c:{},m:{}});if(!z.a)z.a=[];if(!z.c)z.c={};if(!z.m)z.m={};return z;},save=()=>{try{const t=JSON.stringify(L);localStorage.setItem('ub_map',t);
+    // copia de seguridad automática: como mucho una por minuto y solo si hay cambios; se guardan las 10 últimas (ub_map_bak)
+    const n=Date.now();if(n-bakT>60000){bakT=n;let B=[];try{B=JSON.parse(localStorage.getItem('ub_map_bak')||'[]')||[];}catch(e){}if(!B.length||B[B.length-1][1]!==t){B.push([n,t]);while(B.length>10)B.shift();localStorage.setItem('ub_map_bak',JSON.stringify(B));}}}catch(e){}};
+  let bakT=0;const setL=d=>{for(const k in L)delete L[k];Object.assign(L,d);};
+  // si otra pestaña (el editor aparte o la partida de prueba) guarda arreglos, esta los recoge en vez de pisarlos con los suyos
+  addEventListener('storage',e=>{if(e.key!='ub_map')return;try{setL(JSON.parse(e.newValue||'{}')||{});}catch(x){return;}if(pan){unsel();recity();draw();}});
+  const sumOf=A=>Object.keys(A).map(k=>'zona '+k.slice(1)+': '+Object.keys(A[k].m||{}).length+' movidos, '+(A[k].a||[]).length+' añadidos, '+Object.keys(A[k].c||{}).length+' casillas').join(' · ')||'nada';
   const cellsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).c,(L['z'+i]||{}).c),modsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).m,(L['z'+i]||{}).m),addsOf=i=>((MAPFIX['z'+i]||{}).a||[]).concat((L['z'+i]||{}).a||[]);
   const dec=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);return u;};
   // casillas corregidas: se aplican sobre la rejilla recién cargada
@@ -804,7 +810,13 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     {const zr=el('div','display:flex;gap:4px;margin-top:8px;align-items:center');pan.appendChild(zr);zr.appendChild(el('span','','Zombis:'));
       for(const[v,t]of[[0,'Normales'],[1,'Quietos'],[2,'Fuera']])bt(zr,t,()=>{zFreeze=v;if(v==2&&!net.client)for(const z of zombies.slice()){zombies.splice(zombies.indexOf(z),1);scene.remove(z.g);if(typeof zmap!='undefined')delete zmap[z.id];toSpawn++;}draw();},'flex:1;'+(zFreeze==v?'background:#276;':''));}
     const ft=el('div','display:flex;gap:4px;margin-top:8px');pan.appendChild(ft);
-    bt(ft,'Copiar arreglos (JSON)',()=>{const t=JSON.stringify(L);try{navigator.clipboard.writeText(t).catch(()=>{});}catch(e){}ta.value=t;ta.style.display='block';ta.select();msg('Arreglos copiados: pégaselos a Claude');},'flex:1');
+    const show=(A,q)=>{const t=JSON.stringify(A);try{navigator.clipboard.writeText(t).catch(()=>{});}catch(e){}ta.value=t;ta.style.display='block';ta.select();msg(q+' → '+sumOf(A));};
+    bt(ft,'Copiar mis cambios',()=>show(L,'Copiados tus cambios de este navegador'),'flex:1');
+    // todo = lo que ya es fijo (mapa_fix.json) + lo de este navegador, de todas las zonas: es lo que hay que pasar a Claude para dejarlo definitivo
+    bt(ft,'Copiar todo',()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)};if(Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});show(A,'Copiado TODO (fijo + tus cambios)');},'flex:1');
+    bt(ft,'Copias',()=>{let B=[];try{B=JSON.parse(localStorage.getItem('ub_map_bak')||'[]')||[];}catch(e){}if(!B.length){msg('Aún no hay copias de seguridad');return;}
+      const n=parseInt(prompt('Copias de seguridad automáticas (una por minuto si hay cambios).\nEscribe el número de la que quieres recuperar:\n'+B.map((b,i)=>(i+1)+') '+new Date(b[0]).toLocaleString()).join('\n')));if(!n||!B[n-1])return;
+      try{setL(JSON.parse(B[n-1][1]));}catch(e){return;}save();unsel();regrid();recity();draw();msg('Copia recuperada');});
     bt(ft,'Borrar zona',()=>{if(!confirm('¿Borrar todos los arreglos de esta zona guardados en este navegador?'))return;delete L['z'+zi];save();unsel();regrid();recity();draw();});
     const ta=el('textarea','display:none;width:100%;height:70px;margin-top:6px;background:#111;color:#9f9;border:1px solid #456;font:11px monospace;box-sizing:border-box');pan.appendChild(ta);}
   function open(){if(pan){draw();return;}pan=el('div','position:fixed;left:10px;top:150px;width:350px;max-height:72vh;overflow:auto;z-index:20;background:rgba(10,12,18,.93);color:#fff;font:13px sans-serif;padding:10px;border:1px solid #456;border-radius:8px');
@@ -855,6 +867,7 @@ const WEAPONS={
   rail:{n:'Cañón de raíles',dmg:1600,rate:1.5,mag:5,res:40,rl:3,spread:0,pen:2,rail:1,zoom:40,cost:6500,len:.87,col:0x3e424c,snd:300},
   coil:{n:'Cañón de bobinas',dmg:2200,rate:.9,mag:6,res:36,rl:3.2,spread:0,pen:2,coil:1,charge:1.1,cost:7000,len:.66,col:0x607078,snd:250},
   scar:{n:'Ametralladora pesada',dmg:120,rate:.11,mag:60,res:360,rl:3.6,auto:1,spread:.022,cost:4500,len:.67,col:0x8a5a2a,snd:520},
+  knife:{n:'Cuchillo',melee:1,knife:1,dmg:150,rate:.5,mag:1,res:0,rl:0,spread:0,cost:0,len:.3,col:0x9aa2ab,snd:0},
   pipe:{n:'Tubería',melee:1,dmg:240,rate:.5,mag:1,res:0,rl:0,spread:0,cost:300,len:.8,col:0x8a8f96,snd:0}
 };
 const P={x:SPX,z:SPZ,y:0,vy:0,yaw:0,pitch:0,hp:100,max:100,pts:500,kills:0,lastHit:-9,gren:2,quick:false};
@@ -865,7 +878,7 @@ let slots=[],ci=0,fireCd=0,reloading=0,kick=0,firing=false,pressed=false,knifeCd
 let rlTot=1,rlN=0,rlEv=-1,bobT=0,bobA=0,swX=0,swY=0,lyaw=0,lpitch=0;const keys={};let stepD=0,aim=false,ads=0,swingT=0;
 const cur=()=>slots[ci];
 const has=k=>slots.find(s=>s.k==k);
-function give(k){const d=WEAPONS[k],w={k,d,mag:d.mag,res:d.res};if(slots.length<(TEST?99:3)){slots.push(w);ci=slots.length-1;}else{wOut(slots[ci]);slots[ci]=w;}reloading=0;gunModel();msg('Nueva arma: '+d.n);}
+function give(k){const d=WEAPONS[k],w={k,d,mag:d.mag,res:d.res};if(slots.length<(TEST?99:4)){slots.push(w);ci=slots.length-1;}else{const j=repI();wOut(slots[j]);slots[j]=w;ci=j;}reloading=0;gunModel();msg('Nueva arma: '+d.n);}
 function addPts(n){n*=dbl>0?2:1;if(credit)credit.conn.send({t:'pts',n});else P.pts+=n;}
 function hitMark(){$('cross').style.background='#f33';setTimeout(()=>$('cross').style.background='#fff',70);}
 function msg(t){const d=document.createElement('div');d.textContent=t;$('msgs').appendChild(d);setTimeout(()=>d.remove(),3500);}
@@ -1116,6 +1129,7 @@ function gunModel0(){
   const w=cur(),d=w.d,m=M(d.col),dk=M(0x111111);gun.userData.sy=0;gun.userData.oy=d.len<.35?.065:.025;gun.userData.oz=d.len<.35?-.1:0;
   {const U=gun.userData,gf=new THREE.Group();gf.rotation.y=Math.PI;gun.add(gf);U.gf=gf;U.sw=null;U.rg=VV(0,-.05,0);U.lg=null;U.lgPump=false;U.az=0;U.sr=null;U.sp=0;U.se=.5;U.ga=.25;U.ry=.3;U.ro=VV(.005,0,.017);U.rmix=.3;U.rc=RC;U.lc=LC;U.ln=null;U.lv=null;U.lp=null;U.rpo=null;U.h=null;U.rl=U.tick=U.lgR=U.rq=null;U.rx=0;U.rlOn=false;}
   if(SW[w.k]){swGun(w,d);return;}
+  if(d.knife){const mk=(w,h,l,c,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,l),M(c));o.position.set(0,y,z);gun.add(o);return o;};mk(.028,.036,.12,0x1c1610,0,-.02);mk(.07,.018,.02,0x33373c,0,-.09);mk(.01,.05,.2,0xc3cad2,0,-.2);const t=mk(.01,.036,.036,0xc3cad2,.007,-.3);t.rotation.x=.785;arm(gun,0,0,.1,.2,.4,.45);return;}
   if(d.melee){const c=new THREE.Mesh(new THREE.CylinderGeometry(.021,.021,.85,8),m);c.rotation.x=Math.PI/2;c.position.z=-.3;gun.add(c);
     const j=new THREE.Mesh(new THREE.CylinderGeometry(.036,.036,.09,8),M(0x5a5f66));j.rotation.x=Math.PI/2;j.position.z=-.7;gun.add(j);arm(gun,0,0,.1,.2,.4,.45);return;}
   if(GM[w.k]){const g=GM[w.k],r=gmMesh(w.k,d.len),yo=.05-g.ym*r.s,U=gun.userData;r.body.position.y=yo;gun.add(r.body);U.sy=.058;U.mag=U.pump=U.shell=null;U.sm=false;
@@ -1192,9 +1206,10 @@ function swing(){const d=cur().d;fireCd=d.rate;swingT=.28;nz(.14,'bandpass',900,
   const fx_=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),hit=[];
   for(const z of zombies){const vx=z.pos.x-P.x,vz=z.pos.z-P.z,dd=Math.hypot(vx,vz);if(dd<2.7&&(vx*fx_+vz*fz)/(dd||1)>.35&&los(P.x,P.z,z.pos.x,z.pos.z))hit.push([dd,z]);}
   hit.sort((a,b)=>a[0]-b[0]);
-  for(const h of hit.slice(0,3)){const z=h[1];spray(new V3(z.pos.x,1.4,z.pos.z),0x7a0c0c,7,3);z.stun=.6;hurtZ(z,Math.max(d.dmg,z.max*.5),false,true);}
+  for(const h of hit.slice(0,d.knife?1:3)){const z=h[1];if(d.knife&&h[0]>2.3)break;spray(new V3(z.pos.x,1.4,z.pos.z),0x7a0c0c,7,3);z.stun=d.knife?.3:.6;hurtZ(z,d.knife?d.dmg:Math.max(d.dmg,z.max*.5),false,true);}
   if(hit.length){osc('square',520,180,.09,.35);osc('sine',1900,1500,.25,.2);}}
-function knife(){if(knifeCd>0)return;knifeCd=.6;knT=.34;kick=-.12;noise(.1,2500,.15);
+function knife(){const ki=slots.findIndex(w=>w.d.knife);if(ki<0)return knife0();if(knifeCd>0||fireCd>0&&ci==ki)return;knifeCd=.6;if(ci!=ki){knBack=ci;ci=ki;reloading=0;gunModel();knT=.5;}swing();}
+function knife0(){if(knifeCd>0)return;knifeCd=.6;kick=-.12;noise(.1,2500,.15);
   const fx_=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);let best=null,bd=2.3;
   for(const z of zombies){const vx=z.pos.x-P.x,vz=z.pos.z-P.z,d=Math.hypot(vx,vz);if(d<bd&&(vx*fx_+vz*fz)/(d||1)>.4){bd=d;best=z;}}
   if(best){spray(new V3(best.pos.x,1.3,best.pos.z),0x7a0c0c,8,3);const before=P.pts;hurtZ(best,150,false,true);if(best.dead)addPts(70);}
@@ -1456,7 +1471,7 @@ const powers=[],PW={ammo:['Munición máxima',0x4aa3ff],insta:['Muerte instantá
 function dropPower(p,k){k=k||Object.keys(PW)[R()*4|0];const o=box(.4,.4,.4,MB(PW[k][1]),p.x,1,p.z);powers.push({id:tid++,k,o,t:25});}
 function powerFx(k){msg('¡'+PW[k][0]+'!');tone(500,1000,.3,'triangle',.15);
   if(k=='ammo'){slots.forEach(s=>s.res=s.d.res);P.gren=Math.max(P.gren,4);}
-  if(k=='pipe'){if(has('pipe')||slots.length>=3)addPts(200);else give('pipe');}}
+  if(k=='pipe'){if(has('pipe')||slots.length>=4)addPts(200);else give('pipe');}}
 function updPowers(dt){
   for(let i=powers.length-1;i>=0;i--){const p=powers[i];p.t-=dt;p.o.rotation.y+=dt*3;p.o.visible=p.t>5||Math.sin(p.t*12)>0;
     const who=AL.find(a=>Math.hypot(p.o.position.x-a.x,p.o.position.z-a.z)<1.2);
@@ -1586,13 +1601,13 @@ function wOut(w){const o={k:w.k,up:w.d.up|0,mag:w.mag,res:w.res,x:P.x,z:P.z,y:P.
 function wGrant(d){if(!WEAPONS[d.k])return;const e=has(d.k),up=d.up|0;
   if(e&&(e.d.up|0)>=up){e.mag=e.d.mag;e.res=e.d.res;msg('Munición de '+e.d.n);return;}
   const w={k:d.k,d:upD(d.k,up),mag:d.mag|0,res:d.res|0};
-  if(e){const i=slots.indexOf(e);slots[i]=w;ci=i;}else if(slots.length<(TEST?99:3)){slots.push(w);ci=slots.length-1;}else{wOut(slots[ci]);slots[ci]=w;}
+  if(e){const i=slots.indexOf(e);slots[i]=w;ci=i;}else if(slots.length<(TEST?99:4)){slots.push(w);ci=slots.length-1;}else{const j=repI();wOut(slots[j]);slots[j]=w;ci=j;}
   reloading=0;gunModel();msg('Coges: '+w.d.n);}
 function wTake(id,who){const i=wdrops.findIndex(d=>d.id==id);if(i<0)return;const d=wdrops[i];scene.remove(d.g);wdrops.splice(i,1);
   if(who===P)wGrant(d);else try{who.conn.send({t:'wgive',k:d.k,up:d.up,mag:d.mag,res:d.res});}catch(e){}}
 function wNear(){if(P.dead)return null;let b=null,bd=1.9;for(const d of wdrops){const q=Math.hypot(d.x-P.x,d.z-P.z);if(q<bd&&d.t>0&&Math.abs(d.y-(P.by||0))<1.5){bd=q;b=d;}}return b;}
 function wSt(d){const n=upD(d.k,d.up).n,e=has(d.k);return{x:d.x,z:d.z,cost:()=>0,
-  text:()=>e?((e.d.up|0)>=d.up?'Coger la munición de '+n:'Coger '+n):slots.length<(TEST?99:3)?'Coger '+n:'Cambiar '+cur().d.n+' por '+n,
+  text:()=>e?((e.d.up|0)>=d.up?'Coger la munición de '+n:'Coger '+n):slots.length<(TEST?99:4)?'Coger '+n:'Cambiar '+slots[repI()].d.n+' por '+n,
   buy:()=>{if(net.client)toHost({t:'wtake',id:d.id});else wTake(d.id,P);}};}
 function wClear(){for(const d of wdrops)scene.remove(d.g);wdrops.length=0;}
 function wTick(dt){for(let i=wdrops.length-1;i>=0;i--){const d=wdrops[i];d.t-=dt;if(d.t<=0&&!net.client){scene.remove(d.g);wdrops.splice(i,1);continue;}
@@ -1627,13 +1642,10 @@ function tpCam(){const on=tp&&!specOn&&!P.dead&&state=='play';
   let hx=P.x+Math.cos(P.yaw)*.8,hz=P.z-Math.sin(P.yaw)*.8,k=0;if(blocked(hx,hz,.15)){hx=P.x;hz=P.z;}
   for(let i=1;i<=11;i++){const t=i*.3;if(blocked(hx+dx*t,hz+dz*t,.15))break;k=t;}cl=o;
   camera.position.set(hx+dx*k,Math.max(P.by+.35,EYE+P.y+P.by+.25+dy*k),hz+dz*k);}
-// 8) Cuchillazo visible: durante el golpe se guarda el arma y la mano derecha lanza una puñalada con el cuchillo
-let knG=null,knT=0;
-function knTick(dt){if(knT<=0){if(knG&&knG.visible){knG.visible=false;if(!tp&&!specOn)gun.visible=!cache.sc;}return;}
-  if(!knG){knG=new THREE.Group();const mk=(w,h,d,c,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(0,y,z);m.raycast=noRay;knG.add(m);return m;};
-    mk(.012,.055,.26,0x9aa2ab,0,-.17);mk(.06,.016,.022,0x33373c,0,-.035);mk(.028,.036,.11,0x1c1610,0,.03);mk(.065,.075,.085,0x8a6248,0,.035);mk(.058,.058,.2,0x2b3038,-.005,.17);camera.add(knG);}
-  knT-=dt;const k=Math.min(1,Math.max(0,1-knT/.34)),s=Math.sin(k*Math.PI);
-  knG.visible=!tp&&!specOn;if(knG.visible)gun.visible=false;knG.position.set(.26-.2*s,-.25+.1*s,-.5-.34*s);knG.rotation.set(-.08+.1*s,.55*(1-s),.5*(1-s));}
+// 8) Cuchillo: es un arma más (hueco propio, no cuenta entre las 3), la sujetan los brazos del personaje. Equipado golpea con el clic izquierdo;
+//    con un arma de fuego en la mano, V o el botón central lo sacan, da el tajo y vuelve el arma que llevabas.
+let knT=0,knBack=-1;const repI=()=>cur().d.knife?slots.length-1:ci;
+function knTick(dt){if(knT>0&&(knT-=dt)<=0){const ki=slots.findIndex(w=>w.d.knife);if(knBack>=0&&ci==ki&&knBack<slots.length){ci=knBack;fireCd=.15;gunModel();}knBack=-1;}}
 function specCam(){const on=net.on&&P.dead&&!(P.down>0)&&state=='play';if(!on){if(specOn){specOn=false;gun.visible=true;}return null;}
   const L=net.host?remotes.filter(r=>!r.dead&&r.g).map(r=>({g:r.g,yaw:r.yaw})):Object.keys(net.others||{}).map(k=>net.others[k]).filter(o=>o.g.visible&&!o.dn).map(o=>({g:o.g,yaw:o.yaw}));
   if(!L.length){if(specOn){specOn=false;gun.visible=true;}return null;}specOn=true;gun.visible=false;P.hp=P.max;const t=L[specI%L.length],p=t.g.position,fx=-Math.sin(t.yaw),fz=-Math.cos(t.yaw);
@@ -1912,7 +1924,7 @@ $('go').onclick=()=>{
   try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;if(fs&&$('go').textContent!='CONTINUAR'&&!(document.fullscreenElement||document.webkitFullscreenElement)){
     const pr=fs.call(el,{navigationUI:'hide'}),lk=()=>{try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');if(o&&o.catch)o.catch(()=>{});}catch(e){}};
     if(pr&&pr.then)pr.then(lk,()=>{});else lk();}}catch(e){}
-  if(state=='menu'){TEST=$('edm').checked;MAXZ=+$('maxz').value||24;try{localStorage.ub_maxz=MAXZ;localStorage.ub_edm=TEST?'1':'0';}catch(e){}give('pistol');if(!TEST)give(['shotgun','semi','smg4'][R()*3|0]);if(TEST){for(const k in WEAPONS)if(!has(k)){const d=WEAPONS[k];slots.push({k,d,mag:d.mag,res:d.res});}for(const g of GATES)g.openIt();msg('MODO EDICIÓN: inmortal, todas las armas (rueda del ratón) · F2 ajusta manos y mira · J ver colisión · K marcar sitio · M editor de mapa');}if(!net.client)startRound();}
+  if(state=='menu'){TEST=$('edm').checked;MAXZ=+$('maxz').value||24;try{localStorage.ub_maxz=MAXZ;localStorage.ub_edm=TEST?'1':'0';}catch(e){}give('knife');give('pistol');if(!TEST)give(['shotgun','semi','smg4'][R()*3|0]);if(TEST){for(const k in WEAPONS)if(!has(k)){const d=WEAPONS[k];slots.push({k,d,mag:d.mag,res:d.res});}for(const g of GATES)g.openIt();msg('MODO EDICIÓN: inmortal, todas las armas (rueda del ratón) · F2 ajusta manos y mira · J ver colisión · K marcar sitio · M editor de mapa');}if(!net.client)startRound();}
   state='play';$('ov').style.display='none';goT=performance.now();grab();
 };
 function pjShow(done){const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(5,7,12,.97);display:flex;align-items:center;justify-content:center;gap:26px;font-family:sans-serif;color:#fff;user-select:none;overflow:auto';
