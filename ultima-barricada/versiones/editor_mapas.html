@@ -112,7 +112,7 @@ function house(x0,z0,w,h,name){for(let z=z0;z<z0+h;z++)for(let x=x0;x<x0+w;x++){
 line(-OX,-OZ,GW-OX-1,-OZ,6);line(-OX,GH-OZ-1,GW-OX-1,GH-OZ-1,6);line(-OX,-OZ,-OX,GH-OZ-1,6);line(GW-OX-1,-OZ,GW-OX-1,GH-OZ-1,6);
 // ciudad: la rejilla de cada zona sale de su geometría (1 muro, 5 obstáculo bajo); de momento sin ventanas ni puertas de pago
 // ---------- edificio de prueba con plantas ----------
-const GN=GW*GH,LH=3.2,NLV=4,gup=new Uint8Array(GN*(NLV-1)).fill(1),wflag=new Uint8Array(GN*NLV),twin=new Map(),STAIRS=[],ZIPS=[];let cl=0,bldDirty=false,bldOn=false,bldM=null,BZ=[];
+const GN=GW*GH,LH=3.2,NLV=4,gup=new Uint8Array(GN*(NLV-1)).fill(1),wflag=new Uint8Array(GN*NLV),twin=new Map(),STAIRS=[],ZIPS=[];let cl=0,bldDirty=false,bldOn=false,bldM=null,BZ=[],bldFix=null;
 // edificios con plantas: sustituyen a bloques del mapa, cuyas piezas se quitan en cityBuild (todo lo que nace dentro de «cut» y levanta del suelo)
 // n plantas contando la azotea; door: casilla de la puerta y hacia dónde sale; zip: casilla del suelo donde acaba la tirolina
 const BLDS=[{zona:0,x:54,z:114,w:12,d:8,n:4,door:[5,7,0,1],cut:[53.5,113.9,67.2,123.6],clr:[54,122,65,123],zip:[46,104]},
@@ -135,7 +135,7 @@ function bldGrid1(B){const{x:X,z:Z,w:W,d:D,n:N}=B;if(B.clr)line(B.clr[0],B.clr[1
     STAIRS.push({k,x0:X+Math.min(ua,ua+s*5),x1:X+Math.max(ua,ua+s*5)+1,z0:Z+v,z1:Z+v+1,a:X+ua+(s<0?1:0),s});};
   st(0,1,2,1,2);st(1,D-2,W-3,-1,D-3);if(N>3)st(2,1,2,1,2);
   // en la azotea: arranque de la tirolina y sitios para puestos, en el lado contrario a la escalera
-  B.an=N>3?[X+W-2,Z+1]:[X+1,Z+D-2];B.spots=[];for(let u=2;u<=W-3;u+=3)B.spots.push([X+u+.5,Z+(N>3?D-2:1)+.5,N-1]);}
+  B.an=N>3?[X+W-2,Z+1]:[X+1,Z+D-2];B.spots=[];for(let u=2;u<=W-3;u+=3)B.spots.push([X+u+.5,Z+(N>3?D-2:1)+.5,N-1]);if(bldFix)bldFix(B);}
 // planta y altura de alguien (e guarda .lv; p es su posición)
 function lvUpd(e,p){if(!bldOn){e.lv=0;return 0;}const l=e.lv|0;
   for(const S of STAIRS)if((l==S.k||l==S.k+1)&&p.x>=S.x0&&p.x<S.x1&&p.z>=S.z0&&p.z<S.z1){const t=Math.max(0,Math.min(1,(p.x-S.a)*S.s/5));e.lv=t>.5?S.k+1:S.k;return(S.k+t)*LH;}
@@ -699,7 +699,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   let bakT=0;const setL=d=>{for(const k in L)delete L[k];Object.assign(L,d);};
   // si otra pestaña (el editor aparte o la partida de prueba) guarda arreglos, esta los recoge en vez de pisarlos con los suyos
   addEventListener('storage',e=>{if(e.key!='ub_map')return;try{setL(JSON.parse(e.newValue||'{}')||{});}catch(x){return;}if(pan){unsel();recity();draw();}});
-  const sumOf=A=>Object.keys(A).map(k=>'zona '+k.slice(1)+': '+Object.keys(A[k].m||{}).length+' movidos, '+(A[k].a||[]).length+' añadidos, '+Object.keys(A[k].c||{}).length+' casillas').join(' · ')||'nada';
+  const sumOf=A=>Object.keys(A).map(k=>'zona '+k.slice(1)+': '+Object.keys(A[k].m||{}).length+' movidos, '+(A[k].a||[]).length+' añadidos, '+Object.keys(A[k].c||{}).length+' casillas'+(A[k].b?', '+Object.keys(A[k].b).reduce((n,q)=>n+Object.keys(A[k].b[q]).length,0)+' casillas de edificio':'')).join(' · ')||'nada';
   const cellsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).c,(L['z'+i]||{}).c),modsOf=i=>Object.assign({},(MAPFIX['z'+i]||{}).m,(L['z'+i]||{}).m),addsOf=i=>((MAPFIX['z'+i]||{}).a||[]).concat((L['z'+i]||{}).a||[]);
   const dec=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);return u;};
   // casillas corregidas: se aplican sobre la rejilla recién cargada
@@ -737,6 +737,17 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     cells(zi);rebuildWalls();flowT=0;colK='';if(!keepReg())REG=[];return true;}
   // tras mover una pieza en el sitio: se rehace la colisión al cabo de un momento (si no se guardó la geometría, se rehace la ciudad, que la vuelve a registrar)
   function recol(){clearTimeout(acT);acT=setTimeout(()=>{if(REG.length)autoCol();else if(pan)recity();},350);}
+  // ---- edificios con plantas: cambios por casilla (editor de edificios) ----
+  // Se guardan en «b» de cada zona: b[nº de edificio en BLDS]['planta,u,v'] = 0 libre · 1 muro · 2 ventana · 3 barandilla. Se aplican al final de bldGrid1 (bldFix).
+  const bOf=i=>{const o={},A=(MAPFIX['z'+i]||{}).b||{},B_=(L['z'+i]||{}).b||{};for(const k of new Set(Object.keys(A).concat(Object.keys(B_))))o[k]=Object.assign({},A[k],B_[k]);return o;};
+  function bfix(B){const C=bOf(zi)[BLDS.indexOf(B)];if(!C)return;for(const key in C){const q=key.split(','),l=+q[0],u=+q[1],v=+q[2],c=C[key];if(!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))continue;
+      if(twin.has(l*GN+gi(B.x+u,B.z+v)))continue;gset(l,B.x+u,B.z+v,c?1:0,c==2?1:c==3?2:0);}}
+  bldFix=bfix;const bu=[];
+  function bref(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';}
+  function bset(bi,l,u,v,c){const B=BLDS[bi];if(!B||!(l>=0&&l<B.n&&u>=0&&v>=0&&u<B.w&&v<B.d))return false;if(twin.has(l*GN+gi(B.x+u,B.z+v))){msg('Esa casilla es de la escalera: no se puede cambiar');return false;}
+    const z=Z();if(!z.b)z.b={};const o=z.b[bi]||(z.b[bi]={}),key=l+','+u+','+v;bu.push([zi,bi,key,key in o?o[key]:null]);o[key]=c;save();bref();return true;}
+  function bundo(){const u=bu.pop();if(!u){msg('Nada que deshacer');return;}const o=((L['z'+u[0]]||{}).b||{})[u[1]];if(!o)return;if(u[3]==null)delete o[u[2]];else o[u[2]]=u[3];save();if(u[0]==zi)bref();}
+  function breset(bi){const z=Z();if(z.b)delete z.b[bi];save();bref();}
   function regrid(){if(!autoCol()){gridLoad(zi);bldGrid(zi);cells(zi);rebuildWalls();}flowT=0;colK='';colOn=true;colM.visible=true;}
   function recity(){mapIds=true;if(window.ZD&&window.ZD[zi])cityBuild(window.ZD[zi]);}
   const tris=()=>{let n=0;for(const me of cityG.children)n+=me.geometry.attributes.position.count/3;return n;};
@@ -839,7 +850,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
     const show=(A,q)=>{const t=JSON.stringify(A);try{navigator.clipboard.writeText(t).catch(()=>{});}catch(e){}ta.value=t;ta.style.display='block';ta.select();msg(q+' → '+sumOf(A));};
     bt(ft,'Copiar mis cambios',()=>show(L,'Copiados tus cambios de este navegador'),'flex:1');
     // todo = lo que ya es fijo (mapa_fix.json) + lo de este navegador, de todas las zonas: es lo que hay que pasar a Claude para dejarlo definitivo
-    bt(ft,'Copiar todo',()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)};if(Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});show(A,'Copiado TODO (fijo + tus cambios)');},'flex:1');
+    bt(ft,'Copiar todo',()=>{const A={};ZONAS.forEach((q,i)=>{const o={c:cellsOf(i),m:modsOf(i),a:addsOf(i)},b=bOf(i);if(Object.keys(b).length)o.b=b;if(o.b||Object.keys(o.c).length||Object.keys(o.m).length||o.a.length)A['z'+i]=o;});show(A,'Copiado TODO (fijo + tus cambios)');},'flex:1');
     bt(ft,'Copias',()=>{let B=[];try{B=JSON.parse(localStorage.getItem('ub_map_bak')||'[]')||[];}catch(e){}if(!B.length){msg('Aún no hay copias de seguridad');return;}
       const n=parseInt(prompt('Copias de seguridad automáticas (una por minuto si hay cambios).\nEscribe el número de la que quieres recuperar:\n'+B.map((b,i)=>(i+1)+') '+new Date(b[0]).toLocaleString()).join('\n')));if(!n||!B[n-1])return;
       try{setL(JSON.parse(B[n-1][1]));}catch(e){return;}save();unsel();regrid();recity();draw();msg('Copia recuperada');});
@@ -851,8 +862,8 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tecla M: con el ratón capturado elige el modelo al que apuntas; sin capturar, abre o cierra el panel
   function key(){const locked=document.pointerLockElement==renderer.domElement;if(!locked&&pan){close();return;}if(sel&&sel.zone!=zi)unsel();
     if(locked&&tab=='mod'){const id=pick();if(id!=null)select(id);else msg('Ahí no hay ningún modelo');}open();}
-  return{cells,mods,adds,reg,autoCol,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
-if(ZQ)setTimeout(()=>goZone(ZQ),0);
+  return{cells,mods,adds,reg,autoCol,bset,bundo,breset,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+bldGrid(zi);if(ZQ)setTimeout(()=>goZone(ZQ),0);
 MAPED.cells(zi);rebuildWalls();   // la zona inicial se cargó antes de existir el editor
 function boomFx(p,rad){brlFx(p,rad);fxBoom(p,rad);spray(p,0xffc040,14,9,6,.5,1.6);sBoom(p.x,p.z);}
 function explode(p,rad,dmg,hurt,from){
@@ -2369,14 +2380,23 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   const C={x:P.x,y:28,z:P.z+18,yaw:0,pitch:-.95},K={};let look=null,pan=null,walk=false,drag=null,paintDrag=false,last=performance.now();
   function overSpawn(){const Z=ZONAS[zi];C.x=Z.sp[0];C.z=Z.sp[1]+18;C.y=28;C.yaw=0;C.pitch=-.95;}overSpawn();
   const typing=()=>{const a=document.activeElement;return a&&(a.tagName=='INPUT'||a.tagName=='TEXTAREA'||a.tagName=='SELECT');};
-  addEventListener('keydown',e=>{if(typing())return;if(MAPED.nudge(e)){e.preventDefault();return;}K[e.code]=true;
+  // ---- editor de edificio (?edificio=N): se edita por casillas apuntando; 1 muro · 2 ventana · 3 barandilla · 4 quitar ----
+  const BI=parseInt(new URLSearchParams(location.search).get('edificio')),bmode=!isNaN(BI)&&BLDS[BI]?BLDS[BI]:null,BT=[['Muro',1],['Ventana',2],['Barandilla',3],['Quitar',0]];let btool=0,mpos=[0,0];
+  const bray=new THREE.Raycaster(),bhi=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.03,LH,1.03)),new THREE.LineBasicMaterial({color:0x2f9bff,depthTest:false}));bhi.visible=false;bhi.renderOrder=40;bhi.raycast=()=>{};scene.add(bhi);
+  function baim(){if(!bmode||!bldM)return null;bray.setFromCamera(walk?{x:0,y:0}:{x:mpos[0],y:mpos[1]},camera);const h=bray.intersectObject(bldM)[0];if(!h||h.distance>(walk?12:400))return null;
+    const n=h.face.normal,p=h.point,q=p.clone().addScaledVector(n,-.05),x=Math.floor(q.x),z=Math.floor(q.z),B=bmode;if(x<B.x||z<B.z||x>=B.x+B.w||z>=B.z+B.d)return null;
+    const l=Math.max(0,Math.min(B.n-1,n.y>.5?Math.round(p.y/LH):Math.floor((q.y+.2)/LH)));return{l,u:x-B.x,v:z-B.z,x,z};}
+  function bclick(){const t=baim();if(!t){msg('Apunta a una casilla del edificio');return;}const c=BT[btool][1];
+    if(c&&walk&&t.l==(P.lv|0)&&t.x==Math.floor(P.x)&&t.z==Math.floor(P.z)){msg('Estás encima de esa casilla');return;}MAPED.bset(BI,t.l,t.u,t.v,c);}
+  addEventListener('keydown',e=>{if(typing())return;if(bmode){const k=['Digit1','Digit2','Digit3','Digit4'].indexOf(e.code);if(k>=0){btool=k;bar();e.preventDefault();return;}if(e.code=='KeyZ'&&(e.ctrlKey||e.metaKey)){MAPED.bundo();e.preventDefault();return;}}
+    if(MAPED.nudge(e)){e.preventDefault();return;}K[e.code]=true;
     if(e.code=='KeyC'){colOn=!colOn;colM.visible=colOn;colK='';bar();}if(e.code=='KeyH')help.style.display=help.style.display=='none'?'':'none';if(e.code=='KeyF'&&!e.repeat)setWalk(!walk);},true);
   addEventListener('keyup',e=>{K[e.code]=false;},true);addEventListener('blur',()=>{for(const k in K)K[k]=false;});
-  const setMouse=e=>{if(walk){MAPED.mouse=null;return;}const r=cv.getBoundingClientRect();MAPED.mouse=[(e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1];};
+  const setMouse=e=>{if(walk){MAPED.mouse=null;return;}const r=cv.getBoundingClientRect();mpos=[(e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1];MAPED.mouse=[(e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1];};
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('mousedown',e=>{setMouse(e);e.stopPropagation();
     if(walk&&document.pointerLockElement!==cv){cv.requestPointerLock();return;}if(e.button==1){e.preventDefault();if(!walk)pan=[e.clientX,e.clientY];return;}if(e.button==2){if(!walk)look=[e.clientX,e.clientY];return;}
-    if(e.button!=0)return;if(!MAPED.panel)MAPED.open();
+    if(e.button!=0)return;if(bmode){bclick();return;}if(!MAPED.panel)MAPED.open();
     if(MAPED.tab=='mod'){const id=MAPED.pick();if(id==null){msg('Ahí no hay ningún modelo');return;}
       if(!MAPED.sel||MAPED.sel.id!==id){MAPED.select(id);if(!MAPED.sel||MAPED.sel.id!==id)return;}
       // arrastrar sobre el suelo: la pieza sigue al ratón en horizontal (Alt: en vertical)
@@ -2394,7 +2414,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   const cross=document.createElement('div');cross.style.cssText='position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 3px #000;z-index:25;pointer-events:none;display:none';document.body.appendChild(cross);
   function setWalk(on){if(on==walk)return;walk=on;cross.style.display=on?'':'none';MAPED.mouse=null;
     if(on){P.lv=0;P.x=C.x;P.z=C.z;if(blocked(P.x,P.z,.32)){let ok=false;for(let r=1;r<25&&!ok;r++)for(let a=0;a<16&&!ok;a++){const x=C.x+Math.cos(a*.3927)*r,z=C.z+Math.sin(a*.3927)*r;if(!blocked(x,z,.32)){P.x=x;P.z=z;ok=true;}}}
-      C.pitch=0;scene.fog.density=fd0;fogOn=true;cv.requestPointerLock();msg('Modo andar: WASD, Mayús corre, clic edita lo que apuntas, F o Esc para volver a volar');}
+      C.pitch=0;if(!bmode){scene.fog.density=fd0;fogOn=true;}cv.requestPointerLock();msg('Modo andar: WASD, Mayús corre, clic edita lo que apuntas, F o Esc para volver a volar');}
     else{if(document.pointerLockElement===cv)document.exitPointerLock();C.y+=4;C.pitch=-.5;scene.fog.density=.003;fogOn=false;}bar();}
   document.addEventListener('pointerlockchange',()=>{if(walk&&document.pointerLockElement!==cv)setWalk(false);});
   cv.addEventListener('wheel',e=>{e.preventDefault();const k=e.deltaY<0?3:-3,cp=Math.cos(C.pitch);C.x-=Math.sin(C.yaw)*cp*k;C.z-=Math.cos(C.yaw)*cp*k;C.y=Math.max(.5,C.y+Math.sin(C.pitch)*k);},{passive:false});
@@ -2402,6 +2422,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
     if(!walk&&!typing()){const sp=(K.ShiftLeft||K.ShiftRight?40:14)*dt,f=(K.KeyW?1:0)-(K.KeyS?1:0),s=(K.KeyD?1:0)-(K.KeyA?1:0),u=(K.KeyE?1:0)-(K.KeyQ?1:0),sn=Math.sin(C.yaw),cs=Math.cos(C.yaw);
       C.x+=(-sn*f+cs*s)*sp;C.z+=(-cs*f-sn*s)*sp;C.y=Math.max(.5,C.y+u*sp);}
     if(bldDirty)bldShow();
+    if(bmode){const t=baim();bhi.visible=!!t;if(t)bhi.position.set(t.x+.5,t.l*LH+LH/2-.1,t.z+.5);}
     if(walk){if(!typing()){const sp=(K.ShiftLeft||K.ShiftRight?7.4:5.2)*dt,f=(K.KeyW?1:0)-(K.KeyS?1:0),s=(K.KeyD?1:0)-(K.KeyA?1:0),l=Math.hypot(f,s),sn=Math.sin(C.yaw),cs=Math.cos(C.yaw);
         if(l)moveCol(P,(-sn*f+cs*s)/l*sp,(-cs*f-sn*s)/l*sp,.32,P.lv);}
       P.by=lvUpd(P,P);P.yaw=C.yaw;C.x=P.x;C.z=P.z;C.y=EYE+P.by;camera.position.set(C.x,C.y,C.z);camera.rotation.set(C.pitch,C.yaw,0);camera.updateMatrixWorld();
@@ -2414,17 +2435,25 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   const top=document.createElement('div');top.style.cssText='position:fixed;left:10px;right:10px;top:8px;z-index:30;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:13px sans-serif;color:#fff';
   for(const ev of['mousedown','click','wheel'])top.addEventListener(ev,e=>e.stopPropagation());document.body.appendChild(top);
   const B=(t,f,on)=>{const b=document.createElement('button');b.textContent=t;b.onclick=f;b.style.cssText='background:'+(on?'#276':'#333')+';color:#fff;border:1px solid #666;border-radius:5px;padding:6px 10px;cursor:pointer;font:13px sans-serif';top.appendChild(b);return b;};
-  function bar(){top.innerHTML='';const t=document.createElement('b');t.textContent='Editor de mapas';t.style.marginRight='6px';top.appendChild(t);
+  function bar(){top.innerHTML='';const t=document.createElement('b');t.textContent=bmode?'Editor de edificio '+(BI+1)+' · '+ZONAS[zi].n:'Editor de mapas';t.style.marginRight='6px';top.appendChild(t);
+    if(bmode){BT.forEach((q,i)=>B((i+1)+' · '+q[0],()=>{btool=i;bar();},btool==i));B('Deshacer (Ctrl+Z)',()=>MAPED.bundo());
+      B('Restaurar edificio',()=>{if(confirm('¿Quitar todos los cambios de este edificio guardados en este navegador?'))MAPED.breset(BI);});
+      const g=document.createElement('span');g.style.flex='1';top.appendChild(g);B(walk?'Volar (F)':'Andar (F)',()=>setWalk(!walk),walk);
+      B('Volver al mapa',()=>{location.href='editor_mapas.html?zona='+zi+'&r='+Date.now();});B('▶ Probar',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
+      B('Ayuda (H)',()=>{help.style.display=help.style.display=='none'?'':'none';});return;}
     ZONAS.forEach((Z,i)=>B(i+' · '+Z.n,()=>{if(i==zi)return;goZone(i);overSpawn();MAPED.select(null);bar();},i==zi));
     const g=document.createElement('span');g.style.flex='1';top.appendChild(g);
     B(colOn?'Colisión: SÍ':'Colisión: NO',()=>{colOn=!colOn;colM.visible=colOn;colK='';bar();},colOn);
     B(fogOn?'Niebla: SÍ':'Niebla: NO',()=>{fogOn=!fogOn;scene.fog.density=fogOn?fd0:.003;bar();},fogOn);
-    B(walk?'Volar (F)':'Andar por el mapa (F)',()=>setWalk(!walk),walk);B('Volver al inicio de la zona',()=>{setWalk(false);overSpawn();});B('▶ Probar esta zona',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
+    BLDS.forEach((b,i)=>{if(b.zona==zi)B('Editar edificio '+(i+1),()=>{location.href='editor_mapas.html?edificio='+i+'&r='+Date.now();});});B(walk?'Volar (F)':'Andar por el mapa (F)',()=>setWalk(!walk),walk);B('Volver al inicio de la zona',()=>{setWalk(false);overSpawn();});B('▶ Probar esta zona',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&r='+Date.now(),'_blank'),true);
     B('Ayuda (H)',()=>{help.style.display=help.style.display=='none'?'':'none';});}
   const help=document.createElement('div');help.style.cssText='position:fixed;right:10px;bottom:10px;z-index:30;max-width:380px;background:rgba(10,12,18,.9);color:#dde;font:12px/1.5 sans-serif;padding:10px 12px;border:1px solid #456;border-radius:8px';
   help.innerHTML='<b>Moverse</b>: WASD · Q/E bajar/subir · Mayús rápido · rueda acercar · botón derecho arrastrando para mirar · botón central arrastrando para desplazar el mapa<br><b>Andar (F)</b>: bajas al suelo en primera persona con las colisiones y la niebla del juego; apunta con la mira y haz clic para elegir, mover (arrastrando), añadir o pintar; F o Esc para volver a volar<br><b>Modelos</b>: clic para elegir · arrastra para moverlo por el suelo (Mayús: pasos de 5 cm) · Alt+arrastrar sube/baja · flechas, RePág/AvPág, coma/punto, Fin al suelo, Supr ocultar, Ctrl+Z deshacer<br><b>Añadir / Suelo</b>: elige en el panel y haz clic en el suelo (en Suelo puedes arrastrar para pintar)<br><b>C</b> colisión · <b>H</b> esta ayuda · <b>▶ Probar</b> abre el juego en esta zona con tus cambios (modo edición)<br>Los cambios se guardan solos en este navegador; para dejarlos fijos: «Copiar todo» y pásaselo a Claude. «Copias» recupera una copia de seguridad automática.';
   for(const ev of['mousedown','click','wheel'])help.addEventListener(ev,e=>e.stopPropagation());document.body.appendChild(help);
-  bar();MAPED.open();
+  if(bmode){help.innerHTML='<b>Editor de edificio</b>: apunta a una casilla (se marca en azul) y haz clic para aplicarle la herramienta elegida arriba o con las teclas <b>1</b> muro · <b>2</b> ventana · <b>3</b> barandilla · <b>4</b> quitar. Apuntando al suelo levantas algo en esa casilla; apuntando a un muro lo cambias o lo quitas (un hueco en el muro de fuera es una puerta).<br><b>Andar</b>: WASD, Mayús corre, las escaleras suben de planta · <b>F</b> o Esc para volar y ver el edificio por fuera (también se puede editar con el ratón) · <b>Ctrl+Z</b> deshacer<br>Las escaleras no se pueden tocar. Los cambios se guardan solos; para dejarlos fijos, vuelve al mapa, «Copiar todo» y pásaselo a Claude.';
+    scene.add(new THREE.AmbientLight(0xffffff,.55));   // luz de obra: dentro del edificio no se ve nada de noche
+    const go=()=>{const d=bmode.door;C.x=bmode.x+d[0]+.5;C.z=bmode.z+d[1]+.5;C.yaw=Math.atan2(d[2],d[3]);setWalk(true);bar();};if(bmode.zona!=zi){goZone(bmode.zona);setTimeout(go,300);}else go();}
+  else{bar();MAPED.open();}
   // en este editor el ratón no se captura: el texto del panel lo explica así
   const fixTxt=()=>{const p=MAPED.panel;if(p)for(const d of p.querySelectorAll('div'))if(d.childNodes.length==1&&/Con el ratón capturado/.test(d.textContent))d.textContent=d.textContent.replace(/Con el ratón capturado, /,'').replace('apunta a','haz clic en').replace(' y haz clic (o pulsa M) para elegirlo','').replace(/^./,c=>c.toUpperCase());};
   new MutationObserver(fixTxt).observe(document.body,{childList:true,subtree:true});fixTxt();
