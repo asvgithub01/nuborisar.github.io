@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Última Barricada · cooperativo v13 · inmersión</title>
+<title>ZCitizen · cooperativo v13 · inmersión</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Segoe UI,Arial,sans-serif;color:#eee;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   canvas,#tc{touch-action:none}
@@ -67,7 +67,7 @@
 <div id="tc"><div id="joyB"><div id="joyK"></div></div></div>
 <div id="rot">Gira el móvil: el juego solo funciona en horizontal</div>
 <div id="ov"><div>
-  <h1 id="ovt">ÚLTIMA BARRICADA</h1>
+  <h1 id="ovt">ZCITIZEN</h1>
   <p id="ovs">Aguanta en la casa. En la ronda 3 se abre la salida al pueblo.</p>
   <table id="ovc">
     <tr><td>WASD / Shift / Espacio</td><td>Moverse / correr / saltar</td></tr>
@@ -2482,6 +2482,7 @@ const IMM=(()=>{const O=VFX.O,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   dropPower=function(p,k){dp0(p,k);const q=powers[powers.length-1];if(q&&q.k=='armor')q.o.scale.set(.85,.3,.7);if(q&&q.k=='bat')q.o.scale.set(.4,.75,.4);};
   station(...spot(),0x56657a,'Blindaje\n3000',{text:()=>P.armOwn?null:'Blindaje (aguanta mucho más; los zombis sueltan piezas para repararlo)',cost:()=>3000,
     buy:()=>{P.armOwn=true;P.arm=100;msg('Blindaje puesto: se va rompiendo con los golpes, repáralo con las piezas que sueltan los zombis');}});
+  stations.unshift(stations.pop());   // el primero en el reparto de sitios: le toca el más cercano al inicio (al ser el último acababa en el sitio más lejano del mapa)
   // ---- indicadores: barra azul del blindaje encima de la vida y carga de la linterna ----
   const ab=document.createElement('div');ab.style.cssText='position:absolute;left:0;top:-8px;height:5px;width:0;background:#7fa6d8;box-shadow:0 0 5px #7fa6d8;display:none';$('hpw').appendChild(ab);
   const bt=document.createElement('div');bt.style.cssText='position:fixed;left:14px;bottom:112px;font:bold 12px sans-serif;z-index:5;pointer-events:none;text-shadow:0 0 3px #000';document.body.appendChild(bt);
@@ -2600,6 +2601,71 @@ camera.position.set(P.x,EYE,P.z);requestAnimationFrame(loop);
 let hl=performance.now();setInterval(()=>{const n=performance.now();if(document.hidden&&net.on&&state=='play'){let e=Math.min(1.2,(n-hl)/1000);while(e>0){update(Math.min(.05,e));e-=.05;}}hl=n;},50);
 goZone(0,SPX,SPZ);
 window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return state;},get round(){return round;},update,spawnZombie,fire,placeTrap,give,voice,net,relayJoin,touchInit,limbOff,reload,cur,remotes,AL,hostGame,joinGame,hurtP,ct,flow,GATES,ENTRIES,dist,grid,gi,set round(v){round=v;},set aim(v){aim=v;},VFX,IMM,IMM2,switchTo,slots,gun,FPA,camera,scene,renderer,get ads(){return ads;}};
+</script>
+<script>
+// ---------- pantalla de inicio de ZCitizen: logo, música de fondo y «pulsa para continuar» (PC y móvil) ----------
+// Script aparte (lo inyecta v13.py antes de </body>). No sale al volver del editor (?volver=) ni con ?nosplash.
+// Los navegadores no dejan sonar nada hasta el primer toque: si la música no ha podido arrancar sola, el primer toque la enciende y el segundo continúa.
+(function(){
+  if(/[?&](volver|nosplash)\b/.test(location.search))return;
+  // --- logo: letras de bloque dibujadas a mano (no depende de ninguna fuente) ---
+  const G={C:[130,[0,0,130,0,130,40,40,40,40,150,130,150,130,190,0,190]],I:[40,[0,0,40,0,40,190,0,190]],T:[130,[0,0,130,0,130,40,85,40,85,190,45,190,45,40,0,40]],
+    Z:[140,[0,0,140,0,140,40,55,150,140,150,140,190,0,190,0,150,85,40,0,40]],E:[120,[0,0,120,0,120,40,40,40,40,75,105,75,105,115,40,115,40,150,120,150,120,190,0,190]],
+    N:[140,[0,0,45,0,100,115,100,0,140,0,140,190,95,190,40,75,40,190,0,190]]};
+  const poly=(p,x,y,s,f)=>'<polygon fill="'+f+'" points="'+p.map((v,i)=>((i%2?y:x)+v*s).toFixed(1)).join(' ')+'"/>';
+  let sky='',x=0;for(const[w,h]of[[70,90],[50,150],[90,110],[40,190],[80,130],[60,80],[100,160],[50,120],[70,200],[90,100],[60,170],[80,120],[50,90],[90,180],[70,130],[60,100]]){
+    sky+='<rect x="'+x+'" y="'+(300-h)+'" width="'+(w-4)+'" height="'+h+'" fill="#12161c"/>';
+    for(let j=0;j<3;j++){const wx=x+8+((x*7+j*23)%Math.max(1,w-24)),wy=300-h+12+((x*3+j*41)%Math.max(1,h-30));sky+='<rect x="'+wx+'" y="'+wy+'" width="7" height="9" fill="#e9c46a" opacity="'+(.25+((x+j*5)%5)*.1)+'"/>';}
+    x+=w;}
+  let let_='',lx=235;for(const c of'CITIZEN'){let_+=poly(G[c][1],lx,80,1,'#e8e6dc');lx+=G[c][0]+16;}
+  const svg='<svg viewBox="0 0 1100 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ZCitizen">'
+    +'<g opacity=".9">'+sky+'</g><rect x="0" y="296" width="1100" height="6" fill="#0b0d10"/>'
+    +'<g transform="translate(34 0) skewX(-7)">'+poly(G.Z[1],22,30,1.263,'#9be22a')
+    +'<polygon fill="#9be22a" points="60,268 76,268 70,312 66,312"/><polygon fill="#9be22a" points="150,268 162,268 157,296 154,296"/>'
+    +let_+'<polygon fill="#07080a" points="10,196 1090,150 1090,157 10,204"/>'
+    +'<g fill="#c1121f"><polygon points="30,40 44,34 150,250 142,256"/><polygon points="66,30 78,26 176,230 168,236"/><polygon points="100,26 110,23 196,200 190,205"/></g></g>'
+    +'<text x="550" y="352" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="24" letter-spacing="9" fill="#9aa4ad">SUPERVIVENCIA ZOMBI COOPERATIVA</text></svg>';
+  const st=document.createElement('style');
+  st.textContent='#zsp{position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at 50% 42%,#1c2128 0%,#07080a 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh;cursor:pointer;transition:opacity .45s;touch-action:none;user-select:none;-webkit-user-select:none}'
+    +'#zsp svg{width:min(88vw,150vh);max-height:62vh;filter:drop-shadow(0 0 26px #9be22a33);animation:zsIn 1.1s ease-out}'
+    +'#zsp p{margin:0;font:700 clamp(15px,2.6vw,24px) Arial,Helvetica,sans-serif;letter-spacing:.14em;color:#e8e6dc;text-transform:uppercase;animation:zsBl 1.5s ease-in-out infinite;text-align:center;padding:0 16px}'
+    +'#zsp.on svg{animation:zsPu .5s ease-out}'
+    +'@keyframes zsBl{0%,100%{opacity:.25}50%{opacity:1}}@keyframes zsIn{from{opacity:0;transform:scale(1.12)}to{opacity:1;transform:none}}@keyframes zsPu{0%{transform:scale(1.05);filter:drop-shadow(0 0 40px #9be22a)}100%{transform:none}}';
+  document.head.appendChild(st);
+  const el=document.createElement('div');el.id='zsp';
+  el.innerHTML=svg+'<p>'+(window.matchMedia&&matchMedia('(pointer:coarse)').matches?'Toca la pantalla para continuar':'Pulsa una tecla o haz clic para continuar')+'</p>';
+  document.body.appendChild(el);
+  // --- música: bucle lento en la menor (La m · Fa · Do · Mi) con colchón, bajo, latido y arpegio con eco ---
+  const AC=window.AudioContext||window.webkitAudioContext;
+  let ctx=null,mg,bus,tm=null,nt=0,step=0,off=false;
+  const S=.42,CH=[[110,[220,261.63,329.63,440]],[87.31,[174.61,220,261.63,349.23]],[130.81,[196,261.63,329.63,392]],[82.41,[164.81,207.65,246.94,329.63]]];
+  const vol=()=>{const v=document.getElementById('volg');return v?Math.min(1.5,(+v.value||0)/100):1;};
+  function note(type,f,t,dur,g,att,dest,det,f2){const o=ctx.createOscillator(),a=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);if(det)o.detune.value=det;
+    a.gain.setValueAtTime(.0001,t);a.gain.linearRampToValueAtTime(g,t+att);a.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(a);a.connect(dest);o.start(t);o.stop(t+dur+.05);}
+  function play(i,t){const c=CH[i>>3],k=i&7;
+    if(k==0){const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=620;lp.connect(mg);
+      for(const f of c[1].slice(0,3)){note('sawtooth',f,t,8*S+.9,.045,1.1,lp,-7);note('sawtooth',f,t,8*S+.9,.045,1.1,lp,7);}
+      note('sine',c[0]/2,t,8*S,.3,.08,mg);note('sine',c[0],t,8*S,.1,.08,mg);}
+    if(k==0)note('sine',95,t,.28,.5,.01,mg,0,38);if(k==1)note('sine',80,t,.24,.28,.01,mg,0,36);
+    if(k)note('triangle',c[1][[0,2,1,3,2,1,3,2][k]]*2,t,.55,.07,.01,bus);
+    if(i==28)note('sine',c[1][3]*4,t,2.2,.03,.5,bus);}
+  function tick(){if(!ctx||ctx.state!='running')return;mg.gain.setTargetAtTime(off?0:.55*vol(),ctx.currentTime,.25);if(nt<ctx.currentTime)nt=ctx.currentTime+.05;
+    while(nt<ctx.currentTime+.35){play(step,nt);nt+=S;step=(step+1)%32;}}
+  function start(){if(ctx||!AC)return;try{ctx=new AC();mg=ctx.createGain();mg.gain.value=0;const cp=ctx.createDynamicsCompressor();mg.connect(cp);cp.connect(ctx.destination);
+      bus=ctx.createGain();const d=ctx.createDelay(1),fb=ctx.createGain();d.delayTime.value=S*1.5;fb.gain.value=.38;bus.connect(mg);bus.connect(d);d.connect(fb);fb.connect(d);d.connect(mg);
+      nt=ctx.currentTime+.1;tm=setInterval(tick,60);}catch(e){ctx=null;}}
+  function stopM(){if(off)return;off=true;clearInterval(wt);if(!ctx)return;try{mg.gain.setTargetAtTime(0,ctx.currentTime,.3);}catch(e){}setTimeout(()=>{clearInterval(tm);try{ctx.close();}catch(e){}},1600);}
+  // la música sigue en el menú y se apaga al empezar la partida
+  const wt=setInterval(()=>{try{if(state!='menu')stopM();}catch(e){}},300);
+  document.addEventListener('visibilitychange',()=>{if(ctx&&!off)try{document.hidden?ctx.suspend():ctx.resume();}catch(e){}});
+  let first=true,gone=false;
+  function close(){if(gone)return;gone=true;removeEventListener('keydown',key,true);el.style.opacity=0;el.style.pointerEvents='none';setTimeout(()=>el.remove(),480);}
+  function tap(e){if(e){e.preventDefault();e.stopPropagation();}start();const heard=ctx&&ctx.currentTime>.3;if(ctx&&ctx.state!='running')try{ctx.resume();}catch(x){}
+    if(ctx&&!heard&&first){first=false;el.classList.add('on');return;}close();}
+  function key(e){if(e.ctrlKey||e.metaKey||e.altKey||/^F\d+$/.test(e.key))return;tap(e);}
+  el.addEventListener('pointerdown',tap);addEventListener('keydown',key,true);
+  start();
+})();
 </script>
 </body>
 </html>

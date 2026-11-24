@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Última Barricada · editor de mapas</title>
+<title>ZCitizen · editor de mapas</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Segoe UI,Arial,sans-serif;color:#eee;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   canvas,#tc{touch-action:none}
@@ -67,7 +67,7 @@
 <div id="tc"><div id="joyB"><div id="joyK"></div></div></div>
 <div id="rot">Gira el móvil: el juego solo funciona en horizontal</div>
 <div id="ov"><div>
-  <h1 id="ovt">ÚLTIMA BARRICADA</h1>
+  <h1 id="ovt">ZCITIZEN</h1>
   <p id="ovs">Aguanta en la casa. En la ronda 3 se abre la salida al pueblo.</p>
   <table id="ovc">
     <tr><td>WASD / Shift / Espacio</td><td>Moverse / correr / saltar</td></tr>
@@ -2423,7 +2423,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
 // ===================== EDITOR DE MAPAS APARTE =====================
 (function(){
   TEST=true;state='editor';zFreeze=2;const cv=renderer.domElement;
-  document.title='Editor de mapas · Última Barricada';
+  document.title='Editor de mapas · ZCitizen';
   // fuera la interfaz del juego (menús, marcador, mira...): solo quedan el dibujo y los mensajes
   for(const e of [...document.body.children])if(e!==cv&&!e.contains(cv)&&e.tagName!='SCRIPT'&&!e.contains($('msgs')))e.style.display='none';
   const ms=$('msgs');if(ms){let p=ms;while(p.parentElement&&p.parentElement!==document.body)p=p.parentElement;p.style.display='';ms.style.cssText+=';position:fixed;left:auto;right:16px;top:60px;z-index:40;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none';}
