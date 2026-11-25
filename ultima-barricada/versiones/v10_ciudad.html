@@ -770,7 +770,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   function bgate(B,u,v,cost){bgateAt(B.x+u,B.z+v,cost);}
   function bgateAt(x,z,cost,v,sg){const cx=x+.5,cz=z+.5,key=zi+':'+x+','+z,hz=solid(ct(x-1,z))||solid(ct(x+1,z)),g={x,z,hz,cost,key,name:'Puerta',open:false},id=gi(x,z);
     grid[id]=4;wflag[id]=0;g.m=box(hz?1:.25,2.5,hz?.25:1,M(0x4a3018),cx,1.25,cz);occ.push(g.m);
-    g.st=station(cx,cz,0x4a3018,(sg?'Casa':'Puerta')+String.fromCharCode(10)+cost,{text:()=>g.open?null:sg?'Entrar en la casa (asedio de 2 rondas)':'Abrir la puerta',cost:()=>g.cost,buy:()=>{if(net.client)toHost({t:'gate',i:GATES.indexOf(g)});else(g.buyIt||g.openIt)();}});g.st.put=null;g.st.b.visible=false;for(const q of g.st.g.children)if(q.isSprite)q.scale.multiplyScalar(.6);
+    g.st=station(cx,cz,0x4a3018,(sg?'Casa':'Puerta')+String.fromCharCode(10)+cost,{text:()=>g.open?null:sg?'Entrar en la casa (asedio de 1 ronda)':'Abrir la puerta',cost:()=>g.cost,buy:()=>{if(net.client)toHost({t:'gate',i:GATES.indexOf(g)});else(g.buyIt||g.openIt)();}});g.st.put=null;g.st.b.visible=false;for(const q of g.st.g.children)if(q.isSprite)q.scale.multiplyScalar(.6);
     g.openIt=()=>{if(g.open)return;g.open=true;grid[gi(g.x,g.z)]=0;if(g.m)unocc(g.m);g.m=null;const i=stations.indexOf(g.st);if(i>=0)stations.splice(i,1);scene.remove(g.st.g);flowT=0;msg('Puerta abierta');};
     if(sg)sgGate(g);if(v)eoff([g.m,g.st.g].concat(g.xm||[]),cx,cz,v);GATES.push(g);if(bSt['g'+key])g.openIt();}
   // ---- edificios nuevos («n» de cada zona): [x,z,ancho,fondo,plantas,puerta u,v,dx,dz]. Se añaden a BLDS detrás de los fijos; las piezas del pack
@@ -793,8 +793,8 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   function wpAll(){const o={},A=bOf(zi);for(const B of BZ){const C=A[bid(B)];if(C)for(const key in C)if(C[key]==6){const q=key.split(','),u=+q[1],v=+q[2],n=+q[0]==0&&u>=0&&v>=0&&u<B.w&&v<B.d&&bside(B,u,v);if(n)o[(B.x+u)+','+(B.z+v)]={n,b:bid(B)};}}
     const E=eOf(zi);for(const k in E)if(E[k]&&E[k][0]==6&&!o[k])o[k]={n:[E[k][1]|0,E[k][2]|0],e:1,v:E[k]};return o;}
   function wbSync(i){if(i!=zi)return;const W=wpAll(),S=wbEd()?Object.keys(W):(WB[zi]||[]);if(!S.length)return;if(!bReady()){bLater();return;}
-    for(const k of S){const w=W[k];if(!w)continue;const q=k.split(','),x=+q[0],z=+q[1];if(!entryAt[gi(x,z)])bentryAt(x,z,w.n,true,w.v);}}
-  function wbBreak(k){if(!bReady())return;(WB[zi]=WB[zi]||[]).push(k);const w=wpAll()[k],q=k.split(','),x=+q[0],z=+q[1];if(!w||entryAt[gi(x,z)])return;
+    for(const k of S){const w=W[k]||wAuto(k);if(!w)continue;const q=k.split(','),x=+q[0],z=+q[1];if(!entryAt[gi(x,z)])bentryAt(x,z,w.n,true,w.v);}}
+  function wbBreak(k){if(!bReady())return;(WB[zi]=WB[zi]||[]).push(k);const w=wpAll()[k]||wAuto(k),q=k.split(','),x=+q[0],z=+q[1];if(!w||entryAt[gi(x,z)])return;
     if(!w.e){gset(0,x,z,0,0);rebuildWalls();}bentryAt(x,z,w.n,true,w.v);flowT=0;colK='';msg('¡Los zombis han roto una ventana!');
     try{spray(new V3(x+.5,1.5,z+.5),0xcfe8ff,10,3,6,.5);const o=at(x+.5,z+.5,1);nz(.4,'highpass',3800,.5,o);nz(.25,'bandpass',900,.4,o);}catch(e){}}
   function wbRound(r){if(net.client)return;if(r<=1){sgReset();const had=(WB[zi]||[]).length;WB={};if(had)bref();return;}if(sgRound(r))return;
@@ -805,20 +805,27 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   function wbNet(a){let m=WB[zi]||[];if(a.length<m.length||m.some((k,i)=>a[i]!=k)){WB[zi]=[];bref();m=[];}for(let i=m.length,n=a.length;i<n;i++)wbBreak(a[i]);}
   const SGC=new THREE.Color(0x5c6672),SG={on:null,done:{},fog:null,cl:null},SGT={},SGW=['rail','plasmar','scar','flame','rep','acid','minigun','lmgw','m107','aru','sa2'],idXZ=id=>[id%GW-OX,(id/GW|0)-OZ];
   function eoff(ms,cx,cz,v){const dx=+v[3]||0,dz=+v[4]||0,ry=+v[5]||0;if(!dx&&!dz&&!ry)return;const c=Math.cos(ry),s=Math.sin(ry);for(const m of ms){if(!m)continue;const px=m.position.x-cx,pz=m.position.z-cz;m.position.x=cx+dx+px*c+pz*s;m.position.z=cz+dz-px*s+pz*c;m.rotation.y+=ry;}}
-  function sgFlood(s){if(s<0||s>=grid.length||grid[s]!=0)return null;const q=[s],seen=new Set(q);for(let i=0;i<q.length;i++){if(q.length>900)return null;for(const d of[1,-1,GW,-GW]){const n=q[i]+d;if(n<0||n>=grid.length||seen.has(n)||grid[n]!=0)continue;seen.add(n);q.push(n);}}return q;}
-  function sgHouse(g){let best=null;const c=gi(g.x,g.z);for(const d of[1,-1,GW,-GW]){const q=sgFlood(c+d);if(q&&(!best||q.length<best.length))best=q;}return best;}
+  function sgGap(c){const w=i=>{const v=grid[i];return v==1||v==3||v==4||v==6;};return grid[c]==0&&((w(c-1)&&w(c+1))||(w(c-GW)&&w(c+GW)));}
+  function wAuto(k){const q=k.split(',');return q.length==4?{n:[+q[2],+q[3]],e:1}:null;}
+  function sgAuto(q){const S=new Set(q),p=[],ok={};for(const id of q)for(const d of[1,-1,GW,-GW]){const w=id+d,o=w+d;if(grid[w]!=1||entryAt[w]||o<0||o>=grid.length||grid[o]!=0||S.has(o))continue;if(ok[o]==null)ok[o]=sgFlood(o)?0:1;if(!ok[o])continue;const a=idXZ(w);p.push(a[0]+','+a[1]+','+(d==1?1:d==-1?-1:0)+','+(d==GW?1:d==-GW?-1:0));}return p;}
+  function sgFlood(s,gp){if(s<0||s>=grid.length||grid[s]!=0||(gp&&sgGap(s)))return null;const q=[s],seen=new Set(q);for(let i=0;i<q.length;i++){if(q.length>900)return null;for(const d of[1,-1,GW,-GW]){const n=q[i]+d;if(n<0||n>=grid.length||seen.has(n)||grid[n]!=0||(gp&&sgGap(n)))continue;seen.add(n);q.push(n);}}return q;}
+  function sgHouse(g){let best=null;const c=gi(g.x,g.z),D=[1,-1,GW,-GW];for(const d of D){const q=sgFlood(c+d);if(q&&(!best||q.length<best.length))best=q;}if(best)return best;
+    for(const d of D){const q=sgFlood(c+d,1);if(q&&(!best||q.length<best.length))best=q;}if(!best)return null;const S=new Set(best),H=new Set();best.holes=[];
+    for(let i=0;i<best.length&&best.length<2500;i++)for(const d of D){const x=best[i]+d;if(S.has(x)||H.has(x)||!sgGap(x))continue;const f=x+d,r=S.has(f)||grid[f]!=0?[]:sgFlood(f,1);
+      if(r){S.add(x);best.push(x);for(const y of r)if(!S.has(y)){S.add(y);best.push(y);}}else{H.add(x);const a=idXZ(x);best.holes.push(a[0]+','+a[1]+','+(d==1?1:d==-1?-1:0)+','+(d==GW?1:d==-GW?-1:0));}}
+    return best;}
   function sgWins(q){const S=new Set(q),W=wpAll(),done=WB[zi]||[],adj=(x,z)=>[1,-1,GW,-GW].some(d=>S.has(gi(x,z)+d)),p=[];let open=0;
-    for(const k in W){if(done.includes(k))continue;const a=k.split(',');if(adj(+a[0],+a[1]))p.push(k);}for(const e of ENTRIES)if(adj(e.x,e.z))open++;return{p,open};}
+    for(const k in W){if(done.includes(k))continue;const a=k.split(',');if(adj(+a[0],+a[1]))p.push(k);}for(const e of ENTRIES)if(adj(e.x,e.z))open++;if(!p.length&&!open)for(const k of sgAuto(q))p.push(k);return{p,open};}
   function sgSay(s){msg(s);bc({t:'msg',s});}
   function sgUnfog(){if(SG.fog){scene.remove(SG.fog);SG.fog.traverse(o=>{if(o.geometry){o.geometry.dispose();if(o.material.map)o.material.map.dispose();o.material.dispose();}});SG.fog=null;}}
   function sgFog(bb){sgUnfog();const G=new THREE.Group(),mk=(p,op)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(bb[2]-bb[0]+p*2,30,bb[3]-bb[1]+p*2),new THREE.MeshBasicMaterial({color:0x06080d,side:THREE.BackSide,fog:false,transparent:op<1,opacity:op,depthWrite:op>=1}));m.position.set((bb[0]+bb[2])/2,10,(bb[1]+bb[3])/2);G.add(m);};
     mk(5.5,1);mk(4.5,.5);mk(3.6,.35);scene.add(G);SG.fog=G;const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(220,232,255,1)');gr.addColorStop(.4,'rgba(140,170,255,.45)');gr.addColorStop(1,'rgba(90,120,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);const fl=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}));const bo=new THREE.Line(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(new Float32Array(24),3)),new THREE.LineBasicMaterial({color:0xeaf2ff,fog:false}));for(const o of[fl,bo]){o.visible=false;o.frustumCulled=false;o.userData.fx=1;G.add(o);}G.userData={bb,fl,bo,t:2,on:0};}
   function sgStart(g){const q=sgHouse(g);if(!q||q.length<4){msg('Esta casa no está cerrada: la puerta se abre sin asedio');return false;}
-    const w=sgWins(q);if(!w.p.length&&!w.open){msg('Esta casa no tiene ventanas por las que entren los zombis: la puerta se abre sin asedio');return false;}
+    for(const k of q.holes||[])wbBreak(k);const w=sgWins(q);if(!w.p.length&&!w.open){msg('Esta casa no tiene ventanas por las que entren los zombis: la puerta se abre sin asedio');return false;}
     let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9;for(const id of q){const a=idXZ(id);x0=Math.min(x0,a[0]);z0=Math.min(z0,a[1]);x1=Math.max(x1,a[0]+1);z1=Math.max(z1,a[1]+1);}
     const near=q.map(idXZ).sort((a,b)=>Math.hypot(a[0]-g.x,a[1]-g.z)-Math.hypot(b[0]-g.x,b[1]-g.z)).slice(q.length>3?1:0,7).map(a=>[a[0]+.5,a[1]+.5]);
-    SG.on={g,q,bb:[x0,z0,x1,z1],end:round+3};P.x=near[0][0];P.z=near[0][1];P.lv=0;P.zip=null;bc({t:'sgin',p:near.length>1?near.slice(1):near});sgFog(SG.on.bb);
-    if(w.p.length)wbBreak(w.p[R()*w.p.length|0]);sgSay('ASEDIO: la casa se cierra. Aguantad 2 rondas completas dentro para abrir el cofre');flowT=0;return true;}
+    SG.on={g,q,bb:[x0,z0,x1,z1],end:round+2};P.x=near[0][0];P.z=near[0][1];P.lv=0;P.zip=null;bc({t:'sgin',p:near.length>1?near.slice(1):near});sgFog(SG.on.bb);
+    if(w.p.length)wbBreak(w.p[R()*w.p.length|0]);sgSay('ASEDIO: la casa se cierra. Aguantad 1 ronda completa dentro para abrir el cofre');flowT=0;return true;}
   function sgRound(r){const any=Object.values(eOf(zi)).some(v=>v&&v[0]==8);if(!SG.on)return any;if(r>=SG.on.end){sgWin();return true;}
     const w=sgWins(SG.on.q);if(w.p.length)wbBreak(w.p[R()*w.p.length|0]);const n=SG.on.end-r;sgSay('Asedio: '+(n==1?'última ronda':'quedan '+n+' rondas'));return true;}
   function sgPrize(n){P.pts+=n;let s='+'+n+' puntos';if('armOwn' in P){P.armOwn=true;P.arm=100;s+=', blindaje nuevo';}
@@ -1008,7 +1015,7 @@ const WEAPONS={
   sa4:{n:'Fusil Centella',dmg:64,rate:.1,mag:30,res:240,rl:2.1,auto:1,spread:.016,tracer:0x40c8ff,cost:2000,col:0xe0d020,snd:950,len:0.57},
   lmgw:{n:'Ametralladora de cinta',dmg:60,rate:.04,mag:135,res:405,rl:4.8,auto:1,spread:.035,cost:3500,col:0x4a3a2c,snd:560,len:0.821},
   m107:{n:'Fusil antimaterial',dmg:1100,rate:1.1,mag:8,res:40,rl:3,spread:0,pen:2,zoom:16,scope:1,cost:4000,col:0x3a3a3a,snd:300,len:0.913},
-  acid:{n:'Escopeta de ácido',dmg:70,pel:8,rate:.85,mag:6,res:48,rl:2.6,spread:.13,cost:4000,len:.72,col:0x3fae2a,snd:300,acid:1,pump:1,tracer:0x7dff3a},
+  acid:{n:'Escopeta de ácido',dmg:45,pel:16,rate:.85,mag:6,res:48,rl:2.6,spread:.13,cost:4000,len:.72,col:0x3fae2a,snd:300,acid:1,pump:1,tracer:0x7dff3a},
   shotgun:{n:'Escopeta',dmg:45,pel:8,rate:.75,mag:6,res:54,rl:2.4,spread:.07,cost:500,len:.6,col:0x4a3320,snd:350},
   dbl:{n:'Escopeta doble',dmg:65,pel:9,rate:.22,mag:2,res:60,rl:1.9,spread:.09,cost:1200,len:.5,col:0x5a3a1a,snd:300},
   rep:{n:'Escopeta de repetición',dmg:45,pel:8,rate:.3,mag:12,res:72,rl:2.8,spread:.075,cost:2500,len:.58,col:0x3a3a30,snd:330},
@@ -1385,8 +1392,8 @@ function fire(){if(MAPED.paint){MAPED.paintAt();fireCd=.12;return;}
     let end=camera.position.clone().addScaledVector(dir,60);
     for(const h of hits){const z=h.object.userData.z;
       if(z){if(z.dead||done.has(z))continue;done.add(z);if(!(d.pen>1))end=h.point;spray(h.point,0x7a0c0c,5,3);
-        if(d.fire)z.burn=4;if(d.acid){z.acid=4;z.g.userData.ac=time+6;}if(!d.boom)hurtZ(z,d.dmg,!!h.object.userData.head,!scored.has(z),h.object.userData.part);scored.add(z);
-        if(!d.pen||done.size>=(d.pen>1?60:4))break;}
+        if(d.fire)z.burn=4;if(d.acid){z.acid=4;z.g.userData.ac=time+6;}if(!d.boom)hurtZ(z,d.dmg*(d.pen?1:Math.pow(.6,done.size-1)),!!h.object.userData.head,!scored.has(z),h.object.userData.part);scored.add(z);
+        if(done.size>=penN(d))break;}
       else{end=h.point;spray(h.point,0x9a8a70,2,2,9,.25);const b=h.object.userData.brl;if(b)brlBlow(b);else carHit(h.point);break;}}
     if(d.rail){fxRail(muzzle,end);try{osc('sawtooth',2600,180,.55,.1);nz(.5,'bandpass',3200,.35,null,0,2);}catch(e){}}
     else if(d.coil){fxCoil(muzzle,end,done,d.dmg);try{osc('square',170,36,.45,.22);nz(.35,'highpass',2400,.5);}catch(e){}}
@@ -1585,12 +1592,16 @@ function limbOff(z,i){if(z.lm>>i&1)return;z.lm|=1<<i;const o=z.limbs[i],wp=o.get
   if(AC)try{const a=at(z.pos.x,z.pos.z,1.5);nz(.16,'lowpass',500,1,a);osc('sawtooth',150,50,.2,.4,a);}catch(e){}
   const arms=(z.lm&1)+(z.lm>>1&1),legs=(z.lm>>2&1)+(z.lm>>3&1);
   z.dmg=z.dmg0*[1,.6,.3][arms];z.speed=z.speed0*[1,.6,.32][legs];if(legs==2)z.g.rotation.x=1.15;}
-const ACB=[],ACP=[];let acGeo=null,acMat=null;
+const ACB=[],ACP=[],ACL=[];let acGeo=null,acMat=null;
 // postas de ácido visibles: bolas verdes que vuelan de la boca al impacto dejando gotas
-function acidShot(a,b){if(!acGeo){acGeo=new THREE.SphereGeometry(.032,6,5);acMat=MB(0xa4ff4a);}if(ACB.length>40)return;const o=new THREE.Mesh(acGeo,acMat);o.position.copy(a);scene.add(o);
+function acidShot(a,b){if(!acGeo){acGeo=new THREE.SphereGeometry(.032,6,5);acMat=MB(0xa4ff4a);}if(ACB.length>40)return;const o=new THREE.Mesh(acGeo,acMat);o.position.copy(a);scene.add(o);acidBeam(a,b);
   ACB.push({o,a:a.clone(),b:b.clone(),t:0,d:Math.min(.38,Math.max(.06,a.distanceTo(b)/50))});}
-function acidFx(dt){for(let i=ACB.length-1;i>=0;i--){const s=ACB[i];s.t+=dt;const k=Math.min(1,s.t/s.d);s.o.position.lerpVectors(s.a,s.b,k);
-    if(R()<.7)spray(s.o.position,0x7dff3a,1,.35,3,.2,.6);if(k>=1){spray(s.b,0x7dff3a,4,2.6,9,.35,.8);scene.remove(s.o);ACB.splice(i,1);}}
+// haz de la posta: reguero de gotas a lo largo del disparo que cae despacio y se apaga en 0,9 s
+function acidBeam(a,b){const L=a.distanceTo(b),n=Math.max(6,Math.min(26,L*1.6|0)),p=new Float32Array(n*3);for(let i=0;i<n;i++){const k=(i+R())/n;p[i*3]=a.x+(b.x-a.x)*k+(R()-.5)*.07;p[i*3+1]=a.y+(b.y-a.y)*k+(R()-.5)*.07;p[i*3+2]=a.z+(b.z-a.z)*k+(R()-.5)*.07;}
+  const o=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(p,3)),new THREE.PointsMaterial({color:0x9dff4a,size:.085,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));o.frustumCulled=false;scene.add(o);ACL.push({o,t:0,d:.9});}
+function acidFx(dt){for(let i=ACL.length-1;i>=0;i--){const s=ACL[i];s.t+=dt;const k=s.t/s.d;if(k>=1){scene.remove(s.o);s.o.geometry.dispose();s.o.material.dispose();ACL.splice(i,1);continue;}s.o.material.opacity=1-k;s.o.material.size=.085+.06*k;s.o.position.y-=dt*.35;}
+  for(let i=ACB.length-1;i>=0;i--){const s=ACB[i];s.t+=dt;const k=Math.min(1,s.t/s.d);s.o.position.lerpVectors(s.a,s.b,k);
+    if(k>=1){spray(s.b,0x7dff3a,3,2.6,9,.35,.8);scene.remove(s.o);ACB.splice(i,1);}}
   for(let i=ACP.length-1;i>=0;i--){const p=ACP[i];p.t-=dt;if(p.t<=0){ACP.splice(i,1);continue;}
     if(R()<dt*9*Math.min(1,p.t/2)){const a=R()*6.28,r=R()*p.r;spray(new V3(p.x+Math.cos(a)*r,p.y+.06,p.z+Math.sin(a)*r),R()<.5?0x7dff3a:0xc8ff9a,1,.5,-.7,.55,.7);}}}
 function acidTick(dt){if(state!='play')return;acidFx(dt);
@@ -1611,6 +1622,7 @@ function acidMelt(d){if(d.mk==null){d.mk=d.g.userData.ac>time?1:0;if(d.mk){d.sc=
   const q=d.g.position,rr=.25+.5*e;
   if(R()<.9)spray(new V3(q.x+(R()-.5)*rr*2,q.y+.1+R()*1.6*h,q.z+(R()-.5)*rr*2),0x7dff3a,1,.9,9,.5,.8);
   if(R()<.45)spray(new V3(q.x+(R()-.5)*rr*2,q.y+.2+R()*1.2*h,q.z+(R()-.5)*rr*2),0xc8ff9a,1,.4,-1.4,.9,.6);return true;}
+function penN(d){return d.pen>1?60:d.pen?6:d.boom?1:d.pel||d.dmg<45?2:3;}
 function hurtZ(z,d,head,pts,part){
   if(z.dead)return;if(part==null||z.lm>>part&1)part=-1;
   if(net.client){toHost({t:'hit',id:z.id,d,part,head:head?1:0,pts:pts?1:0,stun:z.stun>0?1:0,burn:z.burn>0?1:0,acid:z.acid>0?1:0});z.stun=0;z.burn=0;if(pts)hitMark();return;}
