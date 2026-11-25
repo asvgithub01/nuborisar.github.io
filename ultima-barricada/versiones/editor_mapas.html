@@ -807,7 +807,8 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   const aimDir=()=>{const d=new V3();if(mxy)d.set(mxy[0],mxy[1],.5).unproject(camera).sub(camera.position).normalize();else camera.getWorldDirection(d);return d;};
   function pick(){if(!mapIds||!cityG.children.some(m=>m.userData.ids))recity();const d=aimDir();ray.set(camera.position,d);let best=null;
     for(const me of cityG.children){if(!me.userData.ids)continue;const h=[];THREE.Mesh.prototype.raycast.call(me,ray,h);for(const x of h)if(!best||x.distance<best.distance){best=x;best.me=me;}}
-    return best?best.me.userData.ids[best.faceIndex]:null;}
+    pkD=best?best.distance:1e9;return best?best.me.userData.ids[best.faceIndex]:null;}
+  let pkD=1e9;
   function select(id){unsel();if(id==null)return;const mi=Math.floor(id/65536),i=id%65536,key=mi+':'+i,parts=[],n0=window.ZD[zi].models[mi].k;let add=null;
     if(i>=n0){add=addsOf(zi).filter(e=>e[0]==mi)[i-n0];if(!add||Z().a.indexOf(add)<0){msg('Esa pieza añadida ya es fija: no se puede retocar aquí');return;}}
     for(const me of cityG.children){const ids=me.userData.ids;if(!ids)continue;const ts=[];for(let t=0;t<ids.length;t++)if(ids[t]===id)ts.push(t);if(!ts.length)continue;
@@ -911,7 +912,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // tecla M: con el ratón capturado elige el modelo al que apuntas; sin capturar, abre o cierra el panel
   function key(){const locked=document.pointerLockElement==renderer.domElement;if(!locked&&pan){close();return;}if(sel&&sel.zone!=zi)unsel();
     if(locked&&tab=='mod'){const id=pick();if(id!=null)select(id);else msg('Ahí no hay ningún modelo');}open();}
-  return{cells,mods,adds,reg,autoCol,nadd,ndel,bset,bundo,breset,eset,copyAll,key,paintAt,nudge,open,draw,apply,snap,pick,ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},set floor(v){FY=v;},set floorIn(f){FIN=f;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
+  return{cells,mods,adds,reg,autoCol,nadd,ndel,bset,bundo,breset,eset,copyAll,key,paintAt,nudge,open,draw,apply,snap,pick,get pickD(){return pkD;},ground,toFloor,select:id=>{select(id);draw();},get sel(){return sel;},get tab(){return tab;},get panel(){return pan;},set mouse(v){mxy=v;},set floor(v){FY=v;},set floorIn(f){FIN=f;},get paint(){return !!pan&&((tab=='sue'&&pon)||tab=='add'||tab=='mod');}};})();
 bldGrid(zi);if(ZQ)setTimeout(()=>goZone(ZQ),0);
 MAPED.cells(zi);rebuildWalls();   // la zona inicial se cargó antes de existir el editor
 function boomFx(p,rad){brlFx(p,rad);fxBoom(p,rad);spray(p,0xffc040,14,9,6,.5,1.6);sBoom(p.x,p.z);}
@@ -1294,7 +1295,7 @@ function swing(){const d=cur().d;fireCd=d.rate;swingT=.28;nz(.14,'bandpass',900,
   hit.sort((a,b)=>a[0]-b[0]);
   for(const h of hit.slice(0,d.knife?1:3)){const z=h[1];if(d.knife&&h[0]>2.3)break;spray(new V3(z.pos.x,1.4,z.pos.z),0x7a0c0c,7,3);z.stun=d.knife?.3:.6;hurtZ(z,d.knife?d.dmg:Math.max(d.dmg,z.max*.5),false,true);}
   if(hit.length){osc('square',520,180,.09,.35);osc('sine',1900,1500,.25,.2);}}
-function knife(){const ki=slots.findIndex(w=>w.d.knife);if(ki<0)return knife0();if(knifeCd>0||fireCd>0&&ci==ki)return;knifeCd=.6;if(ci!=ki){knBack=ci;ci=ki;reloading=0;gunModel();knT=.5;}swing();}
+function knife(){const ki=slots.findIndex(w=>w.d.knife);if(ki<0)return knife0();if(knifeCd>0||fireCd>0&&ci==ki)return;knifeCd=.6;if(ci!=ki){knBack=ci;knRl=reloading;ci=ki;reloading=0;gunModel();knT=.5;}swing();}
 function knife0(){if(knifeCd>0)return;knifeCd=.6;kick=-.12;noise(.1,2500,.15);
   const fx_=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);let best=null,bd=2.3;
   for(const z of zombies){const vx=z.pos.x-P.x,vz=z.pos.z-P.z,d=Math.hypot(vx,vz);if(d<bd&&(vx*fx_+vz*fz)/(d||1)>.4){bd=d;best=z;}}
@@ -1672,7 +1673,7 @@ const jukeM=MB(0x402000);
   const s=label('Máquina de discos\n100','#ffd75a');s.position.set(x,2.15,z-.2);scene.add(s);
   stations.push({x,z:z-.4,text:()=>music.on?'Cambiar de tema':'Poner un tema de metal',cost:()=>100,buy:startMusic});}
 let specI=0,specOn=false,specName=null;
-let gobQ=0,gobRd=3;const GOBW=['rail','plasmar','scar','flame','rep'];
+let gobQ=0,gobRd=3,gobN=0;const gobT={};const GOBW=['rail','plasmar','scar','flame','rep'];
 // 11) Si la partida se abrió desde el editor («Probar»), botón para volver a él (al mapa o al edificio que se estaba editando)
 {const q=new URLSearchParams(location.search).get('volver');if(q!=null){const b=document.createElement('a');b.textContent='← Volver al editor';b.href='editor_mapas.html?'+(/^[0-9]+$/.test(q)?'edificio='+q:'zona='+ZQ)+'&r='+Date.now();
   b.style.cssText='position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:60;background:#276;color:#fff;font:13px sans-serif;padding:6px 12px;border-radius:6px;text-decoration:none;border:1px solid #6a9';document.body.appendChild(b);}}
@@ -1685,14 +1686,14 @@ function wMesh(o){const g=new THREE.Group(),k=o.k,d=WEAPONS[k];let m=null;
   try{if(SW[k]){const r=swStatic(SW[k]);r.g.scale.setScalar(Math.min(1,1.15/r.len));m=r.g;}else if(GM[k]){const r=gmMesh(k,Math.max(.5,Math.min(1.15,d.len*1.7)));m=new THREE.Group();m.add(r.body);if(r.part)m.add(r.part);}}catch(e){}
   if(!m)m=new THREE.Mesh(new THREE.BoxGeometry(.07,.07,Math.max(.3,d.len)),M(d.col));g.add(m);
   const s=label(upD(k,o.up).n,o.up?['#6f8','#f66','#c7f'][o.up-1]:'#ffd75a');s.scale.multiplyScalar(.55);s.position.y=.4;g.add(s);g.traverse(q=>{q.raycast=noRay;});g.position.set(o.x,o.y+.95,o.z);scene.add(g);return g;}
-function wDrop(o){if(!WEAPONS[o.k])return;const d={id:tid++,k:o.k,up:Math.max(0,Math.min(3,o.up|0)),mag:o.mag|0,res:o.res|0,x:+o.x,z:+o.z,y:+o.y||0,t:35};d.g=wMesh(d);wdrops.push(d);}
+function wDrop(o){if(!WEAPONS[o.k])return;const d={id:tid++,k:o.k,up:Math.max(0,Math.min(3,o.up|0)),mag:o.mag|0,res:o.res|0,x:+o.x,z:+o.z,y:+o.y||0,t:35,gl:o.gl|0};d.g=wMesh(d);wdrops.push(d);}
 function wOut(w){const o={k:w.k,up:w.d.up|0,mag:w.mag,res:w.res,x:P.x,z:P.z,y:P.by||0};if(net.client)toHost(Object.assign({t:'wdrop'},o));else wDrop(o);}
 function wGrant(d){if(!WEAPONS[d.k])return;const e=has(d.k),up=d.up|0;
   if(e&&(e.d.up|0)>=up){e.mag=e.d.mag;e.res=e.d.res;msg('Munición de '+e.d.n);return;}
   const w={k:d.k,d:upD(d.k,up),mag:d.mag|0,res:d.res|0};
   if(e){const i=slots.indexOf(e);slots[i]=w;ci=i;}else if(slots.length<(TEST?99:4)){slots.push(w);ci=slots.length-1;}else{const j=repI();wOut(slots[j]);slots[j]=w;ci=j;}
   reloading=0;gunModel();msg('Coges: '+w.d.n);}
-function wTake(id,who){const i=wdrops.findIndex(d=>d.id==id);if(i<0)return;const d=wdrops[i];scene.remove(d.g);wdrops.splice(i,1);
+function wTake(id,who){const i=wdrops.findIndex(d=>d.id==id);if(i<0)return;const d=wdrops[i];if(d.gl){const T=gobT[d.gl]||(gobT[d.gl]=new Set());if(T.has(who)){const s='Ya tienes tu arma de este botín: las demás son para tus compañeros';if(who===P)msg(s);else try{who.conn.send({t:'msg',s});}catch(e){}return;}T.add(who);}scene.remove(d.g);wdrops.splice(i,1);
   if(who===P)wGrant(d);else try{who.conn.send({t:'wgive',k:d.k,up:d.up,mag:d.mag,res:d.res});}catch(e){}}
 function wNear(){if(P.dead)return null;let b=null,bd=1.9;for(const d of wdrops){const q=Math.hypot(d.x-P.x,d.z-P.z);if(q<bd&&d.t>0&&Math.abs(d.y-(P.by||0))<1.5&&!(WEAPONS[d.k].melee&&has(d.k)&&(has(d.k).d.up|0)>=d.up)){bd=q;b=d;}}return b;}
 function wSt(d){const n=upD(d.k,d.up).n,e=has(d.k);return{x:d.x,z:d.z,cost:()=>0,
@@ -1705,8 +1706,8 @@ function gobMake(z){z.gb=1;z.gbT=45;z.max=zHP(round)*5;z.hp=z.max;z.speed=z.spee
   const sk=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),MB(0xffc93a));sk.position.set(0,1.2,-.3);sk.userData.z=z;z.g.add(sk);zFit(z);}
 function gobSay(t){msg(t);if(net.host)bc({t:'msg',s:t});}
 function gobHi(){gobSay('¡Un duende del botín! Mátalo antes de que escape');tone(900,1800,.25,'triangle',.12);}
-function gobLoot(z){if(net.client)return;const n=1+remotes.length;for(let i=0;i<n;i++){const a=i/n*6.283,r=n>1?1.6:0;let x=z.pos.x+Math.cos(a)*r,zz=z.pos.z+Math.sin(a)*r;if(blocked(x,zz,.3)){x=z.pos.x;zz=z.pos.z;}
-    const k=GOBW[R()*GOBW.length|0];wDrop({k,up:0,mag:WEAPONS[k].mag,res:WEAPONS[k].res,x,z:zz,y:z.hy||0});}
+function gobLoot(z){if(net.client)return;const n=1+remotes.length,gl=++gobN;for(let i=0;i<n;i++){const a=i/n*6.283,r=n>1?1.6:0;let x=z.pos.x+Math.cos(a)*r,zz=z.pos.z+Math.sin(a)*r;if(blocked(x,zz,.3)){x=z.pos.x;zz=z.pos.z;}
+    const k=GOBW[R()*GOBW.length|0];wDrop({k,up:0,mag:WEAPONS[k].mag,res:WEAPONS[k].res,x,z:zz,y:z.hy||0,gl});}
   gobSay('El duende suelta su botín: un arma por jugador');}
 // huida: cada 1,2 s busca (a 34 casillas como mucho) la casilla más lejos de los jugadores a la que puede llegar sin pasar junto a ellos, y va por ese camino
 function gobPlan(z){const o=cl,L=z.lv|0;cl=L;const s=gi(Math.floor(z.pos.x),Math.floor(z.pos.z)),ds=dist[L*GN+s],par=new Map([[s,-1]]),q=[s],dep=[0];let bi=s,bs=ds;
@@ -1733,8 +1734,8 @@ function tpCam(){const on=tp&&!specOn&&!P.dead&&state=='play';
   camera.position.set(hx+dx*k,Math.max(P.by+.35,EYE+P.y+P.by+.25+dy*k),hz+dz*k);}
 // 8) Cuchillo: es un arma más (hueco propio, no cuenta entre las 3), la sujetan los brazos del personaje. Equipado golpea con el clic izquierdo;
 //    con un arma de fuego en la mano, V o el botón central lo sacan, da el tajo y vuelve el arma que llevabas.
-let knT=0,knBack=-1;const repI=()=>cur().d.knife?slots.length-1:ci;
-function knTick(dt){if(knT>0&&(knT-=dt)<=0){const ki=slots.findIndex(w=>w.d.knife);if(knBack>=0&&ci==ki&&knBack<slots.length){ci=knBack;fireCd=.15;gunModel();}knBack=-1;}}
+let knT=0,knBack=-1,knRl=0;const repI=()=>cur().d.knife?slots.length-1:ci;
+function knTick(dt){if(knT>0&&(knT-=dt)<=0){const ki=slots.findIndex(w=>w.d.knife);if(knBack>=0&&ci==ki&&knBack<slots.length){ci=knBack;fireCd=.15;gunModel();reloading=knRl;}knBack=-1;knRl=0;}}
 function specCam(){const on=net.on&&P.dead&&!(P.down>0)&&state=='play';if(!on){if(specOn){specOn=false;gun.visible=true;}return null;}
   const L=net.host?remotes.filter(r=>!r.dead&&r.g).map(r=>({g:r.g,yaw:r.yaw})):Object.keys(net.others||{}).map(k=>net.others[k]).filter(o=>o.g.visible&&!o.dn).map(o=>({g:o.g,yaw:o.yaw}));
   if(!L.length){if(specOn){specOn=false;gun.visible=true;}return null;}specOn=true;gun.visible=false;P.hp=P.max;const t=L[specI%L.length],p=t.g.position,fx=-Math.sin(t.yaw),fz=-Math.cos(t.yaw);
@@ -1742,8 +1743,8 @@ function specCam(){const on=net.on&&P.dead&&!(P.down>0)&&state=='play';if(!on){i
 addEventListener('mousedown',()=>{if(specOn)specI++;});addEventListener('touchstart',()=>{if(specOn)specI++;},{passive:true});
 // arma en la mano de los demás jugadores: el mismo modelo que llevan, delante del pecho; con armas largas el brazo izquierdo también va al frente
 function avGun(g,k){const U=g.userData;if(U.wk===k&&U.gmFor===U.m)return;if(U.gm){g.remove(U.gm);U.gm=null;}U.wk=k;U.gmFor=U.m;const d=k&&WEAPONS[k];let m=null;
-  try{if(d&&!d.melee){if(SW[k])m=swStatic(SW[k]).g;else if(GM[k]){const r=gmMesh(k,d.len);m=new THREE.Group();m.add(r.body);if(r.part)m.add(r.part);m.rotation.y=Math.PI;}}}catch(e){}
-  const B=U.m&&U.m.userData.B,two=!!m&&d.len>.42;if(B){B.Shoulder_R.rotation.set(0,m?1.2:0,m?0:1.25);B.Shoulder_L.rotation.set(0,two?-1.05:0,two?0:-1.25);}
+  try{if(d&&d.melee){m=new THREE.Group();const q=(w,h,l,c,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,l),M(c));o.position.z=z;m.add(o);};if(d.knife){q(.03,.04,.12,0x1c1610,0);q(.07,.02,.02,0x33373c,.07);q(.012,.05,.22,0xc3cad2,.18);}else q(.045,.045,.85,d.col,.3);}else if(d){if(SW[k])m=swStatic(SW[k]).g;else if(GM[k]){const r=gmMesh(k,d.len);m=new THREE.Group();m.add(r.body);if(r.part)m.add(r.part);m.rotation.y=Math.PI;}}}catch(e){}
+  const B=U.m&&U.m.userData.B,two=!!m&&!d.melee&&d.len>.42;if(B){B.Shoulder_R.rotation.set(0,m?1.2:0,m?0:1.25);B.Shoulder_L.rotation.set(0,two?-1.05:0,two?0:-1.25);}
   if(m){m.position.set(-.16,1.36,.5+d.len*.3);m.traverse(o=>{o.raycast=()=>{};});g.add(m);U.gm=m;}}
 function avDown(g,on){const m=g.userData.m;if(m){m.rotation.x=on?-Math.PI/2:0;m.position.y=on?.18:0;}}
 // compañero caído al alcance (2,2 m y misma altura): se ofrece como si fuera un puesto, sin coste
@@ -2066,6 +2067,7 @@ function touchInit(){if(touchOn)return;touchOn=true;document.body.classList.add(
   tBtn('REPARA',S(262,22,54),()=>{keys.KeyF=true;},()=>{keys.KeyF=false;});
   tBtn('GRANADA',S(100,170,50),()=>throwG());
   tBtn('CUCHILLO',S(164,160,50),()=>knife());
+  tBtn('VISTA','left:74px;top:70px;width:50px;height:50px',()=>{tp=!tp;});
   tBtn('VOZ','left:14px;top:70px;width:50px;height:50px',()=>{voice.ptt=true;setTalk();},()=>{voice.ptt=false;setTalk();});
   const JB=$('joyB'),JK=$('joyK'),stop=()=>{joy.id=null;JB.style.display='none';keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=keys.ShiftLeft=false;};
   TC.addEventListener('touchstart',e=>{e.preventDefault();P.act=time;for(const t of e.changedTouches){
@@ -2447,6 +2449,9 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   const nhi=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0xffc020,depthTest:false}));nhi.visible=false;nhi.renderOrder=40;nhi.raycast=()=>{};scene.add(nhi);
   function nclick(){const g=MAPED.ground();if(!g){msg('Apunta al suelo');return;}if(!nA){nA=[g[0],g[2]];msg('Ahora haz clic en la esquina contraria');return;}
     const a=nA;nA=null;ntool=0;nhi.visible=false;if(document.pointerLockElement)document.exitPointerLock();const n=parseInt(prompt('¿Cuántas plantas, contando la azotea? (2 a 4)','2'));if(!isNaN(n))MAPED.nadd(a[0],a[1],g[0],g[2],n,C.x,C.z);bar();}
+  function bAt(){if(!bldM)return -1;bray.setFromCamera(walk?{x:0,y:0}:{x:mpos[0],y:mpos[1]},camera);const h=bray.intersectObject(bldM)[0];if(!h)return -1;const q=h.point.clone().addScaledVector(h.face.normal,-.05);bAtD=h.distance;
+    return BLDS.findIndex(B=>B.zona==zi&&q.x>=B.x&&q.z>=B.z&&q.x<B.x+B.w&&q.z<B.z+B.d);}
+  let bAtD=0;
   function bclick(){const t=baim();if(!t){msg('Apunta a una casilla del edificio');return;}const c=BT[btool][1]==1000?1000+gcost:BT[btool][1];
     if(c&&walk&&t.l==(P.lv|0)&&t.x==Math.floor(P.x)&&t.z==Math.floor(P.z)){msg('Estás encima de esa casilla');return;}MAPED.bset(BI,t.l,t.u,t.v,c);}
   addEventListener('keydown',e=>{if(typing())return;if(bmode){const k=['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8'].indexOf(e.code);if(k>=0){pickTool(k);e.preventDefault();return;}if(e.code=='KeyZ'&&(e.ctrlKey||e.metaKey)){MAPED.bundo();e.preventDefault();return;}}
@@ -2458,7 +2463,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
   cv.addEventListener('mousedown',e=>{setMouse(e);e.stopPropagation();
     if(walk&&document.pointerLockElement!==cv){cv.requestPointerLock();return;}if(e.button==1){e.preventDefault();if(!walk)pan=[e.clientX,e.clientY];return;}if(e.button==2){if(!walk)look=[e.clientX,e.clientY];return;}
     if(e.button!=0)return;if(bmode&&BT[btool][1]>=0){bclick();return;}if(!bmode&&ntool){nclick();return;}if(!bmode&&etool>=0){eclick();return;}if(!MAPED.panel)MAPED.open();
-    if(MAPED.tab=='mod'){const id=MAPED.pick();if(id==null){msg('Ahí no hay ningún modelo');return;}
+    if(MAPED.tab=='mod'){const id=MAPED.pick();const bi=bmode?-1:bAt();if(bi>=0&&(id==null||bAtD<MAPED.pickD-.02)){if(document.pointerLockElement)document.exitPointerLock();if(confirm('¿Editar el edificio '+(bi+1)+'?'))location.href='editor_mapas.html?edificio='+bi+'&r='+Date.now();return;}if(id==null){msg('Ahí no hay ningún modelo');return;}
       if(!MAPED.sel||MAPED.sel.id!==id){MAPED.select(id);if(!MAPED.sel||MAPED.sel.id!==id)return;}
       // arrastrar sobre el suelo: la pieza sigue al ratón en horizontal (Alt: en vertical)
       const g=MAPED.ground();MAPED.snap();drag={g,y:e.clientY,v:MAPED.sel.v.slice(),alt:e.altKey};}
@@ -2510,7 +2515,7 @@ window.G={goZone,ZONAS,get zi(){return zi;},P,zombies,traps,get state(){return s
     BLDS.forEach((b,i)=>{if(b.zona==zi){B('Editar edificio '+(i+1),()=>{location.href='editor_mapas.html?edificio='+i+'&r='+Date.now();});if(b.nw)B('Quitar edificio '+(i+1),()=>{if(confirm('¿Quitar el edificio '+(i+1)+' y sus cambios? Vuelven las piezas del mapa que había.')){MAPED.ndel(i);bar();}});}});B(ntool?'Nuevo edificio: marca 2 esquinas…':'Nuevo edificio',()=>{ntool=ntool?0:1;nA=null;etool=-1;if(ntool)msg('Haz clic en el suelo en una esquina del edificio y luego en la contraria (mínimo 10 × 7 casillas)');bar();},!!ntool);ET.forEach((q,i)=>B((i==0?'Tablones y puertas: ':'')+q[0]+(q[1]==1000?' ('+gcost+')':''),()=>pickE(i),etool==i));B(walk?'Volar (F)':'Andar por el mapa (F)',()=>setWalk(!walk),walk);B('Volver al inicio de la zona',()=>{setWalk(false);overSpawn();});B('▶ Probar esta zona',()=>window.open('v13_inmersion.html?edicion&zona='+zi+'&volver=m&r='+Date.now(),'_blank'),true);
     B('Ayuda (H)',()=>{help.style.display=help.style.display=='none'?'':'none';});}
   const help=document.createElement('div');help.style.cssText='position:fixed;right:10px;bottom:10px;z-index:30;max-width:380px;background:rgba(10,12,18,.9);color:#dde;font:12px/1.5 sans-serif;padding:10px 12px;border:1px solid #456;border-radius:8px';
-  help.innerHTML='<b>Moverse</b>: WASD · Q/E bajar/subir · Mayús rápido · rueda acercar · botón derecho arrastrando para mirar · botón central arrastrando para desplazar el mapa<br><b>Andar (F)</b>: bajas al suelo en primera persona con las colisiones y la niebla del juego; apunta con la mira y haz clic para elegir, mover (arrastrando), añadir o pintar; F o Esc para volver a volar<br><b>Modelos</b>: clic para elegir · arrastra para moverlo por el suelo (Mayús: pasos de 5 cm) · Alt+arrastrar sube/baja · flechas, RePág/AvPág, coma/punto, Fin al suelo, Supr ocultar, Ctrl+Z deshacer<br><b>Añadir / Suelo</b>: elige en el panel y haz clic en el suelo (en Suelo puedes arrastrar para pintar)<br><b>Tablones y puertas</b> (para edificios del mapa, como el taller): elige uno arriba y haz clic en la casilla del hueco, mejor desde dentro del edificio (modo andar); «Quitar» lo borra; pulsa otra vez el botón para dejar la herramienta<br><b>Nuevo edificio</b> (para convertir uno del mapa, como el taller, en edificio editable): pulsa el botón y haz clic en dos esquinas opuestas; se quitan las piezas del mapa que hay dentro y se levanta un edificio con plantas y escaleras que luego retocas con «Editar edificio»<br><b>C</b> colisión · <b>H</b> esta ayuda · <b>▶ Probar</b> abre el juego en esta zona con tus cambios (modo edición)<br>Los cambios se guardan solos en este navegador; para dejarlos fijos: «Copiar todo» y pásaselo a Claude. «Copias» recupera una copia de seguridad automática.';
+  help.innerHTML='<b>Moverse</b>: WASD · Q/E bajar/subir · Mayús rápido · rueda acercar · botón derecho arrastrando para mirar · botón central arrastrando para desplazar el mapa<br><b>Andar (F)</b>: bajas al suelo en primera persona con las colisiones y la niebla del juego; apunta con la mira y haz clic para elegir, mover (arrastrando), añadir o pintar; F o Esc para volver a volar<br><b>Modelos</b>: clic para elegir · arrastra para moverlo por el suelo (Mayús: pasos de 5 cm) · Alt+arrastrar sube/baja · flechas, RePág/AvPág, coma/punto, Fin al suelo, Supr ocultar, Ctrl+Z deshacer<br><b>Añadir / Suelo</b>: elige en el panel y haz clic en el suelo (en Suelo puedes arrastrar para pintar)<br><b>Tablones y puertas</b> (para edificios del mapa, como el taller): elige uno arriba y haz clic en la casilla del hueco, mejor desde dentro del edificio (modo andar); «Quitar» lo borra; pulsa otra vez el botón para dejar la herramienta<br><b>Clic sobre un edificio</b> (en la pestaña «Modelos»): pregunta si quieres abrir su editor; lo que hay dentro o detrás de él se elige desde ese editor<br><b>Nuevo edificio</b> (para convertir uno del mapa, como el taller, en edificio editable): pulsa el botón y haz clic en dos esquinas opuestas; se quitan las piezas del mapa que hay dentro y se levanta un edificio con plantas y escaleras que luego retocas con «Editar edificio»<br><b>C</b> colisión · <b>H</b> esta ayuda · <b>▶ Probar</b> abre el juego en esta zona con tus cambios (modo edición)<br>Los cambios se guardan solos en este navegador; para dejarlos fijos: «Copiar todo» y pásaselo a Claude. «Copias» recupera una copia de seguridad automática.';
   for(const ev of['mousedown','click','wheel'])help.addEventListener(ev,e=>e.stopPropagation());document.body.appendChild(help);
   if(bmode){help.innerHTML='<b>Editor de edificio</b>: apunta a una casilla (se marca en azul) y haz clic para aplicarle la herramienta elegida arriba o con las teclas <b>1</b> muro · <b>2</b> ventana · <b>3</b> barandilla · <b>4</b> quitar · <b>5</b> ventana con tablones · <b>6</b> puerta con tablones · <b>7</b> puerta de pago · <b>8</b> modelos y muebles (abre el panel: en «Añadir» eliges el modelo y con clic lo pones en el suelo de la planta de trabajo; en «Modelos» lo mueves, giras o borras. La planta de trabajo es la última por la que has andado o la que elijas arriba al volar: al volar el edificio se ve cortado por esa planta, sin techo, para colocar los muebles con el ratón). Las de tablones son entradas de zombis (solo en el muro exterior de la planta baja; el jugador no pasa por ellas y las repara con F); la puerta de pago cierra el paso a todos hasta que alguien la compra. Apuntando al suelo levantas algo en esa casilla; apuntando a un muro lo cambias o lo quitas (un hueco en el muro de fuera es una puerta).<br><b>Andar</b>: WASD, Mayús corre, las escaleras suben de planta · <b>F</b> o Esc para volar y ver el edificio por fuera (también se puede editar con el ratón) · <b>Ctrl+Z</b> deshacer<br>Las escaleras no se pueden tocar. Los cambios se guardan solos; para dejarlos fijos, vuelve al mapa, «Copiar todo» y pásaselo a Claude.';
     scene.add(new THREE.AmbientLight(0xffffff,.55));renderer.localClippingEnabled=true;MAPED.floorIn=(x,z)=>x>=bmode.x&&z>=bmode.z&&x<bmode.x+bmode.w&&z<bmode.z+bmode.d;bldMat.clippingPlanes=[clipP];   // luz de obra: dentro del edificio no se ve nada de noche
