@@ -1399,6 +1399,7 @@ function fire(){if(MAPED.paint){MAPED.paintAt();fireCd=.12;return;}
     else if(d.coil){fxCoil(muzzle,end,done,d.dmg);try{osc('square',170,36,.45,.22);nz(.35,'highpass',2400,.5);}catch(e){}}
     else if(d.bolt){fxBeam(muzzle,end,.013,d.bolt,.1);spray(end,d.bolt,3,2.5,-1,.25);}
     else if(d.acid)acidShot(muzzle,end);
+    else if(d.fire){acidBeam(muzzle,end,0xff5a10,.45);acidBeam(muzzle,end,0xffc040,.7);spray(end,0xff7a18,2,2.2,-2,.4,.8);}
     else fxLine(muzzle,end,d.tracer||0xffe9a0,.05);
     if(d.boom)explode(end,d.boom,d.dmg,true);
   }
@@ -1597,9 +1598,9 @@ const ACB=[],ACP=[],ACL=[];let acGeo=null,acMat=null;
 function acidShot(a,b){if(!acGeo){acGeo=new THREE.SphereGeometry(.032,6,5);acMat=MB(0xa4ff4a);}if(ACB.length>40)return;const o=new THREE.Mesh(acGeo,acMat);o.position.copy(a);scene.add(o);acidBeam(a,b);
   ACB.push({o,a:a.clone(),b:b.clone(),t:0,d:Math.min(.38,Math.max(.06,a.distanceTo(b)/50))});}
 // haz de la posta: reguero de gotas a lo largo del disparo que cae despacio y se apaga en 0,9 s
-function acidBeam(a,b){const L=a.distanceTo(b),n=Math.max(6,Math.min(26,L*1.6|0)),p=new Float32Array(n*3);for(let i=0;i<n;i++){const k=(i+R())/n;p[i*3]=a.x+(b.x-a.x)*k+(R()-.5)*.07;p[i*3+1]=a.y+(b.y-a.y)*k+(R()-.5)*.07;p[i*3+2]=a.z+(b.z-a.z)*k+(R()-.5)*.07;}
-  const o=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(p,3)),new THREE.PointsMaterial({color:0x9dff4a,size:.085,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));o.frustumCulled=false;scene.add(o);ACL.push({o,t:0,d:.9});}
-function acidFx(dt){for(let i=ACL.length-1;i>=0;i--){const s=ACL[i];s.t+=dt;const k=s.t/s.d;if(k>=1){scene.remove(s.o);s.o.geometry.dispose();s.o.material.dispose();ACL.splice(i,1);continue;}s.o.material.opacity=1-k;s.o.material.size=.085+.06*k;s.o.position.y-=dt*.35;}
+function acidBeam(a,b,col,vy){const L=a.distanceTo(b),n=Math.max(6,Math.min(26,L*1.6|0)),p=new Float32Array(n*3);for(let i=0;i<n;i++){const k=(i+R())/n;p[i*3]=a.x+(b.x-a.x)*k+(R()-.5)*.07;p[i*3+1]=a.y+(b.y-a.y)*k+(R()-.5)*.07;p[i*3+2]=a.z+(b.z-a.z)*k+(R()-.5)*.07;}
+  const o=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(p,3)),new THREE.PointsMaterial({color:col||0x9dff4a,size:.085,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));o.frustumCulled=false;scene.add(o);ACL.push({o,t:0,d:vy?.6:.9,vy:vy||-.35,gr:vy?.16:.06});}
+function acidFx(dt){for(let i=ACL.length-1;i>=0;i--){const s=ACL[i];s.t+=dt;const k=s.t/s.d;if(k>=1){scene.remove(s.o);s.o.geometry.dispose();s.o.material.dispose();ACL.splice(i,1);continue;}s.o.material.opacity=1-k;s.o.material.size=.085+s.gr*k;s.o.position.y+=dt*s.vy;}
   for(let i=ACB.length-1;i>=0;i--){const s=ACB[i];s.t+=dt;const k=Math.min(1,s.t/s.d);s.o.position.lerpVectors(s.a,s.b,k);
     if(k>=1){spray(s.b,0x7dff3a,3,2.6,9,.35,.8);scene.remove(s.o);ACB.splice(i,1);}}
   for(let i=ACP.length-1;i>=0;i--){const p=ACP[i];p.t-=dt;if(p.t<=0){ACP.splice(i,1);continue;}
