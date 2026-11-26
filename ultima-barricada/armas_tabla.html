@@ -56,7 +56,8 @@ function draw(){const ks=Object.keys(W).sort((a,b)=>{const x=val(a,sortK),y=val(
     r+='<td><input type="number" data-f="cost" class="'+ch('cost')+'" step="50" min="0" value="'+d.cost+'"></td><td class="est" data-c="est">'+fm(c.est)+'</td><td><button class="u" title="Usar el precio estimado">←</button></td>';
     for(const q of DON)r+='<td class="c"><input type="checkbox" data-d="'+q[0]+'"'+(d.don.includes(q[0])?' checked':'')+(d.don.includes(q[0])!=b.don.includes(q[0])?' style="outline:2px solid var(--wa)"':'')+'></td>';
     R.push(r+'<td class="esp">'+d.esp+'</td></tr>');}
-  document.querySelector('#t tbody').innerHTML=R.join('');save();}
+  document.querySelector('#t tbody').innerHTML=R.join('');save();
+  for(const th of document.querySelectorAll('th[data-s]')){const on=th.dataset.s==sortK;th.style.color=on?'var(--wa)':'';let a=th.querySelector('i');if(!a){a=document.createElement('i');a.style.cssText='font-style:normal;margin-left:3px';th.appendChild(a);}a.textContent=on?(sortD<0?'▼':'▲'):'';}}
 function upd(tr){const k=tr.dataset.k,c=calc(W[k]);for(const td of tr.querySelectorAll('[data-c]')){const q=td.dataset.c;td.textContent=q=='pn'?(c.pn>=60?'todos':c.pn):fm(c[q]);}
   for(const i of tr.querySelectorAll('[data-f]'))i.classList.toggle('ch',JSON.stringify(W[k][i.dataset.f])!=JSON.stringify(BASE[k][i.dataset.f]));
   for(const i of tr.querySelectorAll('[data-d]'))i.style.outline=W[k].don.includes(i.dataset.d)!=BASE[k].don.includes(i.dataset.d)?'2px solid var(--wa)':'';save();}
