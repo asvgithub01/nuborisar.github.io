@@ -294,7 +294,7 @@ function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(
   try{for(const e of ENTRIES)winCut(e);}catch(x){}
   if(cityWarm)return;cityWarm=true;
   // precarga de los modelos de zombi para que no den un tirón la primera vez que aparece cada tipo
-  const wg=new THREE.Group();wg.position.set(SPX,-40,SPZ);for(let ti=0;ti<ZTYPES.length;ti++){const z={g:new THREE.Group(),lm:0};zSkin(z,ti);wg.add(z.g);}try{let w=0;wg.traverse(o=>{if(!w&&o.isSkinnedMesh&&o.material===zSkinM){w=1;const m=zSkinM.clone();m.userData={zh:{v:Array.from({length:10},()=>new THREE.Vector4(0,0,0,0)),i:0}};m.onBeforeCompile=zhOBC;const c=o.clone();c.material=m;c.frustumCulled=false;o.parent.add(c);}});}catch(e){}scene.add(wg);
+  const wg=new THREE.Group();wg.position.set(SPX,-40,SPZ);for(let ti=0;ti<ZTYPES.length;ti++){const z={g:new THREE.Group(),lm:0};zSkin(z,ti);wg.add(z.g);}scene.add(wg);
   setTimeout(()=>{scene.remove(wg);wg.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.dispose();});},2500);}
 function cityLoad(i){while(cityG.children.length){const c=cityG.children[0];cityG.remove(c);c.geometry.dispose();}
   const go=()=>{if(zi==i)cityBuild(window.ZD[i]);};
@@ -1425,10 +1425,15 @@ function zHole(z,h,dir,d){if(h.object.userData.part!=null||!z.g||bhQ>=2)return;l
 // PRUEBA «arrancar trozos»: en los zombis que usan zSkinM cada impacto abre un boquete de verdad. El sombreador descarta los píxeles a menos de un radio
 // del punto de impacto EN LA POSE DE REPOSO (vOP), así el boquete sigue la animación sin tocar la malla; las caras de dentro se pintan de rojo oscuro.
 // Cada zombi herido recibe su copia del material (mismo programa para todos: la clave de caché es el texto de zhOBC). Hasta 10 boquetes por zombi.
-function zhOBC(sh){zSkinM.onBeforeCompile(sh);sh.uniforms.zHit={value:this.userData.zh.v};
-  sh.fragmentShader='uniform vec4 zHit[10];\n'+sh.fragmentShader.replace('void main() {','void main() {\n float zn=.75+.5*zh(floor(vOP*30.)),zm=9.;for(int i=0;i<10;i++){vec4 zq=zHit[i];zm=min(zm,zq.w>0.?distance(vOP,zq.xyz)/(zq.w*zn):9.);}\n if(zm<1.)discard;float zr=1.-smoothstep(1.,1.7,zm);')
+// El código del boquete va en el propio zSkinM (los sanos usan ZH0, todo a cero): así sanos y heridos comparten UN programa. Con un programa aparte,
+// three lo destruía al morir el último zombi herido y lo recompilaba en el siguiente impacto (tirones de segundos en algunos equipos).
+const ZH0={v:Array.from({length:10},()=>new THREE.Vector4(0,0,0,0)),i:0};let zhBase=null;
+function zhOBC(sh){zhBase.call(this,sh);sh.uniforms.zHit={value:(this.userData&&this.userData.zh||ZH0).v};
+  sh.fragmentShader='uniform vec4 zHit[10];\n'+sh.fragmentShader.replace('void main() {','void main() {\n float zhK=.75+.5*zh(floor(vOP*30.)),zhD=9.;for(int i=0;i<10;i++){vec4 zq=zHit[i];zhD=min(zhD,zq.w>0.?distance(vOP,zq.xyz)/(zq.w*zhK):9.);}\n if(zhD<1.)discard;float zr=1.-smoothstep(1.,1.7,zhD);')
     .replace('#include <color_fragment>','#include <color_fragment>\n diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.26,.015,.015),gl_FrontFacing?zr*.85:1.);');}
-function zChunk(sm,q,d){let m=sm.material;if(m!==zSkinM&&!(m.userData&&m.userData.zh))return false;
+// zSkinM se define más abajo en el archivo: se engancha cuando ya ha cargado todo
+setTimeout(()=>{zhBase=zSkinM.onBeforeCompile;zSkinM.onBeforeCompile=zhOBC;zSkinM.needsUpdate=true;},0);
+function zChunk(sm,q,d){let m=sm.material;if(!zhBase)return false;if(m!==zSkinM&&!(m.userData&&m.userData.zh))return false;
   try{const P_=sm.geometry.attributes.position,A=[q.face.a,q.face.b,q.face.c],W=A.map(i=>sm.boneTransform(i,new V3()).applyMatrix4(sm.matrixWorld)),bc=THREE.Triangle.getBarycoord(q.point,W[0],W[1],W[2],new V3());
     if(!isFinite(bc.x))return false;const B=A.map(i=>new V3().fromBufferAttribute(P_,i)),p=B[0].multiplyScalar(bc.x).addScaledVector(B[1],bc.y).addScaledVector(B[2],bc.z);
     if(m===zSkinM){m=zSkinM.clone();m.userData={zh:{v:Array.from({length:10},()=>new THREE.Vector4(0,0,0,0)),i:0}};m.onBeforeCompile=zhOBC;sm.material=m;}
@@ -1688,7 +1693,7 @@ function acidTick(dt){if(state!='play')return;acidFx(dt);
 // derretido (2,4 s): el cuerpo se tiñe de verde, tiembla, se hunde y se desparrama; gotea, humea y deja un charco de dos tonos que burbujea
 const ACG=new THREE.Color(0x52ff2a);
 function acidMelt(d){if(d.mk==null){d.mk=d.g.userData.ac>time?1:0;if(d.mk){d.sc=d.g.scale.clone();d.mm=[];const p=d.g.position;
-      d.g.traverse(o=>{if(o.isMesh&&o.material&&!Array.isArray(o.material)&&o.material.color){const m0=o.material,m=m0.clone();m.onBeforeCompile=m0.onBeforeCompile;if(m0.customProgramCacheKey)m.customProgramCacheKey=m0.customProgramCacheKey;m.userData={c0:m0.color.clone()};o.material=m;d.mm.push(m);}});
+      d.g.traverse(o=>{if(o.isMesh&&o.material&&!Array.isArray(o.material)&&o.material.color){const m0=o.material,m=m0.clone();m.onBeforeCompile=m0.onBeforeCompile;if(m0.customProgramCacheKey)m.customProgramCacheKey=m0.customProgramCacheKey;m.userData={c0:m0.color.clone(),zh:m0.userData&&m0.userData.zh};o.material=m;d.mm.push(m);}});
       for(const q of[[0x1c6a10,.8,1.05,.04],[0x7dff3a,.7,.6,.055]]){if(POOLS.length>=40){const o=POOLS.shift();scene.remove(o.m);o.m.material.dispose();}
         const m=new THREE.Mesh(poolGeo,new THREE.MeshBasicMaterial({color:q[0],transparent:true,opacity:q[1],depthWrite:false}));m.position.set(p.x,p.y+q[3]+R()*.005,p.z);m.rotation.y=R()*6;m.scale.setScalar(.1);scene.add(m);POOLS.push({m,t:0,rx:q[2]*(.9+R()*.35),rz:q[2]*(.85+R()*.35)});}
       ACP.push({x:p.x,y:p.y,z:p.z,t:7,r:.6});
