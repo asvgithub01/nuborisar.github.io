@@ -296,7 +296,7 @@ function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(
   try{for(const e of ENTRIES)winCut(e);}catch(x){}
   if(cityWarm)return;cityWarm=true;
   // precarga de los modelos de zombi para que no den un tirón la primera vez que aparece cada tipo
-  const wg=new THREE.Group();wg.position.set(SPX,-40,SPZ);for(let ti=0;ti<ZTYPES.length;ti++){const z={g:new THREE.Group(),lm:0};zSkin(z,ti);wg.add(z.g);}scene.add(wg);
+  const wg=new THREE.Group();wg.position.set(SPX,-40,SPZ);for(let ti=0;ti<ZTYPES.length;ti++){const z={g:new THREE.Group(),lm:0};zSkin(z,ti);wg.add(z.g);}try{let w=0;wg.traverse(o=>{if(!w&&o.isSkinnedMesh&&o.material===zSkinM){w=1;const m=zSkinM.clone();m.userData={zh:{v:Array.from({length:10},()=>new THREE.Vector4(0,0,0,0)),i:0}};m.onBeforeCompile=zhOBC;const c=o.clone();c.material=m;c.frustumCulled=false;o.parent.add(c);}});}catch(e){}scene.add(wg);
   setTimeout(()=>{scene.remove(wg);wg.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.dispose();});},2500);}
 function cityLoad(i){while(cityG.children.length){const c=cityG.children[0];cityG.remove(c);c.geometry.dispose();}
   const go=()=>{if(zi==i)cityBuild(window.ZD[i]);};
@@ -1416,10 +1416,10 @@ function holeAt(h,dir,d){let n=null;try{if(h.face){n=h.face.normal.clone();const
   // el suelo que para la bala está a -0,12 m, bajo el asfalto que se ve: la marca se sube hasta la calle siguiendo la trayectoria
   if(h.point.y<-.05&&dir.y<-.02){bhHP.copy(h.point).addScaledVector(dir,(.03-h.point.y)/dir.y);bhHQ.setFromUnitVectors(bhHZ,n.set(0,1,0));}
   bhHM.compose(bhHP,bhHQ,bhHS.set(s,s,s));HOLES.setMatrixAt(bhHI,bhHM);bhHI=(bhHI+1)%bhHN;HOLES.count=Math.min(bhHN,HOLES.count+1);HOLES.instanceMatrix.needsUpdate=true;}
-// la caja de impacto es más pequeña que el modelo: se busca el punto real en la malla animada (máx. 3 búsquedas por fotograma: cuesta ~2 ms) y la herida
+// la caja de impacto es más pequeña que el modelo: se busca el punto real en la malla animada (máx. 2 búsquedas por fotograma: cuesta ~2 ms) y la herida
 // se engancha al hueso que más pesa en ese triángulo, así sigue la animación (y la caída al morir)
 const bhRay=new THREE.Raycaster();let bhQ=0;
-function zHole(z,h,dir,d){if(h.object.userData.part!=null||!z.g||bhQ>=3)return;let sm=null;for(const o of z.g.children)if(o.isSkinnedMesh&&o.visible){sm=o;break;}if(!sm||!sm.geometry.attributes.skinIndex)return;bhQ++;
+function zHole(z,h,dir,d){if(h.object.userData.part!=null||!z.g||bhQ>=2)return;let sm=null;for(const o of z.g.children)if(o.isSkinnedMesh&&o.visible){sm=o;break;}if(!sm||!sm.geometry.attributes.skinIndex)return;bhQ++;
   bhRay.set(bhHP.copy(h.point).addScaledVector(dir,-.7),dir);bhRay.far=1.4;const L=[];try{THREE.Mesh.prototype.raycast.call(sm,bhRay,L);}catch(e){return;}if(!L.length)return;L.sort((a,b)=>a.distance-b.distance);
   const q=L[0],G=sm.geometry.attributes,i=q.face.a;if(zChunk(sm,q,d)){spray(q.point,0x4a0606,3,3.2,9,.8,1.5);return;}let bi=G.skinIndex.getX(i),bw=G.skinWeight.getX(i);for(const c of['getY','getZ','getW'])if(G.skinWeight[c](i)>bw){bw=G.skinWeight[c](i);bi=G.skinIndex[c](i);}
   const bone=sm.skeleton.bones[bi];if(!bone)return;let n=0,f=-1;for(let j=0;j<ZHL.length;j++)if(ZHL[j].z===z){n++;if(f<0)f=j;}if(n>=8)ZHL.splice(f,1);else if(ZHL.length>=ZHN)ZHL.shift();
@@ -1428,7 +1428,7 @@ function zHole(z,h,dir,d){if(h.object.userData.part!=null||!z.g||bhQ>=3)return;l
 // del punto de impacto EN LA POSE DE REPOSO (vOP), así el boquete sigue la animación sin tocar la malla; las caras de dentro se pintan de rojo oscuro.
 // Cada zombi herido recibe su copia del material (mismo programa para todos: la clave de caché es el texto de zhOBC). Hasta 10 boquetes por zombi.
 function zhOBC(sh){zSkinM.onBeforeCompile(sh);sh.uniforms.zHit={value:this.userData.zh.v};
-  sh.fragmentShader='uniform vec4 zHit[10];\n'+sh.fragmentShader.replace('void main() {','void main() {\n float zr=0.;for(int i=0;i<10;i++){vec4 zq=zHit[i];if(zq.w>0.){float zd=distance(vOP,zq.xyz)/(zq.w*(.75+.5*zh(floor(vOP*30.))));if(zd<1.)discard;zr=max(zr,1.-smoothstep(1.,1.7,zd));}}')
+  sh.fragmentShader='uniform vec4 zHit[10];\n'+sh.fragmentShader.replace('void main() {','void main() {\n float zn=.75+.5*zh(floor(vOP*30.)),zm=9.;for(int i=0;i<10;i++){vec4 zq=zHit[i];zm=min(zm,zq.w>0.?distance(vOP,zq.xyz)/(zq.w*zn):9.);}\n if(zm<1.)discard;float zr=1.-smoothstep(1.,1.7,zm);')
     .replace('#include <color_fragment>','#include <color_fragment>\n diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.26,.015,.015),gl_FrontFacing?zr*.85:1.);');}
 function zChunk(sm,q,d){let m=sm.material;if(m!==zSkinM&&!(m.userData&&m.userData.zh))return false;
   try{const P_=sm.geometry.attributes.position,A=[q.face.a,q.face.b,q.face.c],W=A.map(i=>sm.boneTransform(i,new V3()).applyMatrix4(sm.matrixWorld)),bc=THREE.Triangle.getBarycoord(q.point,W[0],W[1],W[2],new V3());
