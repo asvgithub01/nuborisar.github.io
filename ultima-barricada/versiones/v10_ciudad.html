@@ -224,7 +224,7 @@ function wlowCalc(){WLOW.fill(0);const H=new Float32Array(GW*GH),S=new Float32Ar
     for(let i=0;i<P.length;i+=9){const y0=Math.min(P[i+1],P[i+4],P[i+7]),y1=Math.max(P[i+1],P[i+4],P[i+7]);if(y1<.5||y0>3)continue;
       const x0=Math.floor(Math.min(P[i],P[i+3],P[i+6])),x1=Math.floor(Math.max(P[i],P[i+3],P[i+6])),z0=Math.floor(Math.min(P[i+2],P[i+5],P[i+8])),z1=Math.floor(Math.max(P[i+2],P[i+5],P[i+8]));
       if(x0<-OX||z0<-OZ||x1>=GW-OX||z1>=GH-OZ)continue;for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++){const id=gi(x,z);if(y1>H[id])H[id]=y1;}
-      if(y0<.6||y1>2.9||!(K[i+2]>K[i]+14&&K[i+2]>=K[i+1]))continue;
+      if(y0<.5||y0>2.6||!(K[i+2]>=K[i]+10&&K[i+2]>=K[i+1]-2))continue;   // cristal: también ventanales altos (iglesia, hasta 4 m)
       const ax=P[i+3]-P[i],ay=P[i+4]-P[i+1],az=P[i+5]-P[i+2],bx=P[i+6]-P[i],by=P[i+7]-P[i+1],bz=P[i+8]-P[i+2],nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx,L=Math.hypot(nx,ny,nz);
       if(L<.04||Math.abs(ny)/L>.3)continue;const cx=(P[i]+P[i+3]+P[i+6])/3,cz=(P[i+2]+P[i+5]+P[i+8])/3,h=Math.hypot(nx,nz)||1;
       for(const s of[0,.35,-.35]){const id=gi(Math.floor(cx+nx/h*s),Math.floor(cz+nz/h*s));if(grid[id]==1){A[id]+=L/2;if(y0<S[id])S[id]=y0;break;}}}}
