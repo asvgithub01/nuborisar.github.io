@@ -1384,15 +1384,28 @@ const ZHOLES=(()=>{const m=new THREE.InstancedMesh(new THREE.SphereGeometry(1,7,
 function holeAt(h,dir,d){let n=null;try{if(h.face){n=h.face.normal.clone();const o=h.object;if(h.instanceId!=null&&o.getMatrixAt){o.getMatrixAt(h.instanceId,bhHM);bhHM.premultiply(o.matrixWorld);n.transformDirection(bhHM);}else n.transformDirection(o.matrixWorld);}}catch(e){n=null;}
   if(!n||!isFinite(n.x)||n.lengthSq()<.5)n=dir.clone().negate();if(n.dot(dir)>0)n.negate();
   const s=(d.pel?.028:d.dmg>400?.075:.04)*(.85+R()*.3);bhHQ.setFromUnitVectors(bhHZ,n);bhHQ2.setFromAxisAngle(bhHZ,R()*6.28);bhHQ.multiply(bhHQ2);bhHP.copy(h.point).addScaledVector(n,.012);
+  // el suelo que para la bala está a -0,12 m, bajo el asfalto que se ve: la marca se sube hasta la calle siguiendo la trayectoria
+  if(h.point.y<-.05&&dir.y<-.02){bhHP.copy(h.point).addScaledVector(dir,(.03-h.point.y)/dir.y);bhHQ.setFromUnitVectors(bhHZ,n.set(0,1,0));}
   bhHM.compose(bhHP,bhHQ,bhHS.set(s,s,s));HOLES.setMatrixAt(bhHI,bhHM);bhHI=(bhHI+1)%bhHN;HOLES.count=Math.min(bhHN,HOLES.count+1);HOLES.instanceMatrix.needsUpdate=true;}
 // la caja de impacto es más pequeña que el modelo: se busca el punto real en la malla animada (máx. 3 búsquedas por fotograma: cuesta ~2 ms) y la herida
 // se engancha al hueso que más pesa en ese triángulo, así sigue la animación (y la caída al morir)
 const bhRay=new THREE.Raycaster();let bhQ=0;
 function zHole(z,h,dir,d){if(h.object.userData.part!=null||!z.g||bhQ>=3)return;let sm=null;for(const o of z.g.children)if(o.isSkinnedMesh&&o.visible){sm=o;break;}if(!sm||!sm.geometry.attributes.skinIndex)return;bhQ++;
   bhRay.set(bhHP.copy(h.point).addScaledVector(dir,-.7),dir);bhRay.far=1.4;const L=[];try{THREE.Mesh.prototype.raycast.call(sm,bhRay,L);}catch(e){return;}if(!L.length)return;L.sort((a,b)=>a.distance-b.distance);
-  const q=L[0],G=sm.geometry.attributes,i=q.face.a;let bi=G.skinIndex.getX(i),bw=G.skinWeight.getX(i);for(const c of['getY','getZ','getW'])if(G.skinWeight[c](i)>bw){bw=G.skinWeight[c](i);bi=G.skinIndex[c](i);}
+  const q=L[0],G=sm.geometry.attributes,i=q.face.a;if(zChunk(sm,q,d)){spray(q.point,0x4a0606,3,3.2,9,.8,1.5);return;}let bi=G.skinIndex.getX(i),bw=G.skinWeight.getX(i);for(const c of['getY','getZ','getW'])if(G.skinWeight[c](i)>bw){bw=G.skinWeight[c](i);bi=G.skinIndex[c](i);}
   const bone=sm.skeleton.bones[bi];if(!bone)return;let n=0,f=-1;for(let j=0;j<ZHL.length;j++)if(ZHL[j].z===z){n++;if(f<0)f=j;}if(n>=8)ZHL.splice(f,1);else if(ZHL.length>=ZHN)ZHL.shift();
   ZHL.push({z,bone,p:q.point.clone().addScaledVector(dir,.012).applyMatrix4(bhHM2.copy(bone.matrixWorld).invert()),s:(d.pel?.022:d.dmg>400?.05:.03)*(.85+R()*.3)});}
+// PRUEBA «arrancar trozos»: en los zombis que usan zSkinM cada impacto abre un boquete de verdad. El sombreador descarta los píxeles a menos de un radio
+// del punto de impacto EN LA POSE DE REPOSO (vOP), así el boquete sigue la animación sin tocar la malla; las caras de dentro se pintan de rojo oscuro.
+// Cada zombi herido recibe su copia del material (mismo programa para todos: la clave de caché es el texto de zhOBC). Hasta 10 boquetes por zombi.
+function zhOBC(sh){zSkinM.onBeforeCompile(sh);sh.uniforms.zHit={value:this.userData.zh.v};
+  sh.fragmentShader='uniform vec4 zHit[10];\n'+sh.fragmentShader.replace('void main() {','void main() {\n float zr=0.;for(int i=0;i<10;i++){vec4 zq=zHit[i];if(zq.w>0.){float zd=distance(vOP,zq.xyz)/(zq.w*(.75+.5*zh(floor(vOP*30.))));if(zd<1.)discard;zr=max(zr,1.-smoothstep(1.,1.7,zd));}}')
+    .replace('#include <color_fragment>','#include <color_fragment>\n diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.26,.015,.015),gl_FrontFacing?zr*.85:1.);');}
+function zChunk(sm,q,d){let m=sm.material;if(m!==zSkinM&&!(m.userData&&m.userData.zh))return false;
+  try{const P_=sm.geometry.attributes.position,A=[q.face.a,q.face.b,q.face.c],W=A.map(i=>sm.boneTransform(i,new V3()).applyMatrix4(sm.matrixWorld)),bc=THREE.Triangle.getBarycoord(q.point,W[0],W[1],W[2],new V3());
+    if(!isFinite(bc.x))return false;const B=A.map(i=>new V3().fromBufferAttribute(P_,i)),p=B[0].multiplyScalar(bc.x).addScaledVector(B[1],bc.y).addScaledVector(B[2],bc.z);
+    if(m===zSkinM){m=zSkinM.clone();m.userData={zh:{v:Array.from({length:10},()=>new THREE.Vector4(0,0,0,0)),i:0}};m.onBeforeCompile=zhOBC;sm.material=m;}
+    const Z=m.userData.zh;Z.v[Z.i].set(p.x,p.y,p.z,(d.pel?.045:d.dmg>400?.13:.065)*(.85+R()*.4));Z.i=(Z.i+1)%10;return true;}catch(e){return false;}}
 function holeTick(){bhQ=0;let k=0;for(let i=0;i<ZHL.length;i++){const e=ZHL[i],g=e.z.g;if(!g.parent)continue;ZHL[k]=e;
     // huesos y matrixWorld son los del último dibujo: se corrige con la posición actual del zombi para que la herida no vaya un fotograma por detrás
     bhHM.compose(g.position,g.quaternion,g.scale).multiply(bhHM2.copy(g.matrixWorld).invert()).multiply(e.bone.matrixWorld);bhHP.copy(e.p).applyMatrix4(bhHM);
