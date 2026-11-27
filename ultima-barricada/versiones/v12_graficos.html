@@ -297,43 +297,45 @@ function winCut(e){if(!e||!e.n||e.type!='window')return;const v=e.wv||[],wx=e.x+
     for(let j=i;j<i+9;j+=3){const A=P[j+a],Y=P[j+1],C=P[j+c];if(A<a0-.03||A>a1+.03||Y<y0-.03||Y>y1+.03||C<c0-.3||C>c1+.3){ok=0;break;}if(A<a0+.03)ea++;if(A>a1-.03)eb++;if(Y<y0+.03)ey++;if(Y>y1-.03)ez++;}
     if(!ok||ea==3||eb==3||ey==3||ez==3)continue;P.fill(0,i,i+9);ch.add(o);}
   for(const o of ch)o.geometry.attributes.position.needsUpdate=true;}
+const FAR0={"z0":[[44.15,90.5,0],[62.5,88.15,-1.5708],[42.85,69.5,-3.1416],[138.5,8.15,-1.5708],[103.15,21.5,0],[25.85,26.5,-3.1416],[27.85,8.5,-3.1416],[6.85,15.5,-3.1416],[52.85,104.5,-3.1416],[129.85,72.5,-3.1416],[146.85,98.5,-3.1416],[146.85,121.5,-3.1416],[147.5,67.85,1.5708],[81.85,53.5,-3.1416],[69.5,111.85,1.5708],[97.15,61.5,0],[20.15,54.5,0],[111.85,50.5,-3.1416],[112.5,76.15,-1.5708],[41.85,27.5,-3.1416],[19.85,73.5,-3.1416],[79.85,35.5,-3.1416],[77.5,18.85,1.5708],[84.15,85.5,0],[63.15,51.5,0],[58.85,33.5,-3.1416],[123.5,15.85,1.5708],[138.15,38.5,0],[131.5,106.85,1.5708],[93.85,121.5,-3.1416],[8.15,42.5,0],[9.15,103.5,0],[115.15,97.5,0],[86.15,4.5,0],[58.15,11.5,0],[103.5,5.15,-1.5708]],"z1":[[73.85,63.5,-3.1416],[89.5,68.15,-1.5708],[70.85,42.5,-3.1416],[87.85,40.5,-3.1416],[108.85,68.5,-3.1416],[76.15,85.5,0],[120.5,106.85,1.5708],[119.5,33.85,1.5708],[55.15,118.5,0],[126.5,53.85,1.5708],[78.85,117.5,-3.1416],[73.15,13.5,0],[143.85,81.5,-3.1416],[47.15,27.5,0],[127.5,76.15,-1.5708],[19.85,81.5,-3.1416],[136.15,122.5,0],[88.15,97.5,0],[12.5,110.85,1.5708],[46.15,59.5,0],[133.15,24.5,0],[45.15,43.5,0],[58.85,77.5,-3.1416],[43.15,84.5,0],[34.5,110.85,1.5708],[103.5,34.85,1.5708],[141.5,100.15,-1.5708],[99.5,109.85,1.5708],[145.5,42.15,-1.5708],[97.85,54.5,-3.1416],[62.5,99.85,1.5708],[111.85,122.5,-3.1416],[93.5,15.15,-1.5708],[2.5,84.85,1.5708],[132.85,8.5,-3.1416],[63.5,28.15,-1.5708]],"z2":[[76.85,62.5,-3.1416],[91.15,65.5,0],[73.5,49.85,1.5708],[13.5,26.85,1.5708],[33.15,54.5,0],[112.15,41.5,0],[4.5,63.85,1.5708],[7.85,87.5,-3.1416],[29.15,112.5,0],[54.5,16.85,1.5708],[124.5,85.85,1.5708],[21.5,4.15,-1.5708],[135.85,68.5,-3.1416],[133.15,112.5,0],[52.5,37.85,1.5708],[76.85,33.5,-3.1416],[91.15,115.5,0],[45.15,81.5,0],[107.85,81.5,-3.1416],[67.5,82.15,-1.5708],[114.5,103.85,1.5708],[91.85,23.5,-3.1416],[45.85,108.5,-3.1416],[126.5,48.85,1.5708],[119.85,68.5,-3.1416],[19.85,70.5,-3.1416],[11.15,47.5,0],[73.5,16.15,-1.5708],[110.5,7.85,1.5708],[6.85,109.5,-3.1416],[31.5,19.15,-1.5708],[89.5,87.15,-1.5708],[57.15,121.5,0],[71.5,112.85,1.5708],[141.5,15.15,-1.5708],[131.15,31.5,0]],"z3":[[79.5,63.85,1.5708],[96.5,65.85,1.5708],[79.5,44.15,-1.5708],[103.5,21.85,1.5708],[33.15,54.5,0],[56.5,75.85,1.5708],[64.85,18.5,-3.1416],[98.15,110.5,0],[130.5,4.15,-1.5708],[108.5,40.15,-1.5708],[20.85,72.5,-3.1416],[125.85,44.5,-3.1416],[138.5,33.15,-1.5708],[48.5,16.15,-1.5708],[84.85,90.5,-3.1416],[114.5,103.15,-1.5708],[21.5,25.85,1.5708],[53.5,35.85,1.5708],[96.5,5.15,-1.5708],[140.15,63.5,0],[63.85,58.5,-3.1416],[32.5,87.85,1.5708],[143.5,100.15,-1.5708],[16.15,41.5,0],[147.5,10.85,1.5708],[102.85,81.5,-3.1416],[10.5,84.85,1.5708],[111.85,60.5,-3.1416],[119.5,21.85,1.5708],[68.5,86.85,1.5708],[48.5,92.85,1.5708]],"z4":[[73.5,64.85,1.5708],[92.5,64.15,-1.5708],[70.15,42.5,0],[27.85,8.5,-3.1416],[4.5,53.15,-1.5708],[45.15,53.5,0],[117.5,29.85,1.5708],[57.15,9.5,0],[38.85,30.5,-3.1416],[13.5,33.85,1.5708],[118.5,12.15,-1.5708],[24.85,59.5,-3.1416],[29.5,96.15,-1.5708],[35.85,72.5,-3.1416],[96.85,19.5,-3.1416],[138.5,2.15,-1.5708],[12.15,92.5,0],[57.5,80.85,1.5708],[54.5,35.15,-1.5708],[56.85,64.5,-3.1416],[74.15,13.5,0],[80.5,30.15,-1.5708],[15.5,113.85,1.5708],[107.85,73.5,-3.1416],[107.15,42.5,0],[11.5,10.15,-1.5708],[72.15,87.5,0]]};
 // ---------- farolas de la calle y calibrado de la luz ----------
 const LUZ0={amb:1,luna:1,nie:1,far:1,alc:20},LUZ=Object.assign({},LUZ0);try{Object.assign(LUZ,JSON.parse(localStorage.getItem('ub_luz')||'{}'));}catch(e){}
 const FAR={sig:null,L:[],ms:[],t:0,all:0,top:[],o:new THREE.Object3D()};
 function farMerge(L){const P=[],N=[];for(const[g,x,y,z]of L){const q=g.toNonIndexed();q.translate(x,y,z);for(const v of q.attributes.position.array)P.push(v);for(const v of q.attributes.normal.array)N.push(v);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));return g;}
 function farTex(a){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);for(const s of a)g.addColorStop(s[0],s[1]);x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);}
-function farBuild(H){for(const o of FAR.ms){scene.remove(o);o.geometry.dispose();}FAR.ms=[];FAR.L=[];FAR.top=[];const Z=ZONAS[zi];if(!Z)return;
-  const fr=(x,z)=>x>=1&&z>=1&&x<Z.w-1&&z<Z.h-1&&grid[gi(x,z)]==0,inH=(x,z)=>H.some(h=>h.S.has(gi(x,z)))||BZ.some(B=>x>=B.x&&z>=B.z&&x<B.x+B.w&&z<B.z+B.d);
-  // exterior = casillas libres alcanzables andando desde la llegada (las casas cerradas quedan fuera)
-  const s0=gi(Math.floor(SPX),Math.floor(SPZ)),out=new Uint8Array(grid.length),q=[s0];out[s0]=1;for(let i=0;i<q.length;i++)for(const d of[1,-1,GW,-GW]){const n=q[i]+d;if(n>=0&&n<grid.length&&!out[n]&&grid[n]==0){out[n]=1;q.push(n);}}
-  // candidatas: obstáculo detrás, ≥5 casillas libres delante y sitio a los lados (borde de una calle, no un callejón)
-  const C=[];for(let z=2;z<Z.h-2;z++)for(let x=2;x<Z.w-2;x++){if(!out[gi(x,z)]||inH(x,z))continue;
-    for(const[dx,dz]of[[1,0],[-1,0],[0,1],[0,-1]]){if(grid[gi(x-dx,z-dz)]==0)continue;let n=0;while(n<8&&fr(x+dx*(n+1),z+dz*(n+1)))n++;if(n<5)continue;
-      let w=0;for(const s of[1,-1]){let k=0;while(k<4&&fr(x+dz*s*(k+1),z+dx*s*(k+1)))k++;w+=k;}if(w<4)continue;C.push([x,z,dx,dz,((x*73856093)^(z*19349663))>>>0]);break;}}
-  C.sort((a,b)=>a[4]%9973-b[4]%9973);const first=[];for(const p of[[0,0],[16,2],[-4,-20]]){let b=null,bd=14;for(const c of C){const d=Math.hypot(c[0]-SPX-p[0],c[1]-SPZ-p[1]);if(d<bd){bd=d;b=c;}}if(b)first.push(b);}
-  for(const c of first.concat(C)){if(FAR.L.length>=36)break;const x=c[0]+.5-c[2]*.35,z=c[1]+.5-c[3]*.35;if(FAR.L.some(l=>Math.hypot(l.x-x,l.z-z)<(first.includes(c)?9:16)))continue;
-    let h=null,hd=1e9;for(const o of H){const d=Math.hypot(o.x-x,o.z-z);if(d<hd){hd=d;h=o.k;}}
-    FAR.L.push({x,z,a:Math.atan2(-c[3],c[2]),lx:x+c[2]*1.15,lz:z+c[3]*1.15,h,d:h?hd:0,al:!H.length||Math.hypot(x-SPX,z-SPZ)<24,on:null,v:-1,at:0});}
-  const N=FAR.L.length;if(!N)return;const add=(g,m)=>{const o=new THREE.InstancedMesh(g,m,N);o.frustumCulled=false;o.raycast=()=>{};scene.add(o);FAR.ms.push(o);return o;},D=FAR.o;
-  const pole=add(farMerge([[new THREE.CylinderGeometry(.06,.1,5,6),0,2.5,0],[new THREE.BoxGeometry(1.3,.07,.07),.6,5,0],[new THREE.BoxGeometry(.5,.12,.26),1.15,4.94,0]]),M(0x23272c));
+// La farola es un modelo más del mapa (el último de la zona): así el editor la selecciona, mueve, gira, oculta o añade como cualquier pieza.
+// Sus sitios de partida están en FAR0 (farolas.json); los cambios del usuario van en «m» y «a» del mapa, como los demás modelos. nc = sin colisión.
+function farInject(D){if(D.farMi!=null)return;const L=FAR0['z'+zi]||[],g=farMerge([[new THREE.CylinderGeometry(.06,.1,5,6),0,2.5,0],[new THREE.BoxGeometry(1.3,.07,.07),.6,5,0],[new THREE.BoxGeometry(.5,.12,.26),1.15,4.94,0]]),
+    P=g.attributes.position.array,nv=P.length/3,nt=nv/3,ox=-D.rect[0],oy=-.06-ZONAS[zi].y0,oz=-D.rect[1];let s=0;for(const v of P)s=Math.max(s,Math.abs(v));
+  const u=new Uint8Array(nv*6+nt*8),q=new Int16Array(u.buffer,0,nv*3),cc=new Uint16Array(u.buffer,nv*6,nt),ix=new Uint16Array(u.buffer,nv*6+nt*2,nt*3);
+  for(let i=0;i<q.length;i++)q[i]=Math.round(P[i]/s*32767);cc.fill((35>>3)<<11|(39>>2)<<5|(44>>3));for(let i=0;i<ix.length;i++)ix[i]=i;g.dispose();
+  const f=new Float32Array(L.length*12);L.forEach((e,j)=>{const a=j*12,c=Math.cos(e[2]),sn=Math.sin(e[2]);f[a]=c;f[a+2]=sn;f[a+3]=e[0]-ox;f[a+5]=1;f[a+7]=-oy;f[a+8]=-sn;f[a+10]=c;f[a+11]=e[1]-oz;});
+  const b64=w=>{let t='';for(let i=0;i<w.length;i++)t+=String.fromCharCode(w[i]);return btoa(t);};
+  D.models.push({n:'Farola',nc:1,s,nv,nt,r:0,w:0,d:b64(u),i:b64(new Uint8Array(f.buffer)),k:L.length});D.farMi=D.models.length-1;}
+function farBuild(H){for(const o of FAR.ms){scene.remove(o);o.geometry.dispose();}FAR.ms=[];FAR.L=[];FAR.top=[];const D=window.ZD&&window.ZD[zi];if(!D||D.farMi==null)return false;
+  const m=D.models[D.farMi],ox=-D.rect[0],oy=-.06-ZONAS[zi].y0,oz=-D.rect[1],b=atob(m.i),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+  const f=new Float32Array(u.buffer);MAPED.mods(D.farMi,f,m.k);const fx=MAPED.adds(D.farMi,f,m.k,ox,oy,oz);
+  for(let i=0;i<fx.length/12;i++){const a=i*12,c=fx[a],sn=fx[a+2],k=Math.hypot(c,sn);if(k<.05||fx[a+7]<-900)continue;const x=fx[a+3]+ox,z=fx[a+11]+oz;let h=null,hd=1e9;for(const o of H){const d=Math.hypot(o.x-x,o.z-z);if(d<hd){hd=d;h=o.k;}}
+    FAR.L.push({x,z,y:fx[a+7]+oy,k,a:Math.atan2(sn,c),lx:x+c*1.15,lz:z-sn*1.15,h,d:h?hd:0,al:!H.length||Math.hypot(x-SPX,z-SPZ)<24,on:null,v:-1,at:0});}
+  const N=FAR.L.length;if(!N)return;const add=(g,mt)=>{const o=new THREE.InstancedMesh(g,mt,N);o.frustumCulled=false;o.raycast=()=>{};scene.add(o);FAR.ms.push(o);return o;},O=FAR.o;
   FAR.bulb=add(new THREE.BoxGeometry(.4,.05,.2),new THREE.MeshBasicMaterial({color:0xffffff}));
   const pg=new THREE.PlaneGeometry(1,1);pg.rotateX(-Math.PI/2);FAR.pool=add(pg,new THREE.MeshBasicMaterial({map:farTex([[0,'rgba(255,214,150,1)'],[.35,'rgba(255,190,120,.5)'],[1,'rgba(255,170,90,0)']]),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
   const cg=new THREE.ConeGeometry(2.5,4.7,14,1,true);cg.translate(0,-2.35,0);FAR.cone=add(cg,new THREE.MeshBasicMaterial({color:0xffd296,transparent:true,opacity:.05,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
   const gp=new THREE.BufferGeometry();gp.setAttribute('position',new THREE.BufferAttribute(new Float32Array(N*3),3));FAR.glow=new THREE.Points(gp,new THREE.PointsMaterial({map:farTex([[0,'rgba(255,240,210,1)'],[.25,'rgba(255,200,130,.5)'],[1,'rgba(255,170,90,0)']]),size:2.6,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,color:0xffd9a0}));
   FAR.glow.frustumCulled=false;FAR.glow.raycast=()=>{};scene.add(FAR.glow);FAR.ms.push(FAR.glow);
-  FAR.L.forEach((l,i)=>{D.position.set(l.x,0,l.z);D.rotation.set(0,l.a,0);D.scale.setScalar(1);D.updateMatrix();pole.setMatrixAt(i,D.matrix);D.position.set(l.lx,4.86,l.lz);D.updateMatrix();FAR.bulb.setMatrixAt(i,D.matrix);l.i=i;});FAR.new=1;}
-function farShow(l){const D=FAR.o,v=l.v,i=l.i;D.rotation.set(0,0,0);D.position.set(l.lx,.16,l.lz);D.scale.setScalar(v?15:0);D.updateMatrix();FAR.pool.setMatrixAt(i,D.matrix);
-  D.position.set(l.lx,4.84,l.lz);D.scale.setScalar(v?1:0);D.updateMatrix();FAR.cone.setMatrixAt(i,D.matrix);FAR.bulb.setColorAt(i,D.userData.c=(D.userData.c||new THREE.Color()).setHex(v?0xffe2a8:0x1c1e22));
-  FAR.glow.geometry.attributes.position.setXYZ(i,l.lx,v?4.8:-99,l.lz);for(const o of[FAR.pool,FAR.cone])o.instanceMatrix.needsUpdate=true;FAR.bulb.instanceColor.needsUpdate=true;FAR.glow.geometry.attributes.position.needsUpdate=true;}
-function farTick(dt){FAR.t-=dt;if(FAR.t<=0){FAR.t=.3;const H=MAPED.sgHs(),sig=zi+'|'+(H.sig||'');if(sig!=FAR.sig){FAR.sig=sig;farBuild(H);}
+  FAR.L.forEach((l,i)=>{O.position.set(l.lx,l.y+4.86*l.k,l.lz);O.rotation.set(0,l.a,0);O.scale.setScalar(l.k);O.updateMatrix();FAR.bulb.setMatrixAt(i,O.matrix);l.i=i;});FAR.new=1;}
+function farShow(l){const D=FAR.o,v=l.v,i=l.i;D.rotation.set(0,0,0);D.position.set(l.lx,l.y+.16,l.lz);D.scale.setScalar(v?15*l.k:0);D.updateMatrix();FAR.pool.setMatrixAt(i,D.matrix);
+  D.position.set(l.lx,l.y+4.84*l.k,l.lz);D.scale.setScalar(v?l.k:0);D.updateMatrix();FAR.cone.setMatrixAt(i,D.matrix);FAR.bulb.setColorAt(i,D.userData.c=(D.userData.c||new THREE.Color()).setHex(v?0xffe2a8:0x1c1e22));
+  FAR.glow.geometry.attributes.position.setXYZ(i,l.lx,v?l.y+4.8*l.k:-99,l.lz);for(const o of[FAR.pool,FAR.cone])o.instanceMatrix.needsUpdate=true;FAR.bulb.instanceColor.needsUpdate=true;FAR.glow.geometry.attributes.position.needsUpdate=true;}
+function farTick(dt){FAR.t-=dt;if(FAR.t<=0){FAR.t=.3;const H=MAPED.sgHs(),sig=zi+'|'+(H.sig||'');if(sig!=FAR.sig&&farBuild(H)!==false)FAR.sig=sig;
     FAR.top=FAR.L.filter(l=>l.on&&time>=l.at).sort((a,b)=>Math.hypot(a.lx-P.x,a.lz-P.z)-Math.hypot(b.lx-P.x,b.lz-P.z)).slice(0,3);}
   if(!FAR.L.length){for(const[l]of zLamps)l.userData.b=1e-4;return;}const lit=MAPED.sgLitS;
   for(const l of FAR.L){const on=!!(l.al||lit[l.h]||FAR.all);if(on!==l.on){l.at=FAR.new||l.on===null?0:time+l.d*.035;l.on=on;}const v=on&&time>=l.at&&(time-l.at>.6||R()>.45)?1:0;if(v!=l.v){l.v=v;farShow(l);}}FAR.new=0;
   FAR.pool.material.opacity=Math.min(1,.5*LUZ.far);FAR.cone.material.opacity=Math.min(.3,.05*LUZ.far);FAR.glow.material.opacity=Math.min(1,.5+.5*LUZ.far);
   // las 3 luces de verdad van a las farolas encendidas más cercanas; al cambiar de farola se apagan y se encienden poco a poco
   for(const e of zLamps){const pl=e[0],u=pl.userData;if(u.fa&&!FAR.top.includes(u.fa)||u.fa&&!u.fa.on)u.go=0;else if(u.fa)u.go=1;u.ff=Math.max(0,Math.min(1,(u.ff||0)+(u.go?dt*2.5:-dt*2.5)));
-    if(!u.fa||u.ff<=0&&!u.go){const n=FAR.top.find(l=>!zLamps.some(o=>o[0].userData.fa===l));u.fa=n||null;u.go=n?1:0;if(n)pl.position.set(n.lx,4.5,n.lz);}
+    if(!u.fa||u.ff<=0&&!u.go){const n=FAR.top.find(l=>!zLamps.some(o=>o[0].userData.fa===l));u.fa=n||null;u.go=n?1:0;if(n)pl.position.set(n.lx,n.y+4.5*n.k,n.lz);}
     pl.distance=LUZ.alc;u.b=Math.max(1e-4,1.15*LUZ.far*u.ff*(u.fa&&u.fa.v?1:.25));}}
 // panel de calibrado (F4): se maneja con el teclado para no soltar el ratón
 {const S=[['amb','Luz ambiente (cielo)',0,2,.05],['luna','Luz de la luna',0,3,.05],['nie','Niebla',.2,2.5,.05],['far','Fuerza de las farolas',0,3,.05],['alc','Alcance de las farolas (m)',8,40,1]];let sel=0;
@@ -348,7 +350,7 @@ function farTick(dt){FAR.t-=dt;if(FAR.t<=0){FAR.t=.3;const H=MAPED.sgHs(),sig=zi
   addEventListener('keydown',e=>{if(e.code=='F4'){e.preventDefault();d.style.display=d.style.display=='none'?'block':'none';show();return;}if(d.style.display=='none')return;const s=S[sel];
     if(e.code=='ArrowUp')sel=(sel+S.length-1)%S.length;else if(e.code=='ArrowDown')sel=(sel+1)%S.length;else if(e.code=='ArrowLeft'||e.code=='ArrowRight'){LUZ[s[0]]=Math.round(Math.max(s[2],Math.min(s[3],LUZ[s[0]]+(e.code=='ArrowLeft'?-1:1)*s[4]))*100)/100;save();}
     else if(e.code=='Enter'||e.code=='NumpadEnter')FAR.all=FAR.all?0:1;else return;e.preventDefault();show();},true);}
-function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;};
+function cityBuild(D){carsClear();farInject(D);const by=d=>{const b=atob(d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;};
   while(cityG.children.length){const c=cityG.children[0];cityG.remove(c);c.geometry.dispose();}
   cityG.position.set(0,0,0);const ox=-D.rect[0],oy=-.06-ZONAS[zi].y0,oz=-D.rect[1],CH=25,NX=Math.ceil(GW/CH),NZ=Math.ceil(GH/CH),bufs=[];
   const buf=(cx,cz,mt)=>{const id=((cz<0?0:cz>=NZ?NZ-1:cz)*NX+(cx<0?0:cx>=NX?NX-1:cx))*2+mt;return bufs[id]||(bufs[id]=new GBuf());};
@@ -366,7 +368,7 @@ function cityBuild(D){carsClear();const by=d=>{const b=atob(d),u=new Uint8Array(
         for(let j=0;j<3;j++,w+=3){Q[w]=nx;Q[w+1]=ny;Q[w+2]=nz;K[w]=r;K[w+1]=g;K[w+2]=bl;}B.n+=3;if(mapIds)(B.id||(B.id=[])).push(mi*65536+i);}}}
   MAPED.autoCol();bufs.forEach((B,id)=>{if(!B||!B.n)return;const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(B.p.slice(0,B.n*3),3));ge.setAttribute('normal',new THREE.BufferAttribute(B.q.slice(0,B.n*3),3,true));ge.setAttribute('color',new THREE.BufferAttribute(B.k.slice(0,B.n*3),3,true));
     ge.computeBoundingSphere();const me=new THREE.Mesh(ge,id&1?roadM:cityM);me.userData.ids=B.id;me.raycast=()=>{};me.matrixAutoUpdate=false;cityG.add(me);});
-  try{for(const e of ENTRIES)winCut(e);}catch(x){}try{wlowCalc();rebuildWalls();}catch(x){}
+  try{for(const e of ENTRIES)winCut(e);}catch(x){}try{wlowCalc();rebuildWalls();}catch(x){}FAR.sig=null;
   if(cityWarm)return;cityWarm=true;
   // precarga de los modelos de zombi para que no den un tirón la primera vez que aparece cada tipo
   const wg=new THREE.Group();wg.position.set(SPX,-40,SPZ);for(let ti=0;ti<ZTYPES.length;ti++){const z={g:new THREE.Group(),lm:0};zSkin(z,ti);wg.add(z.g);}scene.add(wg);
@@ -838,7 +840,7 @@ const MAPED=(()=>{let L={},pan=null,tab='mod',sel=null,ov=null,ptype=0,pon=true,
   // (muestras de sus triángulos: 3 o más entre 1,2 y 1,9 m = muro; entre 0,5 y 1,05 m = obstáculo bajo). Las casillas pintadas a mano mandan por encima.
   let REG=[],acT=0;const fpL=new Uint16Array(GW*GH),fpH=new Uint16Array(GW*GH),keepReg=()=>TEST||state=='editor';
   function reg(mi,m,q,ix,k,f,ox,oy,oz){if(!mi)REG=[];const pre=mi+':',has=Object.keys(modsOf(zi)).some(s=>s.startsWith(pre));REG.push({mi,m,q,ix,k,f0:has?f.slice():f,ox,oy,oz});}
-  function fprint(e,F,i,yb){const q=e.q,ix=e.ix,k=e.k,a=i*12,m0=F[a],m1=F[a+1],m2=F[a+2],m3=F[a+3]+e.ox,m4=F[a+4],m5=F[a+5],m6=F[a+6],m7=F[a+7]+e.oy,m8=F[a+8],m9=F[a+9],m10=F[a+10],m11=F[a+11]+e.oz,T=[],out=[],p=new Float64Array(9);
+  function fprint(e,F,i,yb){if(e.m.nc)return[];const q=e.q,ix=e.ix,k=e.k,a=i*12,m0=F[a],m1=F[a+1],m2=F[a+2],m3=F[a+3]+e.ox,m4=F[a+4],m5=F[a+5],m6=F[a+6],m7=F[a+7]+e.oy,m8=F[a+8],m9=F[a+9],m10=F[a+10],m11=F[a+11]+e.oz,T=[],out=[],p=new Float64Array(9);
     for(let t=0;t<e.m.nt;t++){let lo=1e9,hi=-1e9;for(let c=0;c<3;c++){const v=ix[t*3+c]*3,x=q[v]*k,y=q[v+1]*k,z=q[v+2]*k,Y=m4*x+m5*y+m6*z+m7-(yb||0);p[c*3]=m0*x+m1*y+m2*z+m3;p[c*3+1]=Y;p[c*3+2]=m8*x+m9*y+m10*z+m11;if(Y<lo)lo=Y;if(Y>hi)hi=Y;}
       if(hi<=.5||lo>=1.9)continue;
       const L=Math.max(Math.hypot(p[3]-p[0],p[4]-p[1],p[5]-p[2]),Math.hypot(p[6]-p[0],p[7]-p[1],p[8]-p[2])),n=Math.max(1,Math.min(60,Math.ceil(L/.35)));
