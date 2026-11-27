@@ -75,7 +75,12 @@
     <tr><td>V / botón central</td><td>Cuchillazo rápido (el cuchillo también se puede equipar con la rueda)</td></tr>
     <tr><td>C</td><td>Vista en tercera persona</td></tr>
     <tr><td>X</td><td>Tirar el arma que llevas</td></tr>
-    <tr><td>Mando</td><td>Palancas: moverte y mirar · R2 disparar · L2 apuntar · ✕ saltar · □ usar / recargar (mantener: reparar) · △ y R1 cambiar de arma · ○ cuchillo · L1 granada · L3 correr · cruceta: ↑ linterna, ↓ tirar arma, ← vista · OPTIONS pausa · SHARE marcador</td></tr>
+    <tr><td>Mando</td><td>Palancas: moverte y mirar · L3 correr</td></tr>
+    <tr><td></td><td>R2 disparar · L2 apuntar · ✕ saltar</td></tr>
+    <tr><td></td><td>□ usar / recargar (mantener: reparar)</td></tr>
+    <tr><td></td><td>△ y R1 cambiar arma · ○ cuchillo · L1 granada</td></tr>
+    <tr><td></td><td>Cruceta: ↑ linterna · ↓ tirar arma · ← vista</td></tr>
+    <tr><td></td><td>OPTIONS pausa · SHARE marcador</td></tr>
     <tr><td>R</td><td>Recargar</td></tr>
     <tr><td>L</td><td>Linterna (gasta batería: los zombis sueltan pilas)</td></tr>
     <tr><td>Blindaje</td><td>Cómpralo una vez (3000): aguanta los golpes y se repara con las piezas que sueltan los zombis</td></tr>
@@ -2203,19 +2208,24 @@ function padTick(){const g=padGet(),now=performance.now(),dt=Math.min(.05,(now-P
 (function padLoop(){requestAnimationFrame(padLoop);try{padTick();}catch(e){}})();
 addEventListener('gamepaddisconnected',()=>{if(state=='play')msg('Mando desconectado');});
 
-let hadLock=false;document.addEventListener('pointerlockerror',()=>{if(state=='play')msg('El navegador aún no deja capturar el ratón: espera un segundo y haz clic en el juego');});
-document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement){hadLock=true;return;}if(!hadLock)return;hadLock=false;if(!document.pointerLockElement&&state=='play'&&!editMode){if(performance.now()-goT<1500){setTimeout(grab,120);return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
+let hadLock=false;document.addEventListener('pointerlockerror',()=>{if(state=='play'&&performance.now()-goT<2500){setTimeout(grab,350);return;}if(state=='play')msg('El navegador aún no deja capturar el ratón: espera un segundo y haz clic en el juego');});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement){hadLock=true;return;}if(!hadLock)return;hadLock=false;if(!document.pointerLockElement&&state=='play'&&!editMode){if(performance.now()-goT<2500){setTimeout(grab,120);return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
   $('ovc').style.display='none';$('ovt').textContent='PAUSA';$('ovs').textContent=net.on?'La partida sigue en marcha. Haz clic para volver.':'Haz clic para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}});
 let goT=0;
 function grab(){if(touchOn||document.pointerLockElement==renderer.domElement)return;try{const p=renderer.domElement.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
 // al entrar en pantalla completa el navegador puede soltar el ratón: se vuelve a capturar
-for(const ev of['fullscreenchange','webkitfullscreenchange'])document.addEventListener(ev,()=>{if(state=='play')setTimeout(grab,60);});
+for(const ev of['fullscreenchange','webkitfullscreenchange'])document.addEventListener(ev,()=>{const ov=()=>$('ov').style.display=='flex';
+  if(fsIn()){if(state=='play'&&!ov())setTimeout(()=>{if(state=='play'&&!ov())grab();},60);}
+  else if(state=='play'&&!ov()&&!editMode&&performance.now()-goT>2500){if(document.pointerLockElement)document.exitPointerLock();else pauseShow();}});
+function fsIn(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function pauseShow(){firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
+  $('ovc').style.display='none';$('ovt').textContent='PAUSA';$('ovs').textContent=net.on?'La partida sigue en marcha. Haz clic para volver.':'Haz clic para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}
 $('go').onclick=()=>{
   if(state=='dead'){if(net.host){bc({t:'again'});rejoin('h',net.hcode);}else if(net.client)rejoin('c',net.jcode);else location.reload();return;}
   if(!AC){try{initAudio();}catch(e){AC=null;}}else AC.resume();voiceStart();
   $('lobbyBtns').style.display='none';
   // pantalla completa (y en móvil, bloqueo en horizontal donde el navegador lo permite)
-  try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;if(fs&&$('go').textContent!='CONTINUAR'&&!(document.fullscreenElement||document.webkitFullscreenElement)){
+  try{const el=document.documentElement,fs=el.requestFullscreen||el.webkitRequestFullscreen;if(fs&&!(document.fullscreenElement||document.webkitFullscreenElement)){
     const pr=fs.call(el,{navigationUI:'hide'}),lk=()=>{try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');if(o&&o.catch)o.catch(()=>{});}catch(e){}};
     if(pr&&pr.then)pr.then(lk,()=>{});else lk();}}catch(e){}
   if(state=='menu'){TEST=$('edm').checked;MAXZ=+$('maxz').value||24;try{localStorage.ub_maxz=MAXZ;localStorage.ub_edm=TEST?'1':'0';}catch(e){}give('knife');give('pistol');if(!TEST)give(['shotgun','semi','smg4'][R()*3|0]);if(TEST){for(const k in WEAPONS)if(!has(k)){const d=WEAPONS[k];slots.push({k,d,mag:d.mag,res:d.res});}for(const g of GATES)g.openIt();msg('MODO EDICIÓN: inmortal, todas las armas (rueda del ratón) · F2 ajusta manos y mira · J ver colisión · K marcar sitio · M editor de mapa');}if(!net.client)startRound();}
