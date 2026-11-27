@@ -75,6 +75,7 @@
     <tr><td>V / botón central</td><td>Cuchillazo rápido (el cuchillo también se puede equipar con la rueda)</td></tr>
     <tr><td>C</td><td>Vista en tercera persona</td></tr>
     <tr><td>X</td><td>Tirar el arma que llevas</td></tr>
+    <tr><td>Mando</td><td>Palancas: moverte y mirar · R2 disparar · L2 apuntar · ✕ saltar · □ usar / recargar (mantener: reparar) · △ y R1 cambiar de arma · ○ cuchillo · L1 granada · L3 correr · cruceta: ↑ linterna, ↓ tirar arma, ← vista · OPTIONS pausa · SHARE marcador</td></tr>
     <tr><td>R</td><td>Recargar</td></tr>
     <tr><td>L</td><td>Linterna (gasta batería: los zombis sueltan pilas)</td></tr>
     <tr><td>Blindaje</td><td>Cómpralo una vez (3000): aguanta los golpes y se repara con las piezas que sueltan los zombis</td></tr>
@@ -2163,6 +2164,45 @@ addEventListener('mousedown',e=>{if(state!='play'||editMode)return;P.act=time;if
 addEventListener('mouseup',e=>{if(e.button==0)firing=false;if(e.button==2)aim=false;});
 addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('wheel',e=>{if(state=='play'&&slots.length>1)switchTo((ci+(e.deltaY>0?1:slots.length-1))%slots.length);});
+// ---------- mando ----------
+const PAD={on:0,b:[],mv:0,run:0,t:0,dz:.14};
+function padGet(){let L=[];try{L=navigator.getGamepads?navigator.getGamepads():[];}catch(e){}let g=null;for(const p of L)if(p&&p.connected&&p.buttons.length>=12&&(!g||(p.mapping=='standard'&&g.mapping!='standard')))g=p;return g;}
+function padKey(c){for(const t of['keydown','keyup'])dispatchEvent(new KeyboardEvent(t,{code:c}));}
+function padPause(){if(document.pointerLockElement){document.exitPointerLock();return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
+  $('ovc').style.display='none';$('ovt').textContent='PAUSA';$('ovs').textContent='Pulsa OPTIONS o ✕ en el mando para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}
+function padResume(){if(state=='paused'){state='play';if(AC)AC.resume();}$('ov').style.display='none';}
+function padTick(){const g=padGet(),now=performance.now(),dt=Math.min(.05,(now-PAD.t)/1000);PAD.t=now;if(!g){if(PAD.on){PAD.on=0;if(PAD.mv){PAD.mv=0;keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=keys.ShiftLeft=false;}}return;}
+  const B=g.buttons.map(b=>b.pressed||b.value>.35),O=PAD.b,dn=i=>B[i]&&!O[i],up=i=>!B[i]&&O[i];PAD.b=B;
+  if(!PAD.on){PAD.on=1;if(state=='play')msg('Mando conectado');}
+  const paused=$('ov').style.display=='flex'&&$('go').textContent=='CONTINUAR'&&(state=='paused'||state=='play');
+  if(paused){if(dn(9)||dn(0))padResume();return;}
+  if(state!='play'||editMode)return;
+  if(dn(9)){padPause();return;}
+  const ax=i=>{const v=g.axes[i]||0,a=Math.abs(v);return a<PAD.dz?0:Math.sign(v)*(a-PAD.dz)/(1-PAD.dz);};
+  // mirar: palanca derecha (curva suave cerca del centro; más lento apuntando)
+  const rx=ax(2),ry=ax(3);if(rx||ry){const k=2.9*sens*camera.fov/75*dt*(aim?.6:1),c=v=>v*(.35+.65*Math.abs(v));P.yaw-=c(rx)*k;P.pitch=Math.max(-1.5,Math.min(1.5,P.pitch-c(ry)*k*.8));P.act=time;}
+  // moverse: palanca izquierda (el juego se mueve por teclas: se traduce a W A S D); L3 = correr hasta soltar la palanca
+  const lx=ax(0),ly=ax(1),mv=Math.abs(lx)>.3||Math.abs(ly)>.3;
+  if(mv){PAD.mv=1;if(dn(10))PAD.run=!PAD.run;keys.KeyW=ly<-.3;keys.KeyS=ly>.3;keys.KeyA=lx<-.3;keys.KeyD=lx>.3;keys.ShiftLeft=!!PAD.run&&ly<-.3;P.act=time;}
+  else if(PAD.mv){PAD.mv=0;PAD.run=0;keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=keys.ShiftLeft=false;}
+  if(dn(8))tabShow(true);if(up(8))tabShow(false);
+  if(specOn){if(dn(0)||dn(7))specI++;}
+  if(up(7))firing=false;if(up(6))aim=false;if(up(2))keys.KeyF=false;
+  if(P.dead)return;
+  if(dn(7)){P.act=time;if(buildMode)placeTrap();else{firing=true;pressed=true;}}
+  if(dn(6))aim=true;
+  if(dn(0)&&P.y==0)P.vy=5.5;
+  if(dn(1)||dn(11))knife();
+  if(dn(2)){if(nearStation())interact();else reload();keys.KeyF=true;}
+  if(dn(3)&&slots.length>1)switchTo((ci+1)%slots.length);
+  if(dn(5)&&slots.length>1)switchTo((ci+slots.length-1)%slots.length);
+  if(dn(4))throwG();
+  if(dn(12))padKey('KeyL');
+  if(dn(13))wThrow();
+  if(dn(14)){tp=!tp;msg(tp?'Vista en tercera persona':'Vista en primera persona');}}
+(function padLoop(){requestAnimationFrame(padLoop);try{padTick();}catch(e){}})();
+addEventListener('gamepaddisconnected',()=>{if(state=='play')msg('Mando desconectado');});
+
 let hadLock=false;document.addEventListener('pointerlockerror',()=>{if(state=='play')msg('El navegador aún no deja capturar el ratón: espera un segundo y haz clic en el juego');});
 document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement){hadLock=true;return;}if(!hadLock)return;hadLock=false;if(!document.pointerLockElement&&state=='play'&&!editMode){if(performance.now()-goT<1500){setTimeout(grab,120);return;}firing=false;aim=false;if(!net.on){state='paused';if(AC)AC.suspend();}
   $('ovc').style.display='none';$('ovt').textContent='PAUSA';$('ovs').textContent=net.on?'La partida sigue en marcha. Haz clic para volver.':'Haz clic para continuar.';$('go').textContent='CONTINUAR';$('ov').style.display='flex';}});
